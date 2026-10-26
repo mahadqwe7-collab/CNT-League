@@ -14,7 +14,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CNT-League | Official Cricket Tournament Engine</title>
-  <meta name="description" content="CNT-League official tournament dashboard, points table, player stats, and fixtures.">
+  <meta name="description" content="CNT-League official tournament dashboard, points table, individual player career, and fixtures.">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <!-- Supabase JS Client -->
@@ -26,15 +26,19 @@
 <header>
   <nav class="wrap">
     <a class="brand" href="#home">CNT-<span>LEAGUE</span></a>
-    <div class="links">
-      <a href="#seasons">SEASONS</a>
-      <a href="#standings">STANDINGS</a>
-      <a href="#bracket">BRACKET</a>
-      <a href="#fixtures">MATCH LOG</a>
-      <a href="#pvp">PVP COMPARE</a>
-      <a href="#players">PLAYERS</a>
-      <a href="#feedback">FEEDBACK</a>
-      <a class="admin-nav-btn" onclick="openModal('loginModal')">ADMIN LOG-IN</a>
+    
+    <!-- MOBILE HAMBURGER MENU BUTTON -->
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle Navigation">☰</button>
+
+    <div class="links" id="navLinks">
+      <a href="#seasons" onclick="closeMobileMenu()">SEASONS</a>
+      <a href="#standings" onclick="closeMobileMenu()">STANDINGS</a>
+      <a href="#bracket" onclick="closeMobileMenu()">BRACKET</a>
+      <a href="#fixtures" onclick="closeMobileMenu()">MATCH LOG</a>
+      <a href="#pvp" onclick="closeMobileMenu()">PVP COMPARE</a>
+      <a href="#players" onclick="closeMobileMenu()">INDIVIDUAL CAREER</a>
+      <a href="#feedback" onclick="closeMobileMenu()">FEEDBACK</a>
+      <a class="admin-nav-btn" onclick="openModal('loginModal'); closeMobileMenu();">ADMIN LOG-IN</a>
     </div>
   </nav>
 </header>
@@ -80,7 +84,7 @@
     </div>
   </section>
 
-  <!-- PUBLIC KNOCKOUT PLAYOFF BRACKET SECTION (NO SCORES) -->
+  <!-- PUBLIC KNOCKOUT PLAYOFF BRACKET SECTION -->
   <section id="bracket">
     <div class="section-head">
       <div class="kicker">Playoff Stage</div>
@@ -109,11 +113,11 @@
     </div>
   </section>
 
-  <!-- PLAYER VS PLAYER COMPARISON SECTION -->
+  <!-- PLAYER VS PLAYER COMPARISON SECTION (WITH CAREER RATIOS) -->
   <section id="pvp">
     <div class="section-head">
       <div class="kicker">Head to Head</div>
-      <h2>Player vs Player Comparison</h2>
+      <h2>Player vs Player Career Comparison</h2>
     </div>
     <div class="pvp-card">
       <div class="pvp-selectors">
@@ -131,10 +135,11 @@
     </div>
   </section>
 
+  <!-- INDIVIDUAL CAREER & ROSTER SECTION -->
   <section id="players">
     <div class="section-head">
       <div class="kicker">Full Roster</div>
-      <h2>Player Leaderboard & Caps</h2>
+      <h2>Individual Career Records & Caps</h2>
     </div>
     <div class="toolbar">
       <input id="playerSearch" type="search" placeholder="Search player or team..." style="max-width:220px;">
@@ -210,7 +215,7 @@
     <div class="admin-top-bar">
       <div>
         <h2>⚡ CNT-League Admin Dashboard</h2>
-        <span class="sub">Manage tournament, player stats & server payload</span>
+        <span class="sub">Manage tournament, player career stats & server payload</span>
       </div>
 
       <div class="admin-actions">
@@ -262,7 +267,7 @@
           <!-- SECTION 2 COPY BLOCK -->
           <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <strong style="color:var(--purple);font-size:12px;">🏏 SECTION 2: Fixtures Scorecard & Player Stats Summary</strong>
+              <strong style="color:var(--purple);font-size:12px;">🏏 SECTION 2: Fixtures Scorecard & Individual Career Ratios</strong>
               <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection2')">📋 Copy Section 2</button>
             </div>
             <textarea id="outputSection2" rows="3" readonly style="font-size:11px;color:var(--purple);background:#030810;"></textarea>
@@ -296,21 +301,21 @@
 
         <!-- PANEL 3: FIXTURES & STATS AI CHAT -->
         <div id="tabFixturesStatsAI" class="tab-content">
-          <h3>FIXTURES & STATS (Match Log & Player Performance)</h3>
+          <h3>FIXTURES & INDIVIDUAL CAREER AI</h3>
           <p class="sub" style="margin-bottom:8px">
-            Logs match details and updates cumulative player stats.<br>
-            <i>"Ali 45 runs 2 wickets for Falcons vs Eagles"</i>
+            Logs match details and updates player career best ratios.<br>
+            <i>"Ali 65 runs 3 wickets for Falcons vs Eagles"</i>
           </p>
           <div class="chat-box" id="fixturesAiChatBox">
-            <div class="chat-msg chat-ai">Fixtures & Player Stats Engine Ready. Auto-corrects minor spelling errors.</div>
+            <div class="chat-msg chat-ai">Fixtures & Career Engine Ready. Auto-updates career bests & spelling errors.</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <input type="text" id="fixturesAiUserPrompt" placeholder="e.g. Ali scored 45 runs 2 wkts for Falcons..." style="flex:1" onkeypress="if(event.key==='Enter') sendFixturesAIChatCommand()">
-            <button class="btn primary" onclick="sendFixturesAIChatCommand()">Log Fixture & Stats</button>
+            <input type="text" id="fixturesAiUserPrompt" placeholder="e.g. Ali scored 65 runs 3 wkts for Falcons..." style="flex:1" onkeypress="if(event.key==='Enter') sendFixturesAIChatCommand()">
+            <button class="btn primary" onclick="sendFixturesAIChatCommand()">Log Fixture & Career</button>
           </div>
         </div>
 
-        <!-- PANEL 4: POSITIONS & PLAYOFF BRACKET MANAGER (NO SCORES) -->
+        <!-- PANEL 4: POSITIONS & PLAYOFF BRACKET MANAGER -->
         <div id="tabPositions" class="tab-content">
           <h3>🏅 POSITIONS & PLAYOFF BRACKET MANAGER</h3>
           <p class="sub" style="margin-bottom:12px">
@@ -321,7 +326,6 @@
             <h4 style="color:var(--gold);margin-bottom:10px">🏆 Knockout Bracket Controls</h4>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-              <!-- SF 1 EDIT (NO SCORES) -->
               <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
                 <strong style="color:var(--teal);font-size:12px">Semi-Final 1</strong>
                 <select id="admSf1Team1" style="margin-top:6px"></select>
@@ -329,7 +333,6 @@
                 <input type="text" id="admSf1Winner" placeholder="Winner Team Name" style="margin-top:6px">
               </div>
 
-              <!-- SF 2 EDIT (NO SCORES) -->
               <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
                 <strong style="color:var(--teal);font-size:12px">Semi-Final 2</strong>
                 <select id="admSf2Team1" style="margin-top:6px"></select>
@@ -338,7 +341,6 @@
               </div>
             </div>
 
-            <!-- FINAL EDIT (NO SCORES) -->
             <div style="background:var(--panel-alt);padding:10px;border-radius:8px;margin-bottom:10px;">
               <strong style="color:var(--gold);font-size:12px">🏆 GRAND FINAL MATCH</strong>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
@@ -371,7 +373,7 @@
           <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
 
           <div style="margin-bottom:15px">
-            <h4>Manage Players (Add / Remove Manually)</h4>
+            <h4>Manage Player Career (Add / Remove Manually)</h4>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
               <input type="text" id="manualPlayerName" placeholder="Player Name">
               <select id="manualPlayerTeam"></select>
@@ -382,7 +384,7 @@
               </select>
               <input type="number" id="manualPlayerRuns" placeholder="Runs Scored">
               <input type="number" id="manualPlayerWickets" placeholder="Wickets Taken">
-              <button class="btn primary" style="grid-column:span 2" onclick="manualAddPlayer()">Add Player Manually</button>
+              <button class="btn primary" style="grid-column:span 2" onclick="manualAddPlayer()">Add Player Career Manually</button>
             </div>
             <div id="playersListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
           </div>
