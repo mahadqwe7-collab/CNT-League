@@ -28,8 +28,9 @@
     <div class="links">
       <a href="#seasons">SEASONS</a>
       <a href="#standings">STANDINGS</a>
+      <a href="#top5">TOP 5 PLAYERS</a>
       <a href="#fixtures">MATCH LOG</a>
-      <a href="#players">PLAYERS</a>
+      <a href="#players">ALL PLAYERS</a>
       <a class="admin-nav-btn" onclick="openModal('loginModal')">ADMIN LOG-IN</a>
     </div>
   </nav>
@@ -41,7 +42,7 @@
     <h1 id="heroTitle">THE GAME.<br><span class="gradient">THE GLORY.</span></h1>
     <div>
       <a class="btn primary" href="#standings">VIEW STANDINGS</a>
-      <a class="btn secondary" href="#players">PLAYER STATS</a>
+      <a class="btn secondary" href="#top5">TOP PERFORMERS</a>
     </div>
   </section>
 
@@ -67,7 +68,7 @@
             <th>Played</th>
             <th>Won</th>
             <th>Lost</th>
-            <th>NRR</th>
+            <th>Auto NRR</th>
             <th>Points</th>
           </tr>
         </thead>
@@ -76,19 +77,42 @@
     </div>
   </section>
 
+  <!-- TOP 5 PERFORMERS SECTION (MAIN DASHBOARD) -->
+  <section id="top5">
+    <div class="section-head">
+      <div class="kicker">Elite Players</div>
+      <h2>Top 5 Tournament Leaders</h2>
+    </div>
+    <div class="top5-container">
+      <!-- TOP 5 BATTERS -->
+      <div class="top5-box">
+        <h3 class="top5-title" style="color:var(--orange);">🟠 Top 5 Batters (Orange Cap)</h3>
+        <div id="top5BattersList"></div>
+      </div>
+      <!-- TOP 5 BOWLERS -->
+      <div class="top5-box">
+        <h3 class="top5-title" style="color:var(--purple);">🟣 Top 5 Bowlers (Purple Cap)</h3>
+        <div id="top5BowlersList"></div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:16px;">
+      <a href="#players" class="btn secondary">⬇️ View Full Player Roster & All Stats</a>
+    </div>
+  </section>
+
   <section id="fixtures">
     <div class="section-head">
-      <div class="kicker">Match Log</div>
-      <h2>Fixtures & Completed Matches</h2>
+      <div class="kicker">Match Centre</div>
+      <h2>Fixtures & Detailed Scorecards</h2>
     </div>
     <div class="panel">
       <table>
         <thead>
           <tr>
             <th>Match</th>
-            <th>Fixture</th>
+            <th>Teams</th>
             <th>Result</th>
-            <th>Status</th>
+            <th>Status / Scorecard</th>
           </tr>
         </thead>
         <tbody id="fixturesBody"></tbody>
@@ -98,7 +122,7 @@
 
   <section id="players">
     <div class="section-head">
-      <div class="kicker">Performers</div>
+      <div class="kicker">Full Roster</div>
       <h2>Player Leaderboard & Caps</h2>
     </div>
     <div class="toolbar">
@@ -126,6 +150,32 @@
   </div>
 </div>
 
+<!-- MATCH SCORECARD DETAIL MODAL -->
+<div id="matchDetailModal" class="modal-overlay">
+  <div class="modal" style="max-width:500px;">
+    <h3 id="detailMatchTitle">Match Details</h3>
+    <p class="sub" id="detailMatchStatus" style="margin-bottom:12px"></p>
+    
+    <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--line);margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+        <strong id="detailTeam1Name">Team 1</strong>
+        <span id="detailTeam1Score" style="color:var(--gold);font-weight:800">0/0 (0.0 overs)</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <strong id="detailTeam2Name">Team 2</strong>
+        <span id="detailTeam2Score" style="color:var(--gold);font-weight:800">0/0 (0.0 overs)</span>
+      </div>
+    </div>
+
+    <div style="background:var(--panel-alt);padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;">
+      <span class="kicker">Official Outcome & NRR Impact</span>
+      <p id="detailMatchSummaryText" style="font-size:12px;margin-top:4px;color:var(--text);"></p>
+    </div>
+
+    <button class="btn primary" style="width:100%" onclick="closeModal('matchDetailModal')">Close Scorecard</button>
+  </div>
+</div>
+
 <!-- FULL ADMIN WORKSPACE DASHBOARD MODAL -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal admin-large-panel">
@@ -137,7 +187,6 @@
         <span class="sub">Manage tournament, player stats & server payload</span>
       </div>
 
-      <!-- TOP RIGHT ACTIONS: UNDO, REDO, HOLD TO PREVIEW, RESET -->
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" title="Undo Last Change" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" title="Redo Action" disabled>↪️ Redo</button>
@@ -147,14 +196,15 @@
       </div>
     </div>
 
-    <!-- MAIN DASHBOARD BODY (LEFT SIDEBAR + RIGHT CONTENT) -->
+    <!-- MAIN DASHBOARD WORKSPACE -->
     <div class="admin-workspace">
       
       <!-- LEFT SIDEBAR MENU -->
       <aside class="admin-sidebar">
         <button class="tab-btn active" onclick="switchTab(event, 'tabMatchAI')">🏟️ Match AI Chat</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabPlayerAI')">👤 Player AI Chat</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC NRR Engine</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC Auto NRR Form</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabAdminTop5')">⭐ Top 5 Leaders</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ Manual Controls</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 Server Preview</button>
       </aside>
@@ -166,7 +216,7 @@
         <div id="tabMatchAI" class="tab-content active">
           <h3>Match Summary AI Assistant</h3>
           <p class="sub" style="margin-bottom:8px">
-            Updates <b>Win/Loss & Points Only</b> (NRR untouched to keep site fast).<br>
+            Updates <b>Win/Loss & Points Only</b>.<br>
             <i>"Team A beat Team B"</i> | <i>"Falcons defeated Eagles"</i>
           </p>
           <div class="chat-box" id="matchAiChatBox">
@@ -197,7 +247,7 @@
         <!-- PANEL 3: MANUAL ICC NRR FORM ENGINE -->
         <div id="tabMatchEngine" class="tab-content">
           <h3>ICC Scorecard & Auto NRR Calculator</h3>
-          <p class="sub" style="margin-bottom:12px">Log detailed scores to calculate precise ICC NRR and update points table.</p>
+          <p class="sub" style="margin-bottom:12px">Log detailed match scores to automatically compute ICC NRR.</p>
           
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
             <div>
@@ -218,9 +268,24 @@
           <button class="btn primary" style="width:100%" onclick="submitMatchResult()">Submit Match & Calculate ICC NRR</button>
         </div>
 
-        <!-- PANEL 4: MANUAL CONTROLS -->
+        <!-- PANEL 4: ADMIN TOP 5 PREVIEW -->
+        <div id="tabAdminTop5" class="tab-content">
+          <h3>⭐ Current Top 5 Tournament Leaders</h3>
+          <p class="sub" style="margin-bottom:12px">Real-time Top 5 Orange & Purple cap standings widget.</p>
+          <div class="top5-container">
+            <div class="top5-box">
+              <h4 style="color:var(--orange);margin-bottom:8px">Top 5 Batters</h4>
+              <div id="adminTop5Batters"></div>
+            </div>
+            <div class="top5-box">
+              <h4 style="color:var(--purple);margin-bottom:8px">Top 5 Bowlers</h4>
+              <div id="adminTop5Bowlers"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL 5: MANUAL CONTROLS -->
         <div id="tabManual" class="tab-content">
-          <!-- TEAM MANAGEMENT -->
           <div style="margin-bottom:15px">
             <h4>Manage Teams (Add / Remove)</h4>
             <div style="display:flex;gap:8px;margin-top:6px">
@@ -232,7 +297,6 @@
 
           <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
 
-          <!-- MANUAL PLAYER MANAGEMENT -->
           <div style="margin-bottom:15px">
             <h4>Manage Players (Add / Remove Manually)</h4>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
@@ -259,10 +323,10 @@
           </div>
         </div>
 
-        <!-- PANEL 5: SERVER & DATABASE PREVIEW DASHBOARD -->
+        <!-- PANEL 6: SERVER PREVIEW -->
         <div id="tabServer" class="tab-content">
           <h3>🌐 Live Cloud Server & DB Preview</h3>
-          <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity and raw payload stream.</p>
+          <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity.</p>
           
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
             <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
