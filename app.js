@@ -20,12 +20,12 @@ let state = {
     "Team A": "Premier",
     "Team B": "Gold",
     "Team C": "Silver",
-    "Team D": "Red"
+    "Team D": "Normal"
   },
   bracket: {
-    sf1: { team1: "Team A", team2: "Team D", score1: "160/4", score2: "140/9", winner: "Team A" },
-    sf2: { team1: "Team B", team2: "Team C", score1: "175/5", score2: "170/8", winner: "Team B" },
-    final: { team1: "Team A", team2: "Team B", score1: "-", score2: "-", winner: "TBD" }
+    sf1: { team1: "Team A", team2: "Team D", winner: "Team A" },
+    sf2: { team1: "Team B", team2: "Team C", winner: "Team B" },
+    final: { team1: "Team A", team2: "Team B", winner: "TBD" }
   },
   notifications: []
 };
@@ -97,9 +97,9 @@ async function loadState() {
       if (!state.notifications) state.notifications = [];
       if (!state.bracket) {
         state.bracket = {
-          sf1: { team1: "Team A", team2: "Team D", score1: "-", score2: "-", winner: "TBD" },
-          sf2: { team1: "Team B", team2: "Team C", score1: "-", score2: "-", winner: "TBD" },
-          final: { team1: "TBD", team2: "TBD", score1: "-", score2: "-", winner: "TBD" }
+          sf1: { team1: "Team A", team2: "Team D", winner: "TBD" },
+          sf2: { team1: "Team B", team2: "Team C", winner: "TBD" },
+          final: { team1: "TBD", team2: "TBD", winner: "TBD" }
         };
       }
     }
@@ -197,25 +197,23 @@ function renderPublicBracket() {
   if (!container) return;
 
   const b = state.bracket || {};
-  const sf1 = b.sf1 || { team1: "Team A", team2: "Team D", score1: "-", score2: "-", winner: "TBD" };
-  const sf2 = b.sf2 || { team1: "Team B", team2: "Team C", score1: "-", score2: "-", winner: "TBD" };
-  const fn = b.final || { team1: "TBD", team2: "TBD", score1: "-", score2: "-", winner: "TBD" };
+  const sf1 = b.sf1 || { team1: "Team A", team2: "Team D", winner: "TBD" };
+  const sf2 = b.sf2 || { team1: "Team B", team2: "Team C", winner: "TBD" };
+  const fn = b.final || { team1: "TBD", team2: "TBD", winner: "TBD" };
 
   container.innerHTML = `
     <!-- SEMI FINALS COLUMN -->
     <div class="bracket-round">
       <div class="bracket-match-card">
         <div class="kicker">Semi-Final 1</div>
-        <div class="bracket-team-row"><span>${sf1.team1}</span><strong>${sf1.score1}</strong></div>
-        <div class="bracket-team-row"><span>${sf1.team2}</span><strong>${sf1.score2}</strong></div>
-        <div style="font-size:10px;margin-top:4px" class="bracket-winner">Winner: ${sf1.winner}</div>
+        <div class="bracket-team-row"><span>${sf1.team1}</span> <span>vs</span> <span>${sf1.team2}</span></div>
+        <div style="font-size:11px;margin-top:6px" class="bracket-winner">Winner: ${sf1.winner}</div>
       </div>
 
       <div class="bracket-match-card">
         <div class="kicker">Semi-Final 2</div>
-        <div class="bracket-team-row"><span>${sf2.team1}</span><strong>${sf2.score1}</strong></div>
-        <div class="bracket-team-row"><span>${sf2.team2}</span><strong>${sf2.score2}</strong></div>
-        <div style="font-size:10px;margin-top:4px" class="bracket-winner">Winner: ${sf2.winner}</div>
+        <div class="bracket-team-row"><span>${sf2.team1}</span> <span>vs</span> <span>${sf2.team2}</span></div>
+        <div style="font-size:11px;margin-top:6px" class="bracket-winner">Winner: ${sf2.winner}</div>
       </div>
     </div>
 
@@ -226,9 +224,8 @@ function renderPublicBracket() {
     <div class="bracket-round">
       <div class="bracket-match-card final-card">
         <div class="kicker" style="color:var(--gold)">🏆 GRAND FINAL</div>
-        <div class="bracket-team-row"><strong>${fn.team1}</strong><strong style="color:var(--gold)">${fn.score1}</strong></div>
-        <div class="bracket-team-row"><strong>${fn.team2}</strong><strong style="color:var(--gold)">${fn.score2}</strong></div>
-        <div style="font-size:11px;margin-top:6px;color:var(--gold);font-weight:900">👑 Champion: ${fn.winner}</div>
+        <div class="bracket-team-row"><strong>${fn.team1}</strong> <span>vs</span> <strong>${fn.team2}</strong></div>
+        <div style="font-size:12px;margin-top:8px;color:var(--gold);font-weight:900">👑 Champion: ${fn.winner}</div>
       </div>
     </div>
   `;
@@ -251,16 +248,8 @@ function renderAdminBracketControls() {
   fillSelectOptions("admFinalTeam1", b.final?.team1);
   fillSelectOptions("admFinalTeam2", b.final?.team2);
 
-  if (document.getElementById("admSf1Score1")) document.getElementById("admSf1Score1").value = b.sf1?.score1 || "";
-  if (document.getElementById("admSf1Score2")) document.getElementById("admSf1Score2").value = b.sf1?.score2 || "";
   if (document.getElementById("admSf1Winner")) document.getElementById("admSf1Winner").value = b.sf1?.winner || "";
-
-  if (document.getElementById("admSf2Score1")) document.getElementById("admSf2Score1").value = b.sf2?.score1 || "";
-  if (document.getElementById("admSf2Score2")) document.getElementById("admSf2Score2").value = b.sf2?.score2 || "";
   if (document.getElementById("admSf2Winner")) document.getElementById("admSf2Winner").value = b.sf2?.winner || "";
-
-  if (document.getElementById("admFinalScore1")) document.getElementById("admFinalScore1").value = b.final?.score1 || "";
-  if (document.getElementById("admFinalScore2")) document.getElementById("admFinalScore2").value = b.final?.score2 || "";
   if (document.getElementById("admFinalWinner")) document.getElementById("admFinalWinner").value = b.final?.winner || "";
 }
 
@@ -269,22 +258,16 @@ function saveAdminBracketData() {
     sf1: {
       team1: document.getElementById("admSf1Team1").value,
       team2: document.getElementById("admSf1Team2").value,
-      score1: document.getElementById("admSf1Score1").value || "-",
-      score2: document.getElementById("admSf1Score2").value || "-",
       winner: document.getElementById("admSf1Winner").value || "TBD"
     },
     sf2: {
       team1: document.getElementById("admSf2Team1").value,
       team2: document.getElementById("admSf2Team2").value,
-      score1: document.getElementById("admSf2Score1").value || "-",
-      score2: document.getElementById("admSf2Score2").value || "-",
       winner: document.getElementById("admSf2Winner").value || "TBD"
     },
     final: {
       team1: document.getElementById("admFinalTeam1").value,
       team2: document.getElementById("admFinalTeam2").value,
-      score1: document.getElementById("admFinalScore1").value || "-",
-      score2: document.getElementById("admFinalScore2").value || "-",
       winner: document.getElementById("admFinalWinner").value || "TBD"
     }
   };
@@ -293,6 +276,7 @@ function saveAdminBracketData() {
   alert("🏆 Tournament Bracket updated on Main Dashboard!");
 }
 
+// RENDER ADMIN TIERS
 function renderAdminPositions() {
   const adminContainer = document.getElementById("adminPositionsContainer");
   if (adminContainer) {
@@ -302,9 +286,10 @@ function renderAdminPositions() {
         <div style="display:flex;justify-content:space-between;align-items:center;background:#060d17;padding:10px 14px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px">
           <strong>${teamName}</strong>
           <select style="max-width:200px" onchange="updateTeamPositionTier('${teamName}', this.value)">
-            <option value="Gold" ${currentTier==='Gold'?'selected':''}>🥇 Gold Tier (Final)</option>
-            <option value="Silver" ${currentTier==='Silver'?'selected':''}>🥈 Silver Tier (Semi-Final)</option>
             <option value="Premier" ${currentTier==='Premier'?'selected':''}>👑 Premier Tier</option>
+            <option value="Gold" ${currentTier==='Gold'?'selected':''}>🥇 Golden Tier</option>
+            <option value="Silver" ${currentTier==='Silver'?'selected':''}>🥈 Silver Tier</option>
+            <option value="Normal" ${currentTier==='Normal'?'selected':''}>⚽ Normal Tier</option>
             <option value="Red" ${currentTier==='Red'?'selected':''}>🔴 Red Tier (Eliminated)</option>
           </select>
         </div>
@@ -458,7 +443,7 @@ function renderPlayersManageList() {
   }
 }
 
-// PUBLIC FEEDBACK SUBMISSION (NAME & MESSAGE ONLY)
+// PUBLIC FEEDBACK SUBMISSION
 function submitPublicFeedback(evt) {
   evt.preventDefault();
   const name = document.getElementById("feedbackName").value.trim();
@@ -776,11 +761,11 @@ async function resetDefaultData() {
       seasons: initSeasons([...DEFAULT_TEAMS]),
       fixtures: [],
       players: [],
-      positions: { "Team A": "Premier", "Team B": "Gold", "Team C": "Silver", "Team D": "Red" },
+      positions: { "Team A": "Premier", "Team B": "Gold", "Team C": "Silver", "Team D": "Normal" },
       bracket: {
-        sf1: { team1: "Team A", team2: "Team D", score1: "-", score2: "-", winner: "TBD" },
-        sf2: { team1: "Team B", team2: "Team C", score1: "-", score2: "-", winner: "TBD" },
-        final: { team1: "TBD", team2: "TBD", score1: "-", score2: "-", winner: "TBD" }
+        sf1: { team1: "Team A", team2: "Team D", winner: "Team A" },
+        sf2: { team1: "Team B", team2: "Team C", winner: "Team B" },
+        final: { team1: "Team A", team2: "Team B", winner: "TBD" }
       },
       notifications: []
     };
@@ -800,13 +785,27 @@ function switchTab(evt, tabId) {
   document.getElementById(tabId).classList.add('active');
 }
 
-function verifyPassword() {
-  if (document.getElementById('adminPassword').value === "mahadmahad") {
+// SHA-256 SECURE PASSWORD VERIFICATION (HARDCODED PLAINTEXT REMOVED)
+async function hashPassword(str) {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function verifyPassword() {
+  const inputPassword = document.getElementById('adminPassword').value;
+  const targetHash = "2e079aedb9d3c1fc5b6b3a45b77061dda97f6119794e9680eeeee971d032dfbd";
+  const enteredHash = await hashPassword(inputPassword);
+
+  if (enteredHash === targetHash) {
     closeModal('loginModal');
     openModal('adminModal');
     document.getElementById('editEyebrow').value = state.siteConfig.eyebrow;
+    document.getElementById('adminPassword').value = "";
   } else {
-    alert("Access Denied");
+    alert("Access Denied: Incorrect Password");
   }
 }
 
