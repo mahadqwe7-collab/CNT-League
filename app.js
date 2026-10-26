@@ -30,6 +30,17 @@ let state = {
   notifications: []
 };
 
+// MOBILE HAMBURGER MENU HELPERS
+function toggleMobileMenu() {
+  const links = document.getElementById("navLinks");
+  if (links) links.classList.toggle("mobile-open");
+}
+
+function closeMobileMenu() {
+  const links = document.getElementById("navLinks");
+  if (links) links.classList.remove("mobile-open");
+}
+
 // Undo / Redo Stacks
 let undoStack = [];
 let redoStack = [];
@@ -139,8 +150,8 @@ function recalculateAutoNRR() {
 
 // Master Render Engine
 function renderAll() {
-  document.getElementById("siteEyebrow").innerText = state.siteConfig.eyebrow;
-  document.getElementById("heroTitle").innerHTML = state.siteConfig.heroHeading;
+  if (document.getElementById("siteEyebrow")) document.getElementById("siteEyebrow").innerText = state.siteConfig.eyebrow;
+  if (document.getElementById("heroTitle")) document.getElementById("heroTitle").innerHTML = state.siteConfig.heroHeading;
 
   renderSeasonsGrid();
   renderStandings();
@@ -160,6 +171,7 @@ function renderAll() {
 
 function renderSeasonsGrid() {
   const grid = document.getElementById("seasonsGrid");
+  if (!grid) return;
   grid.innerHTML = [1, 2, 3, 4].map(i => `
     <article class="season-card ${state.activeSeason === i ? 'active' : ''}" onclick="switchSeason(${i})">
       <div class="kicker">SEASON 0${i}</div>
@@ -177,9 +189,13 @@ function switchSeason(num) {
 }
 
 function renderStandings() {
-  document.getElementById("standingsTitle").innerText = `Points Table — Season ${state.activeSeason}`;
+  const title = document.getElementById("standingsTitle");
+  if (title) title.innerText = `Points Table — Season ${state.activeSeason}`;
+  
   const teams = state.seasons[state.activeSeason] || [];
   const tbody = document.getElementById("pointsBody");
+  if (!tbody) return;
+
   tbody.innerHTML = teams.length ? [...teams]
     .sort((a, b) => b.points - a.points || parseFloat(b.nrr) - parseFloat(a.nrr))
     .map((t, i) => `
@@ -188,7 +204,7 @@ function renderStandings() {
         <td>${t.played}</td><td>${t.won}</td><td>${t.lost}</td>
         <td style="color:var(--teal);font-weight:700">${t.nrr}</td><td style="color:var(--gold);font-weight:800">${t.points}</td>
       </tr>`).join("")
-    : `<tr><td colspan="7" style="text-align:center;color:var(--muted)">No teams added.</td></tr>`;
+    : `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No teams added.</td></tr>`;
 }
 
 // RENDER PUBLIC VISUAL BRACKET
@@ -202,7 +218,6 @@ function renderPublicBracket() {
   const fn = b.final || { team1: "TBD", team2: "TBD", winner: "TBD" };
 
   container.innerHTML = `
-    <!-- SEMI FINALS COLUMN -->
     <div class="bracket-round">
       <div class="bracket-match-card">
         <div class="kicker">Semi-Final 1</div>
@@ -217,10 +232,8 @@ function renderPublicBracket() {
       </div>
     </div>
 
-    <!-- VS CONNECTOR BADGE -->
     <div style="text-align:center;font-weight:900;color:var(--gold);font-size:18px">➔</div>
 
-    <!-- GRAND FINAL COLUMN -->
     <div class="bracket-round">
       <div class="bracket-match-card final-card">
         <div class="kicker" style="color:var(--gold)">🏆 GRAND FINAL</div>
@@ -283,7 +296,7 @@ function renderAdminPositions() {
     adminContainer.innerHTML = state.teams.map(teamName => {
       const currentTier = state.positions[teamName] || "Premier";
       return `
-        <div style="display:flex;justify-content:space-between;align-items:center;background:#060d17;padding:10px 14px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#060d17;padding:10px 14px;border-radius:8px;border:1px solid var(--panel-border);margin-bottom:8px">
           <strong>${teamName}</strong>
           <select style="max-width:200px" onchange="updateTeamPositionTier('${teamName}', this.value)">
             <option value="Premier" ${currentTier==='Premier'?'selected':''}>👑 Premier Tier</option>
@@ -305,6 +318,7 @@ function updateTeamPositionTier(teamName, newTier) {
 
 function renderFixtures() {
   const tbody = document.getElementById("fixturesBody");
+  if (!tbody) return;
   tbody.innerHTML = state.fixtures.length ? state.fixtures.map(f => `
     <tr>
       <td>${f.title}</td>
@@ -316,7 +330,7 @@ function renderFixtures() {
         </button>
       </td>
     </tr>`).join("")
-    : `<tr><td colspan="4" style="text-align:center;color:var(--muted)">No match records logged.</td></tr>`;
+    : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No match records logged.</td></tr>`;
 }
 
 function showMatchDetails(matchId) {
@@ -340,6 +354,13 @@ function renderPvPDropdowns() {
   const p2 = document.getElementById("pvpPlayer2Select");
   if (!p1 || !p2) return;
 
+  if (state.players.length === 0) {
+    p1.innerHTML = '<option value="">No Players</option>';
+    p2.innerHTML = '<option value="">No Players</option>';
+    updatePvPComparison();
+    return;
+  }
+
   const options = state.players.map(p => `<option value="${p.id}">${p.name} (${p.team})</option>`).join("");
   p1.innerHTML = options;
   p2.innerHTML = options;
@@ -349,15 +370,19 @@ function renderPvPDropdowns() {
 }
 
 function updatePvPComparison() {
-  const id1 = parseInt(document.getElementById("pvpPlayer1Select").value);
-  const id2 = parseInt(document.getElementById("pvpPlayer2Select").value);
+  const p1El = document.getElementById("pvpPlayer1Select");
+  const p2El = document.getElementById("pvpPlayer2Select");
   const box = document.getElementById("pvpComparisonBox");
+  if (!box || !p1El || !p2El) return;
+
+  const id1 = parseInt(p1El.value);
+  const id2 = parseInt(p2El.value);
 
   const pl1 = state.players.find(p => p.id === id1);
   const pl2 = state.players.find(p => p.id === id2);
 
   if (!pl1 || !pl2) {
-    box.innerHTML = '<div class="sub" style="text-align:center;padding:15px">Select 2 players to compare stats.</div>';
+    box.innerHTML = '<div class="sub" style="text-align:center;padding:15px">Select 2 players to compare career ratios.</div>';
     return;
   }
 
@@ -365,16 +390,25 @@ function updatePvPComparison() {
     <div class="pvp-stat-row"><strong style="color:var(--gold)">${pl1.name}</strong><span class="sub">NAME</span><strong style="color:var(--gold)">${pl2.name}</strong></div>
     <div class="pvp-stat-row"><span>${pl1.team}</span><span class="sub">TEAM</span><span>${pl2.team}</span></div>
     <div class="pvp-stat-row"><span>${pl1.role}</span><span class="sub">ROLE</span><span>${pl2.role}</span></div>
-    <div class="pvp-stat-row"><strong style="color:${pl1.matches>=pl2.matches?'var(--teal)':'var(--text)'}">${pl1.matches || 1}</strong><span class="sub">MATCHES</span><strong style="color:${pl2.matches>=pl1.matches?'var(--teal)':'var(--text)'}">${pl2.matches || 1}</strong></div>
-    <div class="pvp-stat-row"><strong style="color:${pl1.runs>=pl2.runs?'var(--orange)':'var(--text)'}">${pl1.runs}</strong><span class="sub">TOTAL RUNS</span><strong style="color:${pl2.runs>=pl1.runs?'var(--orange)':'var(--text)'}">${pl2.runs}</strong></div>
-    <div class="pvp-stat-row"><strong style="color:${pl1.wickets>=pl2.wickets?'var(--purple)':'var(--text)'}">${pl1.wickets}</strong><span class="sub">TOTAL WICKETS</span><strong style="color:${pl2.wickets>=pl1.wickets?'var(--purple)':'var(--text)'}">${pl2.wickets}</strong></div>
+    <div class="pvp-stat-row"><strong style="color:${pl1.matches>=pl2.matches?'var(--teal)':'var(--text-main)'}">${pl1.matches || 1}</strong><span class="sub">CAREER MATCHES</span><strong style="color:${pl2.matches>=pl1.matches?'var(--teal)':'var(--text-main)'}">${pl2.matches || 1}</strong></div>
+    <div class="pvp-stat-row"><strong style="color:${pl1.runs>=pl2.runs?'var(--orange)':'var(--text-main)'}">${pl1.runs}</strong><span class="sub">TOTAL RUNS</span><strong style="color:${pl2.runs>=pl1.runs?'var(--orange)':'var(--text-main)'}">${pl2.runs}</strong></div>
+    <div class="pvp-stat-row"><strong style="color:${(pl1.highestScore||0)>=(pl2.highestScore||0)?'var(--gold)':'var(--text-main)'}">${pl1.highestScore || pl1.runs}</strong><span class="sub">HIGHEST SCORE (HS)</span><strong style="color:${(pl2.highestScore||0)>=(pl1.highestScore||0)?'var(--gold)':'var(--text-main)'}">${pl2.highestScore || pl2.runs}</strong></div>
+    <div class="pvp-stat-row"><strong style="color:${pl1.wickets>=pl2.wickets?'var(--purple)':'var(--text-main)'}">${pl1.wickets}</strong><span class="sub">TOTAL WICKETS</span><strong style="color:${pl2.wickets>=pl1.wickets?'var(--purple)':'var(--text-main)'}">${pl2.wickets}</strong></div>
+    <div class="pvp-stat-row"><strong style="color:${(pl1.bestWickets||0)>=(pl2.bestWickets||0)?'var(--purple)':'var(--text-main)'}">${pl1.bestBowling || (pl1.wickets + ' Wkts')}</strong><span class="sub">BEST BOWLING (BB)</span><strong style="color:${(pl2.bestWickets||0)>=(pl1.bestWickets||0)?'var(--purple)':'var(--text-main)'}">${pl2.bestBowling || (pl2.wickets + ' Wkts')}</strong></div>
   `;
 }
 
+// RENDER INDIVIDUAL CAREER CARDS
 function renderPlayers() {
-  const q = document.getElementById("playerSearch").value.toLowerCase();
-  const team = document.getElementById("teamFilter").value;
-  const role = document.getElementById("roleFilter").value;
+  const searchEl = document.getElementById("playerSearch");
+  const teamEl = document.getElementById("teamFilter");
+  const roleEl = document.getElementById("roleFilter");
+  const grid = document.getElementById("playerGrid");
+  if (!grid) return;
+
+  const q = searchEl ? searchEl.value.toLowerCase() : "";
+  const team = teamEl ? teamEl.value : "All";
+  const role = roleEl ? roleEl.value : "All";
 
   let topRuns = 0, topWickets = 0;
   state.players.forEach(p => {
@@ -388,7 +422,6 @@ function renderPlayers() {
     (role === "All" || p.role === role)
   );
 
-  const grid = document.getElementById("playerGrid");
   grid.innerHTML = filtered.length ? filtered.map(p => {
     const isOrange = p.runs > 0 && p.runs === topRuns;
     const isPurple = p.wickets > 0 && p.wickets === topWickets;
@@ -400,28 +433,30 @@ function renderPlayers() {
         ${isPurple ? '<span class="badge-cap cap-purple">Purple Cap</span>' : ''}
       </div>
       <div class="sub" style="margin-top:2px">${p.team} · ${p.role}</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;font-size:11px">
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px;font-size:11px">
         <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Matches</span><br><strong>${p.matches || 1}</strong></div>
-        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Runs</span><br><strong>${p.runs}</strong></div>
-        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Wickets</span><br><strong>${p.wickets}</strong></div>
+        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Total Runs</span><br><strong style="color:var(--orange)">${p.runs}</strong></div>
+        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Best Batting (HS)</span><br><strong style="color:var(--gold)">${p.highestScore || p.runs}</strong></div>
+        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Total Wickets</span><br><strong style="color:var(--purple)">${p.wickets}</strong></div>
+        <div style="background:#060d17;padding:6px;border-radius:6px;grid-column:span 2"><span class="sub">Best Bowling (BB)</span><br><strong style="color:var(--teal)">${p.bestBowling || (p.wickets + ' Wkts')}</strong></div>
       </div>
     </article>`;
-  }).join("") : '<div class="sub">No player records found.</div>';
+  }).join("") : '<div class="sub">No player career records found.</div>';
 }
 
 function populateDropdowns() {
   const filter = document.getElementById("teamFilter");
-  filter.innerHTML = `<option value="All">All Teams</option>` + state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
+  if (filter) filter.innerHTML = `<option value="All">All Teams</option>` + state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
 
   const manualPlayerTeam = document.getElementById("manualPlayerTeam");
-  if(manualPlayerTeam) {
+  if (manualPlayerTeam) {
     manualPlayerTeam.innerHTML = state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
   }
 }
 
 function renderTeamsManageList() {
   const container = document.getElementById("teamsListContainer");
-  if(container) {
+  if (container) {
     container.innerHTML = state.teams.map(t => `
       <span class="eyebrow" style="background:#14243b;display:inline-flex;align-items:center;gap:6px;margin-bottom:4px">
         ${t} 
@@ -434,12 +469,12 @@ function renderTeamsManageList() {
 
 function renderPlayersManageList() {
   const container = document.getElementById("playersListContainer");
-  if(container) {
+  if (container) {
     container.innerHTML = state.players.length ? state.players.map(p => `
-      <span class="eyebrow" style="background:#14243b;color:var(--text);display:inline-flex;align-items:center;gap:6px;margin-bottom:4px">
+      <span class="eyebrow" style="background:#14243b;color:var(--text-main);display:inline-flex;align-items:center;gap:6px;margin-bottom:4px">
         ${p.name} (${p.team}) <b style="color:var(--red);cursor:pointer" onclick="manualDeletePlayer(${p.id})">×</b>
       </span>
-    `).join("") : '<span class="sub">No players added yet.</span>';
+    `).join("") : '<span class="sub">No player records added yet.</span>';
   }
 }
 
@@ -475,7 +510,7 @@ function renderNotifications() {
 
   if (list) {
     list.innerHTML = state.notifications.length ? state.notifications.map(n => `
-      <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid ${n.read ? 'var(--line)' : 'var(--gold)'};margin-bottom:10px;">
+      <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid ${n.read ? 'var(--panel-border)' : 'var(--gold)'};margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <strong style="color:var(--gold);font-size:13px">From: ${n.name}</strong>
           <span class="sub" style="font-size:10px">${n.date}</span>
@@ -519,7 +554,7 @@ function showErrorPopup(msg) {
   openModal("errorModal");
 }
 
-// AI CHAT 1: CONVERTER (3 COPY SECTIONS)
+// AI CHAT 1: CONVERTER
 function generateMatchSummary3Outputs() {
   const rawText = document.getElementById("converterRawInput").value.trim();
   if (!rawText) return alert("Please paste match summary notes first!");
@@ -547,13 +582,13 @@ function generateMatchSummary3Outputs() {
   const r2 = runMatches[1] ? parseInt(runMatches[1]) : 140;
 
   document.getElementById("outputSection1").value = `POINTS TABLE & AUTO NRR:\nWinner: ${winner} (+2 Pts, Scored: ${r1} runs)\nLoser: ${loser} (0 Pts, Scored: ${r2} runs)\nICC NRR Auto-Calculated.`;
-  document.getElementById("outputSection2").value = `FIXTURES & PLAYER STATS:\nMatch: ${t1} vs ${t2}\nResult: ${winner} won over ${loser}\nIndividual Player Runs & Wickets updated on leaderboard.`;
+  document.getElementById("outputSection2").value = `FIXTURES & INDIVIDUAL CAREER RATIOS:\nMatch: ${t1} vs ${t2}\nResult: ${winner} won over ${loser}\nIndividual Career Scores, Best Bowling (BB), & Highest Score (HS) updated on Roster.`;
   document.getElementById("outputSection3").value = `POSITIONS & TIERS BRACKET:\nTeam '${winner}' assigned Gold/Premier Tier Standing.\nTeam '${loser}' moved to Silver/Red Tier Standing.`;
 }
 
 function copyOutputText(elementId) {
   const textarea = document.getElementById(elementId);
-  if (!textarea.value) return alert("Nothing to copy! Please click 'Update Match Summary' first.");
+  if (!textarea || !textarea.value) return alert("Nothing to copy! Please click 'Update Match Summary' first.");
   textarea.select();
   navigator.clipboard.writeText(textarea.value);
   alert("📋 Copied section to clipboard!");
@@ -616,7 +651,7 @@ function sendPointsAIChatCommand() {
   }
 }
 
-// AI CHAT 3: FIXTURES & STATS
+// AI CHAT 3: FIXTURES & CAREER STATS
 function sendFixturesAIChatCommand() {
   const input = document.getElementById('fixturesAiUserPrompt');
   const text = input.value.trim();
@@ -658,16 +693,35 @@ function sendFixturesAIChatCommand() {
     existing.runs += runs;
     existing.wickets += wickets;
     existing.team = assignedTeam;
+    
+    if (runs > (existing.highestScore || 0)) {
+      existing.highestScore = runs;
+    }
+    if (wickets > (existing.bestWickets || 0)) {
+      existing.bestWickets = wickets;
+      existing.bestBowling = `${wickets}/${Math.floor(runs / 2)}`;
+    }
   } else {
-    state.players.push({ id: Date.now(), name: playerName, team: assignedTeam, role, matches: 1, runs, wickets });
+    state.players.push({
+      id: Date.now(),
+      name: playerName,
+      team: assignedTeam,
+      role: role,
+      matches: 1,
+      runs: runs,
+      highestScore: runs,
+      wickets: wickets,
+      bestWickets: wickets,
+      bestBowling: wickets > 0 ? `${wickets}/${Math.floor(runs / 2)}` : "0/0"
+    });
   }
 
   saveState();
-  box.innerHTML += `<div class="chat-msg chat-ai">👤 Registered/Updated ${playerName} (${assignedTeam}): +${runs} runs, +${wickets} wickets.</div>`;
+  box.innerHTML += `<div class="chat-msg chat-ai">👤 Updated Career Record for ${playerName} (${assignedTeam}): +${runs} Runs, +${wickets} Wkts. Career Highs Recalculated!</div>`;
   box.scrollTop = box.scrollHeight;
 }
 
-// MANUAL TEAM CONTROLS (ADD, DELETE, RENAME)
+// MANUAL TEAM CONTROLS
 function manualAddTeam() {
   const name = document.getElementById("newTeamName").value.trim();
   if (name && !state.teams.includes(name)) {
@@ -734,19 +788,26 @@ function manualAddPlayer() {
     existing.wickets += wickets;
     existing.team = team;
     existing.role = role;
+    if (runs > (existing.highestScore || 0)) existing.highestScore = runs;
+    if (wickets > (existing.bestWickets || 0)) {
+      existing.bestWickets = wickets;
+      existing.bestBowling = `${wickets}/0`;
+    }
   } else {
-    state.players.push({ id: Date.now(), name, team, role, matches: 1, runs, wickets });
+    state.players.push({
+      id: Date.now(), name, team, role, matches: 1, runs, highestScore: runs, wickets, bestWickets: wickets, bestBowling: wickets > 0 ? `${wickets}/0` : "0/0"
+    });
   }
 
   document.getElementById("manualPlayerName").value = "";
   document.getElementById("manualPlayerRuns").value = "";
   document.getElementById("manualPlayerWickets").value = "";
   saveState();
-  alert(`Player '${name}' saved manually!`);
+  alert(`Player Career '${name}' saved manually!`);
 }
 
 function manualDeletePlayer(id) {
-  if (confirm("Remove this player from roster?")) {
+  if (confirm("Remove this player career from roster?")) {
     state.players = state.players.filter(p => p.id !== id);
     saveState();
   }
@@ -774,18 +835,26 @@ async function resetDefaultData() {
   }
 }
 
-// UI Navigation & Auth
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+// UI NAVIGATION & MODALS
+function openModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.style.display = 'flex';
+}
+
+function closeModal(id) {
+  const m = document.getElementById(id);
+  if (m) m.style.display = 'none';
+}
 
 function switchTab(evt, tabId) {
   document.querySelectorAll('.admin-sidebar .tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   evt.target.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
+  const target = document.getElementById(tabId);
+  if (target) target.classList.add('active');
 }
 
-// SHA-256 SECURE PASSWORD VERIFICATION (HARDCODED PLAINTEXT REMOVED)
+// SHA-256 SECURE PASSWORD VERIFICATION
 async function hashPassword(str) {
   const encoder = new TextEncoder();
   const data = encoder.encode(str);
@@ -802,7 +871,7 @@ async function verifyPassword() {
   if (enteredHash === targetHash) {
     closeModal('loginModal');
     openModal('adminModal');
-    document.getElementById('editEyebrow').value = state.siteConfig.eyebrow;
+    if (document.getElementById('editEyebrow')) document.getElementById('editEyebrow').value = state.siteConfig.eyebrow;
     document.getElementById('adminPassword').value = "";
   } else {
     alert("Access Denied: Incorrect Password");
@@ -816,9 +885,14 @@ function saveSiteText() {
 }
 
 // Event Listeners
-document.getElementById("playerSearch").addEventListener("input", renderPlayers);
-document.getElementById("teamFilter").addEventListener("change", renderPlayers);
-document.getElementById("roleFilter").addEventListener("change", renderPlayers);
+const ps = document.getElementById("playerSearch");
+if (ps) ps.addEventListener("input", renderPlayers);
+
+const tf = document.getElementById("teamFilter");
+if (tf) tf.addEventListener("change", renderPlayers);
+
+const rf = document.getElementById("roleFilter");
+if (rf) rf.addEventListener("change", renderPlayers);
 
 // Boot Application
 loadState();
