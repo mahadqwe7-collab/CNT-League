@@ -122,7 +122,7 @@
   <section id="players">
     <div class="section-head">
       <div class="kicker">Full Roster</div>
-      <h2>Player Leaderboard & Caps</h2>
+      <h2>Player Leaderboard & Caps (All Matches)</h2>
     </div>
     <div class="toolbar">
       <input id="playerSearch" type="search" placeholder="Search player or team..." style="max-width:220px;">
@@ -167,8 +167,8 @@
     </div>
 
     <div style="background:var(--panel-alt);padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;">
-      <span class="kicker">Official Outcome & NRR Impact</span>
-      <p id="detailMatchSummaryText" style="font-size:12px;margin-top:4px;color:var(--text);"></p>
+      <span class="kicker">Match Player Performances & Outcome</span>
+      <p id="detailMatchSummaryText" style="font-size:12px;margin-top:4px;color:var(--text);white-space:pre-line;"></p>
     </div>
 
     <button class="btn primary" style="width:100%" onclick="closeModal('matchDetailModal')">Close Scorecard</button>
@@ -200,7 +200,9 @@
       
       <!-- LEFT SIDEBAR MENU -->
       <aside class="admin-sidebar">
-        <button class="tab-btn active" onclick="switchTab(event, 'tabUnifiedAI')">🤖 Smart AI Assistant</button>
+        <button class="tab-btn active" onclick="switchTab(event, 'tabPointsAI')">📊 AUTO POINTS TABLE</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabFixturesStatsAI')">🏏 FIXTURES & STATS</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabConverterAI')">📝 SUMMARY CONVERTER</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC Auto NRR Form</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabAdminTop5')">⭐ Top 5 Leaders</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ Manual Controls</button>
@@ -210,23 +212,70 @@
       <!-- RIGHT MAIN CONTENT PANELS -->
       <div class="admin-main-content">
         
-        <!-- PANEL 1: UNIFIED SMART AI CHAT -->
-        <div id="tabUnifiedAI" class="tab-content active">
-          <h3>Smart AI Assistant (Match + Player Auto-Parser)</h3>
+        <!-- PANEL 1: AUTO POINTS TABLE AI CHAT -->
+        <div id="tabPointsAI" class="tab-content active">
+          <h3>AUTO POINTS TABLE (Win/Loss & Auto NRR)</h3>
           <p class="sub" style="margin-bottom:8px">
-            Enter match summary, player stats, or both! Data will require your confirmation before saving.<br>
-            <i>"Team A beat Team B. Ali scored 45 runs 2 wkts for Team A"</i>
+            Calculates Wins, Losses, Points (+2), and Auto NRR.<br>
+            <i>"Team A beat Team B"</i> | <i>"Team A lose to Team B"</i>
           </p>
-          <div class="chat-box" id="unifiedAiChatBox">
-            <div class="chat-msg chat-ai">Unified AI Engine Ready. Enter any match summary or player performance details below.</div>
+          <div class="chat-box" id="pointsAiChatBox">
+            <div class="chat-msg chat-ai">Auto Points Table Engine Ready. State match outcome below.</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <input type="text" id="unifiedAiUserPrompt" placeholder="Type match or player stats command..." style="flex:1" onkeypress="if(event.key==='Enter') sendUnifiedAIChatCommand()">
-            <button class="btn primary" onclick="sendUnifiedAIChatCommand()">Process Command</button>
+            <input type="text" id="pointsAiUserPrompt" placeholder="e.g. Team A beat Team B..." style="flex:1" onkeypress="if(event.key==='Enter') sendPointsAIChatCommand()">
+            <button class="btn primary" onclick="sendPointsAIChatCommand()">Update Points Table</button>
           </div>
         </div>
 
-        <!-- PANEL 2: MANUAL ICC NRR FORM ENGINE -->
+        <!-- PANEL 2: FIXTURES & STATS AI CHAT -->
+        <div id="tabFixturesStatsAI" class="tab-content">
+          <h3>FIXTURES & STATS (Match Log & Player Performance)</h3>
+          <p class="sub" style="margin-bottom:8px">
+            Logs match details to fixture log and updates individual player cumulative stats.<br>
+            <i>"Ali 45 runs 2 wickets for Falcons vs Eagles"</i>
+          </p>
+          <div class="chat-box" id="fixturesAiChatBox">
+            <div class="chat-msg chat-ai">Fixtures & Player Stats Engine Ready. Auto-corrects minor spelling errors.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="fixturesAiUserPrompt" placeholder="e.g. Ali scored 45 runs 2 wkts for Falcons..." style="flex:1" onkeypress="if(event.key==='Enter') sendFixturesAIChatCommand()">
+            <button class="btn primary" onclick="sendFixturesAIChatCommand()">Log Fixture & Stats</button>
+          </div>
+        </div>
+
+        <!-- PANEL 3: MATCH SUMMARY CONVERTER WITH 2 SEPARATE COPY SECTIONS -->
+        <div id="tabConverterAI" class="tab-content">
+          <h3>MATCH SUMMARY CONVERTER</h3>
+          <p class="sub" style="margin-bottom:8px">
+            Processes raw match summaries and generates 2 distinct copyable format blocks below. Disappears on panel refresh while database persists in cloud.
+          </p>
+          
+          <div style="margin-bottom:12px;">
+            <textarea id="converterRawInput" rows="3" placeholder="Paste raw match notes (e.g. Team A scored 150/5 in 20 ov, Team B 140/8 in 20 ov. Team A won. Ali 65 runs for Team A)..."></textarea>
+            <button class="btn primary" style="width:100%;margin-top:6px;" onclick="generateDualSummaryOutputs()">⚡ Generate & Format Dual Outputs</button>
+          </div>
+
+          <!-- SECTION 1 COPY BLOCK -->
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="color:var(--gold);font-size:12px;">📊 SECTION 1: Points Table & Auto NRR Prompt</strong>
+              <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection1')">📋 Copy Section 1</button>
+            </div>
+            <textarea id="outputSection1" rows="3" readonly style="font-size:11px;color:var(--teal);background:#030810;"></textarea>
+          </div>
+
+          <!-- SECTION 2 COPY BLOCK -->
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="color:var(--purple);font-size:12px;">🏏 SECTION 2: Fixture Scorecard & Player Stats Prompt</strong>
+              <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection2')">📋 Copy Section 2</button>
+            </div>
+            <textarea id="outputSection2" rows="4" readonly style="font-size:11px;color:var(--purple);background:#030810;"></textarea>
+          </div>
+        </div>
+
+        <!-- PANEL 4: MANUAL ICC NRR FORM ENGINE -->
         <div id="tabMatchEngine" class="tab-content">
           <h3>ICC Scorecard & Auto NRR Calculator</h3>
           <p class="sub" style="margin-bottom:12px">Log detailed match scores to automatically compute ICC NRR.</p>
@@ -250,7 +299,7 @@
           <button class="btn primary" style="width:100%" onclick="submitMatchResult()">Submit Match & Calculate ICC NRR</button>
         </div>
 
-        <!-- PANEL 3: ADMIN TOP 5 PREVIEW -->
+        <!-- PANEL 5: ADMIN TOP 5 PREVIEW -->
         <div id="tabAdminTop5" class="tab-content">
           <h3>⭐ Current Top 5 Tournament Leaders</h3>
           <p class="sub" style="margin-bottom:12px">Real-time Top 5 Orange & Purple cap standings widget.</p>
@@ -266,7 +315,7 @@
           </div>
         </div>
 
-        <!-- PANEL 4: MANUAL CONTROLS -->
+        <!-- PANEL 6: MANUAL CONTROLS -->
         <div id="tabManual" class="tab-content">
           <div style="margin-bottom:15px">
             <h4>Manage Teams (Add / Remove)</h4>
@@ -305,7 +354,7 @@
           </div>
         </div>
 
-        <!-- PANEL 5: SERVER PREVIEW -->
+        <!-- PANEL 7: SERVER PREVIEW -->
         <div id="tabServer" class="tab-content">
           <h3>🌐 Live Cloud Server & DB Preview</h3>
           <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity.</p>
@@ -351,26 +400,10 @@
   </div>
 </div>
 
-<!-- AI ACTION CONFIRMATION MODAL -->
-<div id="confirmAiModal" class="modal-overlay">
-  <div class="modal" style="max-width:480px;border-color:var(--gold);">
-    <h3 style="color:var(--gold);display:flex;align-items:center;gap:6px;">📋 Confirm AI Extracted Data</h3>
-    <p class="sub" style="margin-top:4px;">Review the parsed updates before committing to the live cloud database:</p>
-    
-    <div id="confirmAiDetailsBox" style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin:14px 0;font-size:12px;line-height:1.6;">
-    </div>
-
-    <div style="display:flex;gap:8px;">
-      <button class="btn primary" style="flex:1" onclick="confirmAndApplyAiActions()">✅ Confirm & Apply</button>
-      <button class="btn secondary" style="flex:1" onclick="cancelAiActions()">❌ Cancel</button>
-    </div>
-  </div>
-</div>
-
 <!-- ERROR / WARNING POPUP MODAL -->
 <div id="errorModal" class="modal-overlay">
   <div class="modal" style="max-width:420px;border-color:var(--red);">
-    <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ AI Assistant Message</h3>
+    <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ AI Engine Alert</h3>
     <p id="errorMessageText" style="margin:12px 0;font-size:13px;line-height:1.5;color:var(--text);"></p>
     <button class="btn danger" style="width:100%" onclick="closeModal('errorModal')">Got It / Retry</button>
   </div>
