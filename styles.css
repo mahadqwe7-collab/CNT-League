@@ -216,6 +216,20 @@ h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
   transition: border-color 0.25s ease, transform 0.2s ease;
 }
 
+/* POSITIONS BADGE STYLES */
+.badge-tier {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.tier-premier { background: rgba(39, 211, 176, 0.2); border: 1px solid var(--teal); color: var(--teal); }
+.tier-gold { background: rgba(245, 185, 66, 0.2); border: 1px solid var(--gold); color: var(--gold); }
+.tier-silver { background: rgba(224, 224, 224, 0.2); border: 1px solid var(--silver); color: var(--silver); }
+.tier-normal { background: rgba(39, 150, 255, 0.2); border: 1px solid var(--blue); color: var(--blue); }
+.tier-red { background: rgba(255, 85, 85, 0.2); border: 1px solid var(--red); color: var(--red); }
+
 /* VISUAL KNOCKOUT BRACKET STYLES */
 .bracket-container {
   display: grid;
@@ -352,17 +366,22 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--gold);
 }
 
-/* Modals & Overlay (OVERLAY IS HIDDEN UNTIL DISPLAY IS SET TO FLEX) */
+/* Modals & Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.88);
-  display: none;
+  display: none !important;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+}
+
+.modal-overlay[style*="display: flex"],
+.modal-overlay[style*="display:flex"] {
+  display: flex !important;
 }
 
 .modal {
