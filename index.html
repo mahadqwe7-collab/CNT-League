@@ -29,6 +29,7 @@
     <div class="links">
       <a href="#seasons">SEASONS</a>
       <a href="#standings">STANDINGS</a>
+      <a href="#bracket">BRACKET</a>
       <a href="#fixtures">MATCH LOG</a>
       <a href="#pvp">PVP COMPARE</a>
       <a href="#players">PLAYERS</a>
@@ -44,7 +45,7 @@
     <h1 id="heroTitle">THE GAME.<br><span class="gradient">THE GLORY.</span></h1>
     <div>
       <a class="btn primary" href="#standings">VIEW STANDINGS</a>
-      <a class="btn secondary" href="#fixtures">MATCH LOG</a>
+      <a class="btn secondary" href="#bracket">VIEW PLAYOFF BRACKET</a>
     </div>
   </section>
 
@@ -77,6 +78,15 @@
         <tbody id="pointsBody"></tbody>
       </table>
     </div>
+  </section>
+
+  <!-- PUBLIC KNOCKOUT PLAYOFF BRACKET SECTION -->
+  <section id="bracket">
+    <div class="section-head">
+      <div class="kicker">Playoff Stage</div>
+      <h2>Tournament Knockout Bracket</h2>
+    </div>
+    <div class="bracket-container" id="publicBracketContainer"></div>
   </section>
 
   <section id="fixtures">
@@ -140,7 +150,7 @@
     <div class="player-grid" id="playerGrid"></div>
   </section>
 
-  <!-- PUBLIC COMPLAINT & FEEDBACK FORM (NAME & MESSAGE ONLY) -->
+  <!-- PUBLIC COMPLAINT & FEEDBACK FORM -->
   <section id="feedback">
     <div class="section-head">
       <div class="kicker">Support & Feedback</div>
@@ -219,7 +229,7 @@
         <button class="tab-btn active" onclick="switchTab(event, 'tabConverterAI')">📝 CONVERTER</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabPointsAI')">📊 AUTO POINTS TABLE</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabFixturesStatsAI')">🏏 FIXTURES & STATS</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tabPositions')">🏅 POSITIONS & TIERS</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabPositions')">🏅 POSITIONS & BRACKET</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ MANUAL CONTROLS</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabNotifications')">🔔 NOTIFICATIONS <span id="notifBadge" class="badge-count">0</span></button>
         <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 SERVER PREVIEW</button>
@@ -300,18 +310,65 @@
           </div>
         </div>
 
-        <!-- PANEL 4: POSITIONS & TIERS MANAGER (ADMIN ONLY) -->
+        <!-- PANEL 4: POSITIONS & PLAYOFF BRACKET MANAGER (ADMIN) -->
         <div id="tabPositions" class="tab-content">
-          <h3>POSITIONS & BRACKET TIERS MANAGER</h3>
+          <h3>🏅 POSITIONS & PLAYOFF BRACKET MANAGER</h3>
           <p class="sub" style="margin-bottom:12px">
-            Assign team bracket standings: Gold (Final Winner/Finalist), Silver (Semi-Finalist), Premier (Top Tier), or Red (Eliminated).
+            Set visual bracket matches (Semi-Final 1, Semi-Final 2, Final) and assign team tier badges.
           </p>
-          <div id="adminPositionsContainer"></div>
+          
+          <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--line);margin-bottom:15px;">
+            <h4 style="color:var(--gold);margin-bottom:10px">🏆 Knockout Bracket Controls</h4>
+            
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <!-- SF 1 EDIT -->
+              <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
+                <strong style="color:var(--teal);font-size:12px">Semi-Final 1</strong>
+                <select id="admSf1Team1" style="margin-top:4px"></select>
+                <input type="text" id="admSf1Score1" placeholder="Score (e.g. 150/4)" style="margin-top:4px">
+                <select id="admSf1Team2" style="margin-top:4px"></select>
+                <input type="text" id="admSf1Score2" placeholder="Score (e.g. 142/8)" style="margin-top:4px">
+                <input type="text" id="admSf1Winner" placeholder="Winner Name / Result" style="margin-top:4px">
+              </div>
+
+              <!-- SF 2 EDIT -->
+              <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
+                <strong style="color:var(--teal);font-size:12px">Semi-Final 2</strong>
+                <select id="admSf2Team1" style="margin-top:4px"></select>
+                <input type="text" id="admSf2Score1" placeholder="Score (e.g. 175/5)" style="margin-top:4px">
+                <select id="admSf2Team2" style="margin-top:4px"></select>
+                <input type="text" id="admSf2Score2" placeholder="Score (e.g. 160/9)" style="margin-top:4px">
+                <input type="text" id="admSf2Winner" placeholder="Winner Name / Result" style="margin-top:4px">
+              </div>
+            </div>
+
+            <!-- FINAL EDIT -->
+            <div style="background:var(--panel-alt);padding:10px;border-radius:8px;margin-bottom:10px;">
+              <strong style="color:var(--gold);font-size:12px">🏆 GRAND FINAL MATCH</strong>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
+                <div>
+                  <select id="admFinalTeam1"></select>
+                  <input type="text" id="admFinalScore1" placeholder="Score" style="margin-top:4px">
+                </div>
+                <div>
+                  <select id="admFinalTeam2"></select>
+                  <input type="text" id="admFinalScore2" placeholder="Score" style="margin-top:4px">
+                </div>
+              </div>
+              <input type="text" id="admFinalWinner" placeholder="Final Champion / Winner Team Name" style="margin-top:4px">
+            </div>
+
+            <button class="btn primary" style="width:100%" onclick="saveAdminBracketData()">💾 Update Bracket On Dashboard</button>
+          </div>
+
+          <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+
+          <h4>Team Position Badges (Tiers)</h4>
+          <div id="adminPositionsContainer" style="margin-top:8px"></div>
         </div>
 
-        <!-- PANEL 5: MANUAL CONTROLS (DASHBOARD DUPLICATE) -->
+        <!-- PANEL 5: MANUAL CONTROLS -->
         <div id="tabManual" class="tab-content">
-          <!-- TEAM CONTROLS (ADD, DELETE, RENAME) -->
           <div style="margin-bottom:15px">
             <h4>Manage Teams (➕ Add / ➖ Delete / ✏️ Rename)</h4>
             <div style="display:flex;gap:8px;margin-top:6px">
@@ -323,7 +380,6 @@
 
           <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
 
-          <!-- MANUAL PLAYER CONTROLS -->
           <div style="margin-bottom:15px">
             <h4>Manage Players (Add / Remove Manually)</h4>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
@@ -350,7 +406,7 @@
           </div>
         </div>
 
-        <!-- PANEL 6: ADMIN NOTIFICATIONS (USER COMPLAINTS / INQUIRIES) -->
+        <!-- PANEL 6: ADMIN NOTIFICATIONS -->
         <div id="tabNotifications" class="tab-content">
           <h3>🔔 User Complaints & Feedback Inbox</h3>
           <p class="sub" style="margin-bottom:12px">Messages submitted by website visitors from the public feedback form.</p>
