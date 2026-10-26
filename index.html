@@ -19,7 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 
@@ -113,7 +113,7 @@
     </div>
   </section>
 
-  <!-- PLAYER VS PLAYER COMPARISON SECTION (WITH CAREER RATIOS) -->
+  <!-- PLAYER VS PLAYER COMPARISON SECTION -->
   <section id="pvp">
     <div class="section-head">
       <div class="kicker">Head to Head</div>
@@ -171,8 +171,8 @@
   </section>
 </main>
 
-<!-- LOGIN MODAL -->
-<div id="loginModal" class="modal-overlay">
+<!-- LOGIN MODAL (HIDDEN BY DEFAULT) -->
+<div id="loginModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="max-width:380px;">
     <h3>Admin Verification</h3>
     <input type="password" id="adminPassword" placeholder="Enter Password" style="margin:12px 0;">
@@ -181,13 +181,13 @@
   </div>
 </div>
 
-<!-- MATCH SCORECARD DETAIL MODAL -->
-<div id="matchDetailModal" class="modal-overlay">
+<!-- MATCH SCORECARD DETAIL MODAL (HIDDEN BY DEFAULT) -->
+<div id="matchDetailModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="max-width:500px;">
     <h3 id="detailMatchTitle">Match Details</h3>
     <p class="sub" id="detailMatchStatus" style="margin-bottom:12px"></p>
     
-    <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--line);margin-bottom:12px;">
+    <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--panel-border);margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
         <strong id="detailTeam1Name">Team 1</strong>
         <span id="detailTeam1Score" style="color:var(--gold);font-weight:800">0/0 (0.0 overs)</span>
@@ -198,20 +198,19 @@
       </div>
     </div>
 
-    <div style="background:var(--panel-alt);padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;">
+    <div style="background:rgba(20, 36, 59, 0.9);padding:12px;border-radius:8px;border:1px solid var(--panel-border);margin-bottom:14px;">
       <span class="kicker">Match Outcome Details</span>
-      <p id="detailMatchSummaryText" style="font-size:12px;margin-top:4px;color:var(--text);white-space:pre-line;"></p>
+      <p id="detailMatchSummaryText" style="font-size:12px;margin-top:4px;color:var(--text-main);white-space:pre-line;"></p>
     </div>
 
     <button class="btn primary" style="width:100%" onclick="closeModal('matchDetailModal')">Close Scorecard</button>
   </div>
 </div>
 
-<!-- FULL ADMIN WORKSPACE DASHBOARD MODAL -->
-<div id="adminModal" class="modal-overlay">
+<!-- FULL ADMIN WORKSPACE DASHBOARD MODAL (HIDDEN BY DEFAULT) -->
+<div id="adminModal" class="modal-overlay" style="display:none;">
   <div class="modal admin-large-panel">
     
-    <!-- TOP ACTION TOOLBAR -->
     <div class="admin-top-bar">
       <div>
         <h2>⚡ CNT-League Admin Dashboard</h2>
@@ -226,10 +225,8 @@
       </div>
     </div>
 
-    <!-- MAIN DASHBOARD WORKSPACE -->
     <div class="admin-workspace">
       
-      <!-- LEFT SIDEBAR MENU -->
       <aside class="admin-sidebar">
         <button class="tab-btn active" onclick="switchTab(event, 'tabConverterAI')">📝 CONVERTER</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabPointsAI')">📊 AUTO POINTS TABLE</button>
@@ -240,10 +237,8 @@
         <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 SERVER PREVIEW</button>
       </aside>
 
-      <!-- RIGHT MAIN CONTENT PANELS -->
       <div class="admin-main-content">
         
-        <!-- PANEL 1: MATCH SUMMARY CONVERTER WITH 3 SEPARATE COPY SECTIONS -->
         <div id="tabConverterAI" class="tab-content active">
           <h3>MATCH SUMMARY CONVERTER</h3>
           <p class="sub" style="margin-bottom:8px">
@@ -255,8 +250,7 @@
             <button class="btn primary" style="width:100%;margin-top:6px;" onclick="generateMatchSummary3Outputs()">⚡ Update Match Summary</button>
           </div>
 
-          <!-- SECTION 1 COPY BLOCK -->
-          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:10px;">
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--panel-border);margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
               <strong style="color:var(--gold);font-size:12px;">📊 SECTION 1: Points Table & Auto NRR Summary</strong>
               <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection1')">📋 Copy Section 1</button>
@@ -264,8 +258,7 @@
             <textarea id="outputSection1" rows="3" readonly style="font-size:11px;color:var(--teal);background:#030810;"></textarea>
           </div>
 
-          <!-- SECTION 2 COPY BLOCK -->
-          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:10px;">
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--panel-border);margin-bottom:10px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
               <strong style="color:var(--purple);font-size:12px;">🏏 SECTION 2: Fixtures Scorecard & Individual Career Ratios</strong>
               <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection2')">📋 Copy Section 2</button>
@@ -273,8 +266,7 @@
             <textarea id="outputSection2" rows="3" readonly style="font-size:11px;color:var(--purple);background:#030810;"></textarea>
           </div>
 
-          <!-- SECTION 3 COPY BLOCK -->
-          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);">
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--panel-border);">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
               <strong style="color:var(--orange);font-size:12px;">🏅 SECTION 3: Positions & Bracket Tier Summary</strong>
               <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection3')">📋 Copy Section 3</button>
@@ -283,7 +275,6 @@
           </div>
         </div>
 
-        <!-- PANEL 2: AUTO POINTS TABLE AI CHAT -->
         <div id="tabPointsAI" class="tab-content">
           <h3>AUTO POINTS TABLE (Win/Loss & Auto NRR)</h3>
           <p class="sub" style="margin-bottom:8px">
@@ -299,7 +290,6 @@
           </div>
         </div>
 
-        <!-- PANEL 3: FIXTURES & STATS AI CHAT -->
         <div id="tabFixturesStatsAI" class="tab-content">
           <h3>FIXTURES & INDIVIDUAL CAREER AI</h3>
           <p class="sub" style="margin-bottom:8px">
@@ -315,25 +305,24 @@
           </div>
         </div>
 
-        <!-- PANEL 4: POSITIONS & PLAYOFF BRACKET MANAGER -->
         <div id="tabPositions" class="tab-content">
           <h3>🏅 POSITIONS & PLAYOFF BRACKET MANAGER</h3>
           <p class="sub" style="margin-bottom:12px">
             Set bracket matchups (teams & winner names) and assign team position tiers.
           </p>
           
-          <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--line);margin-bottom:15px;">
+          <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--panel-border);margin-bottom:15px;">
             <h4 style="color:var(--gold);margin-bottom:10px">🏆 Knockout Bracket Controls</h4>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-              <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
+              <div style="background:rgba(20, 36, 59, 0.9);padding:10px;border-radius:8px;">
                 <strong style="color:var(--teal);font-size:12px">Semi-Final 1</strong>
                 <select id="admSf1Team1" style="margin-top:6px"></select>
                 <select id="admSf1Team2" style="margin-top:6px"></select>
                 <input type="text" id="admSf1Winner" placeholder="Winner Team Name" style="margin-top:6px">
               </div>
 
-              <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
+              <div style="background:rgba(20, 36, 59, 0.9);padding:10px;border-radius:8px;">
                 <strong style="color:var(--teal);font-size:12px">Semi-Final 2</strong>
                 <select id="admSf2Team1" style="margin-top:6px"></select>
                 <select id="admSf2Team2" style="margin-top:6px"></select>
@@ -341,7 +330,7 @@
               </div>
             </div>
 
-            <div style="background:var(--panel-alt);padding:10px;border-radius:8px;margin-bottom:10px;">
+            <div style="background:rgba(20, 36, 59, 0.9);padding:10px;border-radius:8px;margin-bottom:10px;">
               <strong style="color:var(--gold);font-size:12px">🏆 GRAND FINAL MATCH</strong>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
                 <select id="admFinalTeam1"></select>
@@ -353,13 +342,12 @@
             <button class="btn primary" style="width:100%" onclick="saveAdminBracketData()">💾 Update Bracket On Dashboard</button>
           </div>
 
-          <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+          <hr style="border:0;border-top:1px solid var(--panel-border);margin:15px 0;">
 
           <h4>Team Position Tiers (Premier, Golden, Silver, Normal, Red)</h4>
           <div id="adminPositionsContainer" style="margin-top:8px"></div>
         </div>
 
-        <!-- PANEL 5: MANUAL CONTROLS -->
         <div id="tabManual" class="tab-content">
           <div style="margin-bottom:15px">
             <h4>Manage Teams (➕ Add / ➖ Delete / ✏️ Rename)</h4>
@@ -370,7 +358,7 @@
             <div id="teamsListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
           </div>
 
-          <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+          <hr style="border:0;border-top:1px solid var(--panel-border);margin:15px 0;">
 
           <div style="margin-bottom:15px">
             <h4>Manage Player Career (Add / Remove Manually)</h4>
@@ -389,7 +377,7 @@
             <div id="playersListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
           </div>
 
-          <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+          <hr style="border:0;border-top:1px solid var(--panel-border);margin:15px 0;">
 
           <div style="margin-bottom:15px;">
             <h4>Tagline Settings</h4>
@@ -398,43 +386,41 @@
           </div>
         </div>
 
-        <!-- PANEL 6: ADMIN NOTIFICATIONS -->
         <div id="tabNotifications" class="tab-content">
           <h3>🔔 User Complaints & Feedback Inbox</h3>
           <p class="sub" style="margin-bottom:12px">Messages submitted by website visitors from the public feedback form.</p>
           <div id="adminNotificationsList"></div>
         </div>
 
-        <!-- PANEL 7: SERVER PREVIEW -->
         <div id="tabServer" class="tab-content">
           <h3>🌐 Live Cloud Server & DB Preview</h3>
           <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity.</p>
           
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
-            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--panel-border)">
               <span class="sub">Server Status</span><br>
               <strong style="color:var(--teal);font-size:13px">🟢 Online (Connected)</strong>
             </div>
-            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--panel-border)">
               <span class="sub">Database Host</span><br>
               <strong style="color:var(--gold);font-size:11px">slgsxvwzcmogulsrzgqm</strong>
             </div>
-            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--panel-border)">
               <span class="sub">Last Cloud Sync</span><br>
               <strong id="serverLastSync" style="font-size:11px">Just Now</strong>
             </div>
           </div>
 
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
-            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--panel-border)">
               <span class="sub">Registered Teams</span><br>
               <strong id="serverTeamsCount">0</strong>
             </div>
-            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--panel-border)">
               <span class="sub">Matches Logged</span><br>
               <strong id="serverMatchesCount">0</strong>
             </div>
-            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--panel-border)">
               <span class="sub">Players Recorded</span><br>
               <strong id="serverPlayersCount">0</strong>
             </div>
@@ -451,11 +437,11 @@
   </div>
 </div>
 
-<!-- ERROR / WARNING POPUP MODAL -->
-<div id="errorModal" class="modal-overlay">
+<!-- ERROR / WARNING POPUP MODAL (HIDDEN BY DEFAULT) -->
+<div id="errorModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="max-width:420px;border-color:var(--red);">
     <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ Alert Message</h3>
-    <p id="errorMessageText" style="margin:12px 0;font-size:13px;line-height:1.5;color:var(--text);"></p>
+    <p id="errorMessageText" style="margin:12px 0;font-size:13px;line-height:1.5;color:var(--text-main);"></p>
     <button class="btn danger" style="width:100%" onclick="closeModal('errorModal')">Got It / Retry</button>
   </div>
 </div>
@@ -464,6 +450,6 @@
   <div class="wrap">CNT-LEAGUE ENGINE · REAL-TIME TOURNAMENT DASHBOARD</div>
 </footer>
 
-<script src="app.js"></script>
+<script src="./app.js"></script>
 </body>
 </html>
