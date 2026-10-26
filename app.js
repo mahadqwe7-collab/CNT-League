@@ -132,7 +132,7 @@ function renderAll() {
 
   renderSeasonsGrid();
   renderStandings();
-  renderPositions();
+  renderAdminPositions();
   renderFixtures();
   renderPvPDropdowns();
   renderPlayers();
@@ -177,40 +177,9 @@ function renderStandings() {
     : `<tr><td colspan="7" style="text-align:center;color:var(--muted)">No teams added.</td></tr>`;
 }
 
-// RENDER POSITIONS & TIERS (Gold, Silver, Premier, Red)
-function renderPositions() {
-  const grid = document.getElementById("positionsGrid");
+// RENDER POSITIONS & TIERS MANAGER (ADMIN ONLY)
+function renderAdminPositions() {
   const adminContainer = document.getElementById("adminPositionsContainer");
-
-  const tierColors = {
-    "Gold": "tier-gold",
-    "Silver": "tier-silver",
-    "Premier": "tier-premier",
-    "Red": "tier-red"
-  };
-
-  const tierLabels = {
-    "Gold": "🥇 Gold Tier (Final Winner/Finalist)",
-    "Silver": "🥈 Silver Tier (Semi-Finalist)",
-    "Premier": "👑 Premier Tier (Top Contender)",
-    "Red": "🔴 Red Tier (Eliminated)"
-  };
-
-  if (grid) {
-    grid.innerHTML = state.teams.map(teamName => {
-      const tier = state.positions[teamName] || "Premier";
-      return `
-        <article class="position-card">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <h3>${teamName}</h3>
-            <span class="badge-tier ${tierColors[tier]}">${tier}</span>
-          </div>
-          <p class="sub" style="margin-top:8px">${tierLabels[tier]}</p>
-        </article>
-      `;
-    }).join("");
-  }
-
   if (adminContainer) {
     adminContainer.innerHTML = state.teams.map(teamName => {
       const currentTier = state.positions[teamName] || "Premier";
@@ -218,8 +187,8 @@ function renderPositions() {
         <div style="display:flex;justify-content:space-between;align-items:center;background:#060d17;padding:10px 14px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px">
           <strong>${teamName}</strong>
           <select style="max-width:200px" onchange="updateTeamPositionTier('${teamName}', this.value)">
-            <option value="Gold" ${currentTier==='Gold'?'selected':''}>🥇 Gold Tier</option>
-            <option value="Silver" ${currentTier==='Silver'?'selected':''}>🥈 Silver Tier</option>
+            <option value="Gold" ${currentTier==='Gold'?'selected':''}>🥇 Gold Tier (Final)</option>
+            <option value="Silver" ${currentTier==='Silver'?'selected':''}>🥈 Silver Tier (Semi-Final)</option>
             <option value="Premier" ${currentTier==='Premier'?'selected':''}>👑 Premier Tier</option>
             <option value="Red" ${currentTier==='Red'?'selected':''}>🔴 Red Tier (Eliminated)</option>
           </select>
@@ -265,7 +234,7 @@ function showMatchDetails(matchId) {
   openModal("matchDetailModal");
 }
 
-// PLAYER VS PLAYER COMPARISON WIDGET ENGINE
+// PLAYER VS PLAYER COMPARISON ENGINE
 function renderPvPDropdowns() {
   const p1 = document.getElementById("pvpPlayer1Select");
   const p2 = document.getElementById("pvpPlayer2Select");
@@ -374,33 +343,27 @@ function renderPlayersManageList() {
   }
 }
 
-// PUBLIC FEEDBACK SUBMISSION & ADMIN NOTIFICATIONS INBOX
+// PUBLIC FEEDBACK SUBMISSION (NAME & MESSAGE ONLY)
 function submitPublicFeedback(evt) {
   evt.preventDefault();
   const name = document.getElementById("feedbackName").value.trim();
-  const contact = document.getElementById("feedbackContact").value.trim();
-  const subject = document.getElementById("feedbackSubject").value.trim();
   const message = document.getElementById("feedbackMessage").value.trim();
 
-  if (!name || !contact || !message) return alert("Please fill in all required fields!");
+  if (!name || !message) return alert("Please fill in both Name and Message fields!");
 
   state.notifications.unshift({
     id: Date.now(),
     name,
-    contact,
-    subject,
     message,
     date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(),
     read: false
   });
 
   document.getElementById("feedbackName").value = "";
-  document.getElementById("feedbackContact").value = "";
-  document.getElementById("feedbackSubject").value = "";
   document.getElementById("feedbackMessage").value = "";
 
   saveState();
-  alert("📨 Feedback / Complaint submitted successfully to Admin!");
+  alert("📨 Complaint / Message submitted successfully to Admin!");
 }
 
 function renderNotifications() {
@@ -414,10 +377,9 @@ function renderNotifications() {
     list.innerHTML = state.notifications.length ? state.notifications.map(n => `
       <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid ${n.read ? 'var(--line)' : 'var(--gold)'};margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <strong style="color:var(--gold);font-size:13px">${n.subject}</strong>
+          <strong style="color:var(--gold);font-size:13px">From: ${n.name}</strong>
           <span class="sub" style="font-size:10px">${n.date}</span>
         </div>
-        <div style="font-size:11px;margin:4px 0;color:var(--text)"><b>From:</b> ${n.name} (${n.contact})</div>
         <p style="font-size:12px;color:var(--text-muted);background:#0f1c2e;padding:8px;border-radius:6px;margin-top:6px">${n.message}</p>
         <div style="text-align:right;margin-top:6px;">
           ${!n.read ? `<button class="btn secondary" style="padding:2px 8px;font-size:10px" onclick="markNotifRead(${n.id})">Mark as Read</button>` : '<span class="sub">✓ Read</span>'}
@@ -457,7 +419,7 @@ function showErrorPopup(msg) {
   openModal("errorModal");
 }
 
-// AI CHAT 1: CONVERTER (3 COPY SECTIONS + UPDATE MATCH SUMMARY BUTTON)
+// AI CHAT 1: CONVERTER (3 COPY SECTIONS)
 function generateMatchSummary3Outputs() {
   const rawText = document.getElementById("converterRawInput").value.trim();
   if (!rawText) return alert("Please paste match summary notes first!");
