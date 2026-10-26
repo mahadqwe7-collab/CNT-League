@@ -1,865 +1,494 @@
-// Supabase Cloud Connection Setup
-const SUPABASE_URL = "https://slgsxvwzcmogulsrzgqm.supabase.co";
-const SUPABASE_KEY = "sb_publishable_sQmZXNu5XfQ0m5hQ6v-Cog_HS9sLraa";
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-// Default Tournament State
-const DEFAULT_TEAMS = ["Team A", "Team B", "Team C", "Team D"];
-
-let state = {
-  activeSeason: 1,
-  siteConfig: {
-    eyebrow: "TOURNAMENT DASHBOARD",
-    heroHeading: 'THE GAME.<br><span class="gradient">THE GLORY.</span>'
-  },
-  teams: [...DEFAULT_TEAMS],
-  seasons: { 1: [], 2: [], 3: [], 4: [] },
-  fixtures: [],
-  players: [],
-  positions: {
-    "Team A": "Premier",
-    "Team B": "Gold",
-    "Team C": "Silver",
-    "Team D": "Normal"
-  },
-  bracket: {
-    sf1: { team1: "Team A", team2: "Team D", winner: "Team A" },
-    sf2: { team1: "Team B", team2: "Team C", winner: "Team B" },
-    final: { team1: "Team A", team2: "Team B", winner: "TBD" }
-  },
-  notifications: []
-};
-
-// MOBILE HAMBURGER TOGGLE HELPERS
-function toggleMobileMenu() {
-  const links = document.getElementById("navLinks");
-  if (links) links.classList.toggle("mobile-open");
+:root {
+  --bg-gradient: radial-gradient(circle at 50% 0%, #102a45 0%, #060d17 70%);
+  --panel-bg: rgba(15, 28, 46, 0.85);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-hover-border: rgba(245, 185, 66, 0.4);
+  --text-main: #f3f7fc;
+  --text-muted: #829ab1;
+  --gold: #f5b942;
+  --silver: #e0e0e0;
+  --teal: #27d3b0;
+  --blue: #2796ff;
+  --purple: #b39aff;
+  --red: #ff5555;
+  --orange: #ff8c00;
+  --radius-lg: 16px;
+  --radius-md: 10px;
+  --radius-sm: 6px;
+  --shadow-glow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
 }
 
-function closeMobileMenu() {
-  const links = document.getElementById("navLinks");
-  if (links) links.classList.remove("mobile-open");
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-// Undo / Redo Stacks
-let undoStack = [];
-let redoStack = [];
-
-function pushHistory() {
-  undoStack.push(JSON.stringify(state));
-  if (undoStack.length > 25) undoStack.shift();
-  redoStack = [];
-  updateUndoRedoButtons();
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 85px;
 }
 
-function undoAction() {
-  if (undoStack.length === 0) return;
-  redoStack.push(JSON.stringify(state));
-  state = JSON.parse(undoStack.pop());
-  saveState(true);
-  updateUndoRedoButtons();
+body {
+  background: #060d17;
+  background-image: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-function redoAction() {
-  if (redoStack.length === 0) return;
-  undoStack.push(JSON.stringify(state));
-  state = JSON.parse(redoStack.pop());
-  saveState(true);
-  updateUndoRedoButtons();
+a { color: inherit; text-decoration: none; }
+
+.wrap {
+  width: min(1200px, 92%);
+  margin: 0 auto;
 }
 
-function updateUndoRedoButtons() {
-  const btnUndo = document.getElementById("btnUndo");
-  const btnRedo = document.getElementById("btnRedo");
-  if (btnUndo) btnUndo.disabled = undoStack.length === 0;
-  if (btnRedo) btnRedo.disabled = redoStack.length === 0;
+/* Header & Navigation */
+header {
+  position: sticky;
+  top: 0;
+  background: rgba(6, 13, 23, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--panel-border);
+  z-index: 100;
 }
 
-// Auto Spelling Matcher
-function getBestTeamMatch(inputText) {
-  if (!inputText) return null;
-  const clean = inputText.trim().toLowerCase();
-  let exact = state.teams.find(t => t.toLowerCase() === clean);
-  if (exact) return exact;
-  let partial = state.teams.find(t => t.toLowerCase().includes(clean) || clean.includes(t.toLowerCase()));
-  if (partial) return partial;
-  return null;
+nav {
+  min-height: 68px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  position: relative;
 }
 
-// Initialize Seasons
-function initSeasons(teamList) {
-  const data = {};
-  for (let i = 1; i <= 4; i++) {
-    data[i] = teamList.map(name => ({
-      name, played: 0, won: 0, lost: 0, runsScored: 0, oversFaced: 0, runsConceded: 0, oversBowled: 0, nrr: "0.000", points: 0
-    }));
+.brand {
+  font-size: clamp(18px, 4vw, 22px);
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.brand span { color: var(--gold); }
+
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--gold);
+  font-size: 22px;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.links {
+  display: flex;
+  gap: clamp(8px, 1.8vw, 18px);
+  align-items: center;
+}
+
+.links a {
+  font-size: clamp(11px, 1.4vw, 13px);
+  color: #c3d0df;
+  font-weight: 700;
+  transition: color 0.2s ease;
+}
+
+.links a:hover { color: var(--gold); }
+
+.admin-nav-btn {
+  background: var(--gold);
+  color: #060d17 !important;
+  padding: 8px 18px;
+  border-radius: 30px;
+  font-weight: 800 !important;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-nav-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(245, 185, 66, 0.3);
+}
+
+/* Hero Section */
+.hero { padding: clamp(30px, 8vw, 70px) 0 clamp(20px, 5vw, 40px); }
+
+.eyebrow {
+  display: inline-block;
+  border: 1px solid rgba(245, 185, 66, 0.3);
+  background: rgba(245, 185, 66, 0.08);
+  color: var(--gold);
+  padding: 5px 14px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+h1 {
+  font-size: clamp(32px, 6.5vw, 68px);
+  line-height: 1.05;
+  letter-spacing: -1.5px;
+  margin: 16px 0;
+  font-weight: 900;
+}
+
+.gradient {
+  background: linear-gradient(90deg, var(--gold), var(--teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  border: none;
+  min-height: 42px;
+  transition: transform 0.15s ease, background 0.2s ease, opacity 0.2s;
+}
+
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+
+.primary { background: var(--gold); color: #060d17; }
+.primary:hover:not(:disabled) { background: #f7c563; }
+
+.secondary {
+  background: rgba(20, 36, 59, 0.8);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+}
+.secondary:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(30, 50, 78, 0.9);
+}
+
+.danger { background: var(--red); color: #fff; }
+
+/* Responsive Layout */
+section { padding: clamp(20px, 4vw, 35px) 0; }
+.section-head { margin-bottom: 16px; }
+
+.kicker {
+  color: var(--teal);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
+.sub { color: var(--text-muted); font-size: 12px; }
+
+.season-grid,
+.player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(clamp(240px, 30vw, 320px), 1fr));
+  gap: 14px;
+}
+
+.season-card,
+.player-card,
+.panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(14px, 3vw, 20px);
+  box-shadow: var(--shadow-glow);
+  transition: border-color 0.25s ease, transform 0.2s ease;
+}
+
+/* VISUAL KNOCKOUT BRACKET STYLES */
+.bracket-container {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  align-items: center;
+}
+
+.bracket-round {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.bracket-match-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-glow);
+}
+
+.bracket-match-card.final-card {
+  border-color: var(--gold);
+  background: linear-gradient(145deg, rgba(245, 185, 66, 0.1), rgba(15, 28, 46, 0.9));
+}
+
+.bracket-team-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding: 4px 0;
+  font-weight: 700;
+}
+
+.bracket-winner {
+  color: var(--gold);
+  font-weight: 800;
+}
+
+/* PVP CARD COMPARISON STYLES */
+.pvp-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+.pvp-selectors {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.pvp-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+}
+
+.pvp-stat-row:last-child { border-bottom: none; }
+
+/* Tables */
+.panel {
+  padding: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table { border-collapse: collapse; width: 100%; min-width: 580px; }
+
+th, td {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+th {
+  background: rgba(10, 20, 34, 0.85);
+  color: var(--text-muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+tr:last-child td { border-bottom: 0; }
+
+.badge-cap {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 9px;
+  font-weight: 800;
+  margin-left: 6px;
+  text-transform: uppercase;
+}
+
+.cap-orange { background: var(--orange); color: #fff; }
+.cap-purple { background: var(--purple); color: #fff; }
+
+.badge-count {
+  background: var(--red);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 9px;
+  margin-left: 4px;
+}
+
+/* Inputs & Form Controls */
+.toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+
+input, select, textarea {
+  background: rgba(6, 13, 23, 0.9);
+  color: #fff;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font: inherit;
+  font-size: 12px;
+  width: 100%;
+  min-height: 42px;
+  transition: border-color 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+/* Modals & Overlay (OVERLAY IS HIDDEN UNTIL DISPLAY IS SET TO FLEX) */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.88);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.modal {
+  background: #0f1c2e;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-lg);
+  padding: clamp(16px, 4vw, 24px);
+  width: min(750px, 94%);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+}
+
+.admin-large-panel { width: min(960px, 95%) !important; }
+
+.admin-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--panel-border);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.admin-workspace { display: flex; gap: 20px; min-height: 440px; }
+
+.admin-sidebar {
+  width: 195px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-right: 1px solid var(--panel-border);
+  padding-right: 14px;
+  flex-shrink: 0;
+}
+
+.admin-sidebar .tab-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-sidebar .tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-sidebar .tab-btn.active {
+  background: rgba(20, 36, 59, 0.9);
+  color: var(--gold);
+  border-color: var(--panel-border);
+}
+
+.admin-main-content { flex: 1; overflow-y: auto; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+.chat-box {
+  background: #060d17;
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  height: 160px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-msg { padding: 8px 12px; border-radius: var(--radius-md); max-width: 85%; }
+.chat-ai { background: rgba(20, 36, 59, 0.9); align-self: flex-start; }
+.chat-user { background: var(--gold); color: #060d17; align-self: flex-end; font-weight: 700; }
+
+footer {
+  border-top: 1px solid var(--panel-border);
+  margin-top: 40px;
+  padding: 24px 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-align: center;
+}
+
+/* MEDIA QUERIES FOR MOBILE BREAKPOINTS */
+@media (max-width: 720px) {
+  .mobile-menu-btn { display: block; }
+  .links {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    background: rgba(6, 13, 23, 0.96);
+    padding: 15px;
+    border-radius: var(--radius-md);
+    position: absolute;
+    top: 68px;
+    left: 0;
+    border: 1px solid var(--panel-border);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 200;
   }
-  return data;
-}
-state.seasons = initSeasons(state.teams);
-
-// Cloud Database Load & Save
-async function loadState() {
-  try {
-    const { data, error } = await db.from('cnt_league').select('state').eq('id', 1).single();
-    if (data && data.state && Object.keys(data.state).length > 0) {
-      state = data.state;
-      if (!state.positions) state.positions = {};
-      if (!state.notifications) state.notifications = [];
-      if (!state.bracket) {
-        state.bracket = {
-          sf1: { team1: "Team A", team2: "Team D", winner: "TBD" },
-          sf2: { team1: "Team B", team2: "Team C", winner: "TBD" },
-          final: { team1: "TBD", team2: "TBD", winner: "TBD" }
-        };
-      }
-    }
-  } catch (e) {
-    console.error("Cloud DB load error:", e);
+  .links.mobile-open { display: flex; }
+  .admin-workspace { flex-direction: column; }
+  .admin-sidebar {
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--panel-border);
+    padding-right: 0;
+    padding-bottom: 10px;
   }
-  recalculateAutoNRR();
-  renderAll();
+  .admin-sidebar .tab-btn { white-space: nowrap; }
+  .bracket-container { grid-template-columns: 1fr; }
+  .pvp-selectors { grid-template-columns: 1fr; text-align: center; }
 }
-
-async function saveState(skipHistory = false) {
-  if (!skipHistory) pushHistory();
-  recalculateAutoNRR();
-  renderAll();
-  try {
-    await db.from('cnt_league').upsert({ id: 1, state: state });
-  } catch (e) {
-    console.error("Cloud DB save error:", e);
-  }
-}
-
-// Auto NRR Recalculator
-function recalculateAutoNRR() {
-  const curTeams = state.seasons[state.activeSeason];
-  if (!curTeams) return;
-
-  curTeams.forEach(t => {
-    if (t.oversFaced > 0 && t.oversBowled > 0) {
-      const runRateFor = t.runsScored / t.oversFaced;
-      const runRateAgainst = t.runsConceded / t.oversBowled;
-      t.nrr = (runRateFor - runRateAgainst).toFixed(3);
-    } else {
-      t.nrr = "0.000";
-    }
-  });
-}
-
-// Master Render Engine
-function renderAll() {
-  document.getElementById("siteEyebrow").innerText = state.siteConfig.eyebrow;
-  document.getElementById("heroTitle").innerHTML = state.siteConfig.heroHeading;
-
-  renderSeasonsGrid();
-  renderStandings();
-  renderPublicBracket();
-  renderAdminBracketControls();
-  renderAdminPositions();
-  renderFixtures();
-  renderPvPDropdowns();
-  renderPlayers();
-  populateDropdowns();
-  renderTeamsManageList();
-  renderPlayersManageList();
-  renderNotifications();
-  renderServerPreview();
-  updateUndoRedoButtons();
-}
-
-function renderSeasonsGrid() {
-  const grid = document.getElementById("seasonsGrid");
-  grid.innerHTML = [1, 2, 3, 4].map(i => `
-    <article class="season-card ${state.activeSeason === i ? 'active' : ''}" onclick="switchSeason(${i})">
-      <div class="kicker">SEASON 0${i}</div>
-      <h3>Season ${i}</h3>
-      <span class="status">${state.activeSeason === i ? '● ACTIVE VIEW' : '◷ SELECT'}</span>
-    </article>
-  `).join("");
-}
-
-function switchSeason(num) {
-  state.activeSeason = num;
-  recalculateAutoNRR();
-  renderSeasonsGrid();
-  renderStandings();
-}
-
-function renderStandings() {
-  document.getElementById("standingsTitle").innerText = `Points Table — Season ${state.activeSeason}`;
-  const teams = state.seasons[state.activeSeason] || [];
-  const tbody = document.getElementById("pointsBody");
-  tbody.innerHTML = teams.length ? [...teams]
-    .sort((a, b) => b.points - a.points || parseFloat(b.nrr) - parseFloat(a.nrr))
-    .map((t, i) => `
-      <tr>
-        <td>${i + 1}</td><td><strong>${t.name}</strong></td>
-        <td>${t.played}</td><td>${t.won}</td><td>${t.lost}</td>
-        <td style="color:var(--teal);font-weight:700">${t.nrr}</td><td style="color:var(--gold);font-weight:800">${t.points}</td>
-      </tr>`).join("")
-    : `<tr><td colspan="7" style="text-align:center;color:var(--muted)">No teams added.</td></tr>`;
-}
-
-// RENDER PUBLIC VISUAL BRACKET
-function renderPublicBracket() {
-  const container = document.getElementById("publicBracketContainer");
-  if (!container) return;
-
-  const b = state.bracket || {};
-  const sf1 = b.sf1 || { team1: "Team A", team2: "Team D", winner: "TBD" };
-  const sf2 = b.sf2 || { team1: "Team B", team2: "Team C", winner: "TBD" };
-  const fn = b.final || { team1: "TBD", team2: "TBD", winner: "TBD" };
-
-  container.innerHTML = `
-    <div class="bracket-round">
-      <div class="bracket-match-card">
-        <div class="kicker">Semi-Final 1</div>
-        <div class="bracket-team-row"><span>${sf1.team1}</span> <span>vs</span> <span>${sf1.team2}</span></div>
-        <div style="font-size:11px;margin-top:6px" class="bracket-winner">Winner: ${sf1.winner}</div>
-      </div>
-
-      <div class="bracket-match-card">
-        <div class="kicker">Semi-Final 2</div>
-        <div class="bracket-team-row"><span>${sf2.team1}</span> <span>vs</span> <span>${sf2.team2}</span></div>
-        <div style="font-size:11px;margin-top:6px" class="bracket-winner">Winner: ${sf2.winner}</div>
-      </div>
-    </div>
-
-    <div style="text-align:center;font-weight:900;color:var(--gold);font-size:18px">➔</div>
-
-    <div class="bracket-round">
-      <div class="bracket-match-card final-card">
-        <div class="kicker" style="color:var(--gold)">🏆 GRAND FINAL</div>
-        <div class="bracket-team-row"><strong>${fn.team1}</strong> <span>vs</span> <strong>${fn.team2}</strong></div>
-        <div style="font-size:12px;margin-top:8px;color:var(--gold);font-weight:900">👑 Champion: ${fn.winner}</div>
-      </div>
-    </div>
-  `;
-}
-
-// POPULATE ADMIN BRACKET CONTROLS
-function renderAdminBracketControls() {
-  const b = state.bracket || {};
-
-  const fillSelectOptions = (elementId, currentVal) => {
-    const el = document.getElementById(elementId);
-    if (!el) return;
-    el.innerHTML = state.teams.map(t => `<option value="${t}" ${t===currentVal?'selected':''}>${t}</option>`).join("");
-  };
-
-  fillSelectOptions("admSf1Team1", b.sf1?.team1);
-  fillSelectOptions("admSf1Team2", b.sf1?.team2);
-  fillSelectOptions("admSf2Team1", b.sf2?.team1);
-  fillSelectOptions("admSf2Team2", b.sf2?.team2);
-  fillSelectOptions("admFinalTeam1", b.final?.team1);
-  fillSelectOptions("admFinalTeam2", b.final?.team2);
-
-  if (document.getElementById("admSf1Winner")) document.getElementById("admSf1Winner").value = b.sf1?.winner || "";
-  if (document.getElementById("admSf2Winner")) document.getElementById("admSf2Winner").value = b.sf2?.winner || "";
-  if (document.getElementById("admFinalWinner")) document.getElementById("admFinalWinner").value = b.final?.winner || "";
-}
-
-function saveAdminBracketData() {
-  state.bracket = {
-    sf1: {
-      team1: document.getElementById("admSf1Team1").value,
-      team2: document.getElementById("admSf1Team2").value,
-      winner: document.getElementById("admSf1Winner").value || "TBD"
-    },
-    sf2: {
-      team1: document.getElementById("admSf2Team1").value,
-      team2: document.getElementById("admSf2Team2").value,
-      winner: document.getElementById("admSf2Winner").value || "TBD"
-    },
-    final: {
-      team1: document.getElementById("admFinalTeam1").value,
-      team2: document.getElementById("admFinalTeam2").value,
-      winner: document.getElementById("admFinalWinner").value || "TBD"
-    }
-  };
-
-  saveState();
-  alert("🏆 Tournament Bracket updated on Main Dashboard!");
-}
-
-// RENDER ADMIN TIERS
-function renderAdminPositions() {
-  const adminContainer = document.getElementById("adminPositionsContainer");
-  if (adminContainer) {
-    adminContainer.innerHTML = state.teams.map(teamName => {
-      const currentTier = state.positions[teamName] || "Premier";
-      return `
-        <div style="display:flex;justify-content:space-between;align-items:center;background:#060d17;padding:10px 14px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px">
-          <strong>${teamName}</strong>
-          <select style="max-width:200px" onchange="updateTeamPositionTier('${teamName}', this.value)">
-            <option value="Premier" ${currentTier==='Premier'?'selected':''}>👑 Premier Tier</option>
-            <option value="Gold" ${currentTier==='Gold'?'selected':''}>🥇 Golden Tier</option>
-            <option value="Silver" ${currentTier==='Silver'?'selected':''}>🥈 Silver Tier</option>
-            <option value="Normal" ${currentTier==='Normal'?'selected':''}>⚽ Normal Tier</option>
-            <option value="Red" ${currentTier==='Red'?'selected':''}>🔴 Red Tier (Eliminated)</option>
-          </select>
-        </div>
-      `;
-    }).join("");
-  }
-}
-
-function updateTeamPositionTier(teamName, newTier) {
-  state.positions[teamName] = newTier;
-  saveState();
-}
-
-function renderFixtures() {
-  const tbody = document.getElementById("fixturesBody");
-  tbody.innerHTML = state.fixtures.length ? state.fixtures.map(f => `
-    <tr>
-      <td>${f.title}</td>
-      <td><strong>${f.team1}</strong> vs <strong>${f.team2}</strong></td>
-      <td>${f.result}</td>
-      <td>
-        <button class="btn secondary" style="padding:4px 10px;font-size:11px" onclick="showMatchDetails(${f.id})">
-          🔍 Click for Details
-        </button>
-      </td>
-    </tr>`).join("")
-    : `<tr><td colspan="4" style="text-align:center;color:var(--muted)">No match records logged.</td></tr>`;
-}
-
-function showMatchDetails(matchId) {
-  const match = state.fixtures.find(m => m.id === matchId);
-  if (!match) return;
-
-  document.getElementById("detailMatchTitle").innerText = `${match.title}: ${match.team1} vs ${match.team2}`;
-  document.getElementById("detailMatchStatus").innerText = `Status: ${match.status || 'Completed'}`;
-  document.getElementById("detailTeam1Name").innerText = match.team1;
-  document.getElementById("detailTeam1Score").innerText = `${match.team1Runs || 0}/${match.team1Wickets || 0} (${match.team1Overs || '0.0'} ov)`;
-  document.getElementById("detailTeam2Name").innerText = match.team2;
-  document.getElementById("detailTeam2Score").innerText = `${match.team2Runs || 0}/${match.team2Wickets || 0} (${match.team2Overs || '0.0'} ov)`;
-  document.getElementById("detailMatchSummaryText").innerText = match.details || match.result || "Match completed successfully.";
-
-  openModal("matchDetailModal");
-}
-
-// PLAYER VS PLAYER COMPARISON ENGINE (INCLUDES CAREER HIGHS & RATIOS)
-function renderPvPDropdowns() {
-  const p1 = document.getElementById("pvpPlayer1Select");
-  const p2 = document.getElementById("pvpPlayer2Select");
-  if (!p1 || !p2) return;
-
-  const options = state.players.map(p => `<option value="${p.id}">${p.name} (${p.team})</option>`).join("");
-  p1.innerHTML = options;
-  p2.innerHTML = options;
-
-  if (state.players.length >= 2) p2.selectedIndex = 1;
-  updatePvPComparison();
-}
-
-function updatePvPComparison() {
-  const id1 = parseInt(document.getElementById("pvpPlayer1Select").value);
-  const id2 = parseInt(document.getElementById("pvpPlayer2Select").value);
-  const box = document.getElementById("pvpComparisonBox");
-
-  const pl1 = state.players.find(p => p.id === id1);
-  const pl2 = state.players.find(p => p.id === id2);
-
-  if (!pl1 || !pl2) {
-    box.innerHTML = '<div class="sub" style="text-align:center;padding:15px">Select 2 players to compare career ratios.</div>';
-    return;
-  }
-
-  box.innerHTML = `
-    <div class="pvp-stat-row"><strong style="color:var(--gold)">${pl1.name}</strong><span class="sub">NAME</span><strong style="color:var(--gold)">${pl2.name}</strong></div>
-    <div class="pvp-stat-row"><span>${pl1.team}</span><span class="sub">TEAM</span><span>${pl2.team}</span></div>
-    <div class="pvp-stat-row"><span>${pl1.role}</span><span class="sub">ROLE</span><span>${pl2.role}</span></div>
-    <div class="pvp-stat-row"><strong style="color:${pl1.matches>=pl2.matches?'var(--teal)':'var(--text)'}">${pl1.matches || 1}</strong><span class="sub">CAREER MATCHES</span><strong style="color:${pl2.matches>=pl1.matches?'var(--teal)':'var(--text)'}">${pl2.matches || 1}</strong></div>
-    <div class="pvp-stat-row"><strong style="color:${pl1.runs>=pl2.runs?'var(--orange)':'var(--text)'}">${pl1.runs}</strong><span class="sub">TOTAL RUNS</span><strong style="color:${pl2.runs>=pl1.runs?'var(--orange)':'var(--text)'}">${pl2.runs}</strong></div>
-    <div class="pvp-stat-row"><strong style="color:${(pl1.highestScore||0)>=(pl2.highestScore||0)?'var(--gold)':'var(--text)'}">${pl1.highestScore || pl1.runs}</strong><span class="sub">HIGHEST SCORE (HS)</span><strong style="color:${(pl2.highestScore||0)>=(pl1.highestScore||0)?'var(--gold)':'var(--text)'}">${pl2.highestScore || pl2.runs}</strong></div>
-    <div class="pvp-stat-row"><strong style="color:${pl1.wickets>=pl2.wickets?'var(--purple)':'var(--text)'}">${pl1.wickets}</strong><span class="sub">TOTAL WICKETS</span><strong style="color:${pl2.wickets>=pl1.wickets?'var(--purple)':'var(--text)'}">${pl2.wickets}</strong></div>
-    <div class="pvp-stat-row"><strong style="color:${(pl1.bestWickets||0)>=(pl2.bestWickets||0)?'var(--purple)':'var(--text)'}">${pl1.bestBowling || (pl1.wickets + ' Wkts')}</strong><span class="sub">BEST BOWLING (BB)</span><strong style="color:${(pl2.bestWickets||0)>=(pl1.bestWickets||0)?'var(--purple)':'var(--text)'}">${pl2.bestBowling || (pl2.wickets + ' Wkts')}</strong></div>
-  `;
-}
-
-// RENDER INDIVIDUAL CAREER CARDS
-function renderPlayers() {
-  const q = document.getElementById("playerSearch").value.toLowerCase();
-  const team = document.getElementById("teamFilter").value;
-  const role = document.getElementById("roleFilter").value;
-
-  let topRuns = 0, topWickets = 0;
-  state.players.forEach(p => {
-    if (p.runs > topRuns) topRuns = p.runs;
-    if (p.wickets > topWickets) topWickets = p.wickets;
-  });
-
-  const filtered = state.players.filter(p =>
-    (p.name + " " + p.team).toLowerCase().includes(q) &&
-    (team === "All" || p.team === team) &&
-    (role === "All" || p.role === role)
-  );
-
-  const grid = document.getElementById("playerGrid");
-  grid.innerHTML = filtered.length ? filtered.map(p => {
-    const isOrange = p.runs > 0 && p.runs === topRuns;
-    const isPurple = p.wickets > 0 && p.wickets === topWickets;
-    return `
-    <article class="player-card">
-      <div style="font-weight:800;font-size:15px">
-        ${p.name}
-        ${isOrange ? '<span class="badge-cap cap-orange">Orange Cap</span>' : ''}
-        ${isPurple ? '<span class="badge-cap cap-purple">Purple Cap</span>' : ''}
-      </div>
-      <div class="sub" style="margin-top:2px">${p.team} · ${p.role}</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px;font-size:11px">
-        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Matches</span><br><strong>${p.matches || 1}</strong></div>
-        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Total Runs</span><br><strong style="color:var(--orange)">${p.runs}</strong></div>
-        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Best Batting (HS)</span><br><strong style="color:var(--gold)">${p.highestScore || p.runs}</strong></div>
-        <div style="background:#060d17;padding:6px;border-radius:6px"><span class="sub">Total Wickets</span><br><strong style="color:var(--purple)">${p.wickets}</strong></div>
-        <div style="background:#060d17;padding:6px;border-radius:6px;grid-column:span 2"><span class="sub">Best Bowling (BB)</span><br><strong style="color:var(--teal)">${p.bestBowling || (p.wickets + ' Wkts')}</strong></div>
-      </div>
-    </article>`;
-  }).join("") : '<div class="sub">No player career records found.</div>';
-}
-
-function populateDropdowns() {
-  const filter = document.getElementById("teamFilter");
-  filter.innerHTML = `<option value="All">All Teams</option>` + state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
-
-  const manualPlayerTeam = document.getElementById("manualPlayerTeam");
-  if(manualPlayerTeam) {
-    manualPlayerTeam.innerHTML = state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
-  }
-}
-
-function renderTeamsManageList() {
-  const container = document.getElementById("teamsListContainer");
-  if(container) {
-    container.innerHTML = state.teams.map(t => `
-      <span class="eyebrow" style="background:#14243b;display:inline-flex;align-items:center;gap:6px;margin-bottom:4px">
-        ${t} 
-        <b style="color:var(--gold);cursor:pointer" title="Rename" onclick="manualRenameTeam('${t}')">✏️</b>
-        <b style="color:var(--red);cursor:pointer" title="Delete" onclick="manualDeleteTeam('${t}')">➖</b>
-      </span>
-    `).join("");
-  }
-}
-
-function renderPlayersManageList() {
-  const container = document.getElementById("playersListContainer");
-  if(container) {
-    container.innerHTML = state.players.length ? state.players.map(p => `
-      <span class="eyebrow" style="background:#14243b;color:var(--text);display:inline-flex;align-items:center;gap:6px;margin-bottom:4px">
-        ${p.name} (${p.team}) <b style="color:var(--red);cursor:pointer" onclick="manualDeletePlayer(${p.id})">×</b>
-      </span>
-    `).join("") : '<span class="sub">No player records added yet.</span>';
-  }
-}
-
-// PUBLIC FEEDBACK SUBMISSION
-function submitPublicFeedback(evt) {
-  evt.preventDefault();
-  const name = document.getElementById("feedbackName").value.trim();
-  const message = document.getElementById("feedbackMessage").value.trim();
-
-  if (!name || !message) return alert("Please fill in both Name and Message fields!");
-
-  state.notifications.unshift({
-    id: Date.now(),
-    name,
-    message,
-    date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(),
-    read: false
-  });
-
-  document.getElementById("feedbackName").value = "";
-  document.getElementById("feedbackMessage").value = "";
-
-  saveState();
-  alert("📨 Complaint / Message submitted successfully to Admin!");
-}
-
-function renderNotifications() {
-  const list = document.getElementById("adminNotificationsList");
-  const badge = document.getElementById("notifBadge");
-  const unreadCount = state.notifications.filter(n => !n.read).length;
-
-  if (badge) badge.innerText = unreadCount;
-
-  if (list) {
-    list.innerHTML = state.notifications.length ? state.notifications.map(n => `
-      <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid ${n.read ? 'var(--line)' : 'var(--gold)'};margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <strong style="color:var(--gold);font-size:13px">From: ${n.name}</strong>
-          <span class="sub" style="font-size:10px">${n.date}</span>
-        </div>
-        <p style="font-size:12px;color:var(--text-muted);background:#0f1c2e;padding:8px;border-radius:6px;margin-top:6px">${n.message}</p>
-        <div style="text-align:right;margin-top:6px;">
-          ${!n.read ? `<button class="btn secondary" style="padding:2px 8px;font-size:10px" onclick="markNotifRead(${n.id})">Mark as Read</button>` : '<span class="sub">✓ Read</span>'}
-          <button class="btn danger" style="padding:2px 8px;font-size:10px;margin-left:6px" onclick="deleteNotif(${n.id})">Delete</button>
-        </div>
-      </div>
-    `).join("") : '<div class="sub">No feedback or complaints received yet.</div>';
-  }
-}
-
-function markNotifRead(id) {
-  const notif = state.notifications.find(n => n.id === id);
-  if (notif) { notif.read = true; saveState(); }
-}
-
-function deleteNotif(id) {
-  state.notifications = state.notifications.filter(n => n.id !== id);
-  saveState();
-}
-
-function renderServerPreview() {
-  const lastSync = document.getElementById("serverLastSync");
-  const teamsCount = document.getElementById("serverTeamsCount");
-  const matchesCount = document.getElementById("serverMatchesCount");
-  const playersCount = document.getElementById("serverPlayersCount");
-  const rawJson = document.getElementById("serverRawJson");
-
-  if (lastSync) lastSync.innerText = new Date().toLocaleTimeString();
-  if (teamsCount) teamsCount.innerText = state.teams.length;
-  if (matchesCount) matchesCount.innerText = state.fixtures.length;
-  if (playersCount) playersCount.innerText = state.players.length;
-  if (rawJson) rawJson.value = JSON.stringify(state, null, 2);
-}
-
-function showErrorPopup(msg) {
-  document.getElementById("errorMessageText").innerText = msg;
-  openModal("errorModal");
-}
-
-// AI CHAT 1: CONVERTER (3 COPY SECTIONS + CAREER RATIOS UPDATE)
-function generateMatchSummary3Outputs() {
-  const rawText = document.getElementById("converterRawInput").value.trim();
-  if (!rawText) return alert("Please paste match summary notes first!");
-
-  const lower = rawText.toLowerCase();
-
-  let t1 = null, t2 = null;
-  state.teams.forEach(t => {
-    if (lower.includes(t.toLowerCase())) {
-      if (!t1) t1 = t;
-      else if (!t2) t2 = t;
-    }
-  });
-  if (!t1) t1 = state.teams[0] || "Team A";
-  if (!t2) t2 = state.teams[1] || "Team B";
-
-  let winner = t1, loser = t2;
-  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by")) {
-    winner = t2;
-    loser = t1;
-  }
-
-  const runMatches = rawText.match(/(\d+)\s*runs?/gi) || [];
-  const r1 = runMatches[0] ? parseInt(runMatches[0]) : 150;
-  const r2 = runMatches[1] ? parseInt(runMatches[1]) : 140;
-
-  document.getElementById("outputSection1").value = `POINTS TABLE & AUTO NRR:\nWinner: ${winner} (+2 Pts, Scored: ${r1} runs)\nLoser: ${loser} (0 Pts, Scored: ${r2} runs)\nICC NRR Auto-Calculated.`;
-  document.getElementById("outputSection2").value = `FIXTURES & INDIVIDUAL CAREER RATIOS:\nMatch: ${t1} vs ${t2}\nResult: ${winner} won over ${loser}\nIndividual Career Scores, Best Bowling (BB), & Highest Score (HS) updated on Roster.`;
-  document.getElementById("outputSection3").value = `POSITIONS & TIERS BRACKET:\nTeam '${winner}' assigned Gold/Premier Tier Standing.\nTeam '${loser}' moved to Silver/Red Tier Standing.`;
-}
-
-function copyOutputText(elementId) {
-  const textarea = document.getElementById(elementId);
-  if (!textarea.value) return alert("Nothing to copy! Please click 'Update Match Summary' first.");
-  textarea.select();
-  navigator.clipboard.writeText(textarea.value);
-  alert("📋 Copied section to clipboard!");
-}
-
-// AI CHAT 2: AUTO POINTS TABLE
-function sendPointsAIChatCommand() {
-  const input = document.getElementById('pointsAiUserPrompt');
-  const text = input.value.trim();
-  if (!text) return;
-
-  const lower = text.toLowerCase();
-  let teamA = null, teamB = null;
-
-  state.teams.forEach(t => {
-    if (lower.includes(t.toLowerCase())) {
-      if (!teamA) teamA = t;
-      else if (!teamB) teamB = t;
-    }
-  });
-
-  if (!teamA || !teamB || teamA === teamB) {
-    showErrorPopup(`Could not identify 2 registered teams in your entry.\n\nInput: "${text}"`);
-    return;
-  }
-
-  let winner = teamA, loser = teamB;
-  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by")) {
-    winner = teamB;
-    loser = teamA;
-  }
-
-  const box = document.getElementById('pointsAiChatBox');
-  box.innerHTML += `<div class="chat-msg chat-user">${text}</div>`;
-  input.value = "";
-
-  const cur = state.seasons[state.activeSeason];
-  const wTeam = cur.find(x => x.name === winner);
-  const lTeam = cur.find(x => x.name === loser);
-
-  if (wTeam && lTeam) {
-    wTeam.played += 1; wTeam.won += 1; wTeam.points += 2;
-    lTeam.played += 1; lTeam.lost += 1;
-
-    state.fixtures.push({
-      id: Date.now(),
-      title: `Match ${state.fixtures.length + 1}`,
-      team1: wTeam.name,
-      team2: lTeam.name,
-      team1Runs: 0, team1Overs: "0.0", team1Wickets: 0,
-      team2Runs: 0, team2Overs: "0.0", team2Wickets: 0,
-      result: `${wTeam.name} defeated ${lTeam.name}`,
-      status: "Completed",
-      details: `${wTeam.name} won against ${lTeam.name}`
-    });
-
-    saveState();
-    box.innerHTML += `<div class="chat-msg chat-ai">🏆 Points Table Updated! ${wTeam.name} (+2 pts) defeated ${lTeam.name}. Auto NRR recalculated.</div>`;
-    box.scrollTop = box.scrollHeight;
-  }
-}
-
-// AI CHAT 3: FIXTURES & CAREER STATS (AUTO-UPDATES CAREER BEST RATIOS)
-function sendFixturesAIChatCommand() {
-  const input = document.getElementById('fixturesAiUserPrompt');
-  const text = input.value.trim();
-  if (!text) return;
-
-  const lower = text.toLowerCase();
-  const runMatch = text.match(/(\d+)\s*runs?/i);
-  const wktMatch = text.match(/(\d+)\s*wickets?|(\d+)\s*wkts?/i);
-
-  const runs = runMatch ? parseInt(runMatch[1]) : 0;
-  const wickets = wktMatch ? parseInt(wktMatch[1] || wktMatch[2]) : 0;
-
-  if (!runMatch && !wktMatch) {
-    showErrorPopup(`Could not detect runs or wickets.\n\nInput: "${text}"`);
-    return;
-  }
-
-  let assignedTeam = null;
-  state.teams.forEach(t => {
-    if (getBestTeamMatch(t) && lower.includes(t.toLowerCase())) assignedTeam = t;
-  });
-  if (!assignedTeam) assignedTeam = state.teams[0] || "Team A";
-
-  let playerName = "Player";
-  const nameMatch = text.match(/(?:add player|player)?\s*([a-zA-Z]+)/i);
-  if (nameMatch && nameMatch[1] && !["add", "player", "to", "as", "with", "scored", "for", "beat", "defeated", "runs", "wickets", "wkts"].includes(nameMatch[1].toLowerCase())) {
-    playerName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
-  }
-
-  const box = document.getElementById('fixturesAiChatBox');
-  box.innerHTML += `<div class="chat-msg chat-user">${text}</div>`;
-  input.value = "";
-
-  const role = wickets > 0 ? (runs > 20 ? "All-Rounder" : "Bowler") : "Batter";
-  let existing = state.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
-
-  if (existing) {
-    existing.matches += 1;
-    existing.runs += runs;
-    existing.wickets += wickets;
-    existing.team = assignedTeam;
-    
-    // Auto Update Career Highest Score (HS)
-    if (runs > (existing.highestScore || 0)) {
-      existing.highestScore = runs;
-    }
-    // Auto Update Career Best Bowling (BB)
-    if (wickets > (existing.bestWickets || 0)) {
-      existing.bestWickets = wickets;
-      existing.bestBowling = `${wickets}/${Math.floor(runs / 2)}`;
-    }
-  } else {
-    state.players.push({
-      id: Date.now(),
-      name: playerName,
-      team: assignedTeam,
-      role: role,
-      matches: 1,
-      runs: runs,
-      highestScore: runs,
-      wickets: wickets,
-      bestWickets: wickets,
-      bestBowling: wickets > 0 ? `${wickets}/${Math.floor(runs / 2)}` : "0/0"
-    });
-  }
-
-  saveState();
-  box.innerHTML += `<div class="chat-msg chat-ai">👤 Updated Career Record for ${playerName} (${assignedTeam}): +${runs} Runs, +${wickets} Wkts. Career Highs Recalculated!</div>`;
-  box.scrollTop = box.scrollHeight;
-}
-
-// MANUAL TEAM CONTROLS
-function manualAddTeam() {
-  const name = document.getElementById("newTeamName").value.trim();
-  if (name && !state.teams.includes(name)) {
-    state.teams.push(name);
-    state.positions[name] = "Premier";
-    for (let s in state.seasons) {
-      state.seasons[s].push({ name, played: 0, won: 0, lost: 0, runsScored: 0, oversFaced: 0, runsConceded: 0, oversBowled: 0, nrr: "0.000", points: 0 });
-    }
-    document.getElementById("newTeamName").value = "";
-    saveState();
-  }
-}
-
-function manualDeleteTeam(name) {
-  if (confirm(`Delete ${name}?`)) {
-    state.teams = state.teams.filter(t => t !== name);
-    delete state.positions[name];
-    for (let s in state.seasons) {
-      state.seasons[s] = state.seasons[s].filter(t => t.name !== name);
-    }
-    saveState();
-  }
-}
-
-function manualRenameTeam(oldName) {
-  const newName = prompt(`Enter new name for team '${oldName}':`, oldName);
-  if (newName && newName.trim() && !state.teams.includes(newName.trim())) {
-    const cleanName = newName.trim();
-    const idx = state.teams.indexOf(oldName);
-    if (idx !== -1) state.teams[idx] = cleanName;
-
-    if (state.positions[oldName]) {
-      state.positions[cleanName] = state.positions[oldName];
-      delete state.positions[oldName];
-    }
-
-    for (let s in state.seasons) {
-      state.seasons[s].forEach(t => { if (t.name === oldName) t.name = cleanName; });
-    }
-
-    state.players.forEach(p => { if (p.team === oldName) p.team = cleanName; });
-    state.fixtures.forEach(f => {
-      if (f.team1 === oldName) f.team1 = cleanName;
-      if (f.team2 === oldName) f.team2 = cleanName;
-    });
-
-    saveState();
-    alert(`Team renamed from '${oldName}' to '${cleanName}'!`);
-  }
-}
-
-function manualAddPlayer() {
-  const name = document.getElementById("manualPlayerName").value.trim();
-  const team = document.getElementById("manualPlayerTeam").value;
-  const role = document.getElementById("manualPlayerRole").value;
-  const runs = parseInt(document.getElementById("manualPlayerRuns").value) || 0;
-  const wickets = parseInt(document.getElementById("manualPlayerWickets").value) || 0;
-
-  if (!name) return alert("Enter Player Name!");
-
-  let existing = state.players.find(p => p.name.toLowerCase() === name.toLowerCase());
-  if (existing) {
-    existing.runs += runs;
-    existing.wickets += wickets;
-    existing.team = team;
-    existing.role = role;
-    if (runs > (existing.highestScore || 0)) existing.highestScore = runs;
-    if (wickets > (existing.bestWickets || 0)) {
-      existing.bestWickets = wickets;
-      existing.bestBowling = `${wickets}/0`;
-    }
-  } else {
-    state.players.push({
-      id: Date.now(), name, team, role, matches: 1, runs, highestScore: runs, wickets, bestWickets: wickets, bestBowling: wickets > 0 ? `${wickets}/0` : "0/0"
-    });
-  }
-
-  document.getElementById("manualPlayerName").value = "";
-  document.getElementById("manualPlayerRuns").value = "";
-  document.getElementById("manualPlayerWickets").value = "";
-  saveState();
-  alert(`Player Career '${name}' saved manually!`);
-}
-
-function manualDeletePlayer(id) {
-  if (confirm("Remove this player career from roster?")) {
-    state.players = state.players.filter(p => p.id !== id);
-    saveState();
-  }
-}
-
-async function resetDefaultData() {
-  if (confirm("Permanently wipe tournament database?")) {
-    state = {
-      activeSeason: 1,
-      siteConfig: { eyebrow: "TOURNAMENT DASHBOARD", heroHeading: 'THE GAME.<br><span class="gradient">THE GLORY.</span>' },
-      teams: [...DEFAULT_TEAMS],
-      seasons: initSeasons([...DEFAULT_TEAMS]),
-      fixtures: [],
-      players: [],
-      positions: { "Team A": "Premier", "Team B": "Gold", "Team C": "Silver", "Team D": "Normal" },
-      bracket: {
-        sf1: { team1: "Team A", team2: "Team D", winner: "Team A" },
-        sf2: { team1: "Team B", team2: "Team C", winner: "Team B" },
-        final: { team1: "Team A", team2: "Team B", winner: "TBD" }
-      },
-      notifications: []
-    };
-    await saveState();
-    location.reload();
-  }
-}
-
-// UI Navigation & Auth
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-function switchTab(evt, tabId) {
-  document.querySelectorAll('.admin-sidebar .tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  evt.target.classList.add('active');
-  document.getElementById(tabId).classList.add('active');
-}
-
-// SHA-256 SECURE PASSWORD VERIFICATION
-async function hashPassword(str) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(str);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function verifyPassword() {
-  const inputPassword = document.getElementById('adminPassword').value;
-  const targetHash = "2e079aedb9d3c1fc5b6b3a45b77061dda97f6119794e9680eeeee971d032dfbd";
-  const enteredHash = await hashPassword(inputPassword);
-
-  if (enteredHash === targetHash) {
-    closeModal('loginModal');
-    openModal('adminModal');
-    document.getElementById('editEyebrow').value = state.siteConfig.eyebrow;
-    document.getElementById('adminPassword').value = "";
-  } else {
-    alert("Access Denied: Incorrect Password");
-  }
-}
-
-function saveSiteText() {
-  state.siteConfig.eyebrow = document.getElementById('editEyebrow').value;
-  saveState();
-  alert("Tagline Saved!");
-}
-
-// Event Listeners
-document.getElementById("playerSearch").addEventListener("input", renderPlayers);
-document.getElementById("teamFilter").addEventListener("change", renderPlayers);
-document.getElementById("roleFilter").addEventListener("change", renderPlayers);
-
-// Boot Application
-loadState();
