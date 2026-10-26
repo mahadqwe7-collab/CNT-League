@@ -63,6 +63,8 @@ function renderAll() {
   renderPlayers();
   populateDropdowns();
   renderTeamsManageList();
+  renderPlayersManageList();
+  renderServerPreview();
 }
 
 function renderSeasonsGrid() {
@@ -155,6 +157,11 @@ function populateDropdowns() {
     m1.innerHTML = state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
     m2.innerHTML = state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
   }
+
+  const manualPlayerTeam = document.getElementById("manualPlayerTeam");
+  if(manualPlayerTeam) {
+    manualPlayerTeam.innerHTML = state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
+  }
 }
 
 function renderTeamsManageList() {
@@ -166,6 +173,31 @@ function renderTeamsManageList() {
       </span>
     `).join("");
   }
+}
+
+function renderPlayersManageList() {
+  const container = document.getElementById("playersListContainer");
+  if(container) {
+    container.innerHTML = state.players.length ? state.players.map(p => `
+      <span class="eyebrow" style="background:#14243b;color:var(--text);display:inline-flex;align-items:center;gap:6px">
+        ${p.name} (${p.team}) <b style="color:var(--red);cursor:pointer" onclick="manualDeletePlayer(${p.id})">×</b>
+      </span>
+    `).join("") : '<span class="sub">No players added yet.</span>';
+  }
+}
+
+function renderServerPreview() {
+  const lastSync = document.getElementById("serverLastSync");
+  const teamsCount = document.getElementById("serverTeamsCount");
+  const matchesCount = document.getElementById("serverMatchesCount");
+  const playersCount = document.getElementById("serverPlayersCount");
+  const rawJson = document.getElementById("serverRawJson");
+
+  if (lastSync) lastSync.innerText = new Date().toLocaleTimeString();
+  if (teamsCount) teamsCount.innerText = state.teams.length;
+  if (matchesCount) matchesCount.innerText = state.fixtures.length;
+  if (playersCount) playersCount.innerText = state.players.length;
+  if (rawJson) rawJson.value = JSON.stringify(state, null, 2);
 }
 
 // Error Modal Trigger
@@ -183,7 +215,6 @@ function sendMatchAIChatCommand() {
   const lower = text.toLowerCase();
   let foundWinner = null, foundLoser = null;
 
-  // Search text for existing team names
   state.teams.forEach(teamName => {
     if (lower.includes(teamName.toLowerCase())) {
       if (!foundWinner) foundWinner = teamName;
@@ -191,13 +222,11 @@ function sendMatchAIChatCommand() {
     }
   });
 
-  // Validation Check: Must identify 2 valid registered teams
   if (!foundWinner || !foundLoser) {
     showErrorPopup(`Could not identify 2 valid teams in your match summary.\n\nInput: "${text}"\n\nPlease ensure team names match registered teams exactly!`);
     return;
   }
 
-  // Determine winner vs loser (Look for keywords like "beat", "defeated", "won")
   const box = document.getElementById('matchAiChatBox');
   box.innerHTML += `<div class="chat-msg chat-user">${text}</div>`;
   input.value = "";
@@ -238,20 +267,17 @@ function sendPlayerAIChatCommand() {
   const runs = runMatch ? parseInt(runMatch[1]) : 0;
   const wickets = wktMatch ? parseInt(wktMatch[1] || wktMatch[2]) : 0;
 
-  // Validation Check: If no numbers detected at all
   if (!runMatch && !wktMatch) {
     showErrorPopup(`Could not detect runs or wickets in player entry.\n\nInput: "${text}"\n\nExample format: "Ali 45 runs 2 wickets for Team A"`);
     return;
   }
 
-  // Match Team Name
   let assignedTeam = null;
   state.teams.forEach(t => {
     if (lower.includes(t.toLowerCase())) assignedTeam = t;
   });
   if (!assignedTeam) assignedTeam = state.teams[0] || "Team A";
 
-  // Match Player Name
   let playerName = "Player";
   const nameMatch = text.match(/(?:add player|player)?\s*([a-zA-Z]+)/i);
   if (nameMatch && nameMatch[1] && !["add", "player", "to", "as", "with", "scored", "for"].includes(nameMatch[1].toLowerCase())) {
@@ -341,7 +367,7 @@ function submitMatchResult() {
   }
 }
 
-// PART 4: MANUAL CONTROLS
+// PART 4: MANUAL TEAMS & PLAYER CONTROLS
 function manualAddTeam() {
   const name = document.getElementById("newTeamName").value.trim();
   if (name && !state.teams.includes(name)) {
@@ -360,6 +386,47 @@ function manualDeleteTeam(name) {
     for (let s in state.seasons) {
       state.seasons[s] = state.seasons[s].filter(t => t.name !== name);
     }
+    saveState();
+  }
+}
+
+function manualAddPlayer() {
+  const name = document.getElementById("manualPlayerName").value.trim();
+  const team = document.getElementById("manualPlayerTeam").value;
+  const role = document.getElementById("manualPlayerRole").value;
+  const runs = parseInt(document.getElementById("manualPlayerRuns").value) || 0;
+  const wickets = parseInt(document.getElementById("manualPlayerWickets").value) || 0;
+
+  if (!name) return alert("Enter Player Name!");
+
+  let existing = state.players.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (existing) {
+    existing.runs += runs;
+    existing.wickets += wickets;
+    existing.team = team;
+    existing.role = role;
+  } else {
+    state.players.push({
+      id: Date.now(),
+      name,
+      team,
+      role,
+      matches: 1,
+      runs,
+      wickets
+    });
+  }
+
+  document.getElementById("manualPlayerName").value = "";
+  document.getElementById("manualPlayerRuns").value = "";
+  document.getElementById("manualPlayerWickets").value = "";
+  saveState();
+  alert(`Player '${name}' saved manually!`);
+}
+
+function manualDeletePlayer(id) {
+  if (confirm("Remove this player from roster?")) {
+    state.players = state.players.filter(p => p.id !== id);
     saveState();
   }
 }
