@@ -1,3 +1,8 @@
+// Supabase Database Initialization
+const SUPABASE_URL = "https://slgsxvwzcmogulsrzgqm.supabase.co";
+const SUPABASE_KEY = "sb_publishable_sQmZXNu5XfQ0m5hQ6v-Cog_HS9sLraa";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // Default Tournament Constants
 const DEFAULT_TEAMS = ["Team A", "Team B", "Team C", "Team D"];
 
@@ -26,20 +31,26 @@ function initSeasons(teamList) {
 }
 state.seasons = initSeasons(state.teams);
 
-// LocalStorage Synchronization
-function loadState() {
+// Cloud Database Synchronization (Supabase)
+async function loadState() {
   try {
-    const saved = localStorage.getItem('cnt_league_state');
-    if (saved) state = JSON.parse(saved);
+    const { data, error } = await db.from('cnt_league').select('state').eq('id', 1).single();
+    if (data && data.state && Object.keys(data.state).length > 0) {
+      state = data.state;
+    }
   } catch (e) {
-    console.error("Cache load failure", e);
+    console.error("Cloud DB fetch error:", e);
   }
   renderAll();
 }
 
-function saveState() {
-  localStorage.setItem('cnt_league_state', JSON.stringify(state));
-  renderAll();
+async function saveState() {
+  renderAll(); // Immediate UI feedback
+  try {
+    await db.from('cnt_league').upsert({ id: 1, state: state });
+  } catch (e) {
+    console.error("Cloud DB save error:", e);
+  }
 }
 
 // Master Rendering Function
@@ -219,9 +230,17 @@ function sendAIChatCommand() {
   box.scrollTop = box.scrollHeight;
 }
 
-function resetDefaultData() {
+async function resetDefaultData() {
   if (confirm("Permanently wipe tournament database?")) {
-    localStorage.removeItem('cnt_league_state');
+    state = {
+      activeSeason: 1,
+      siteConfig: { eyebrow: "TOURNAMENT DASHBOARD", heroHeading: 'THE GAME.<br><span class="gradient">THE GLORY.</span>' },
+      teams: [...DEFAULT_TEAMS],
+      seasons: initSeasons([...DEFAULT_TEAMS]),
+      fixtures: [],
+      players: []
+    };
+    await saveState();
     location.reload();
   }
 }
