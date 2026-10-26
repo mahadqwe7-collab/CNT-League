@@ -183,8 +183,7 @@ h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
 .sub { color: var(--text-muted); font-size: 12px; }
 
 .season-grid,
-.player-grid,
-.positions-grid {
+.player-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(clamp(240px, 30vw, 320px), 1fr));
   gap: 14px;
@@ -192,7 +191,6 @@ h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
 
 .season-card,
 .player-card,
-.position-card,
 .panel {
   background: var(--panel-bg);
   backdrop-filter: blur(8px);
@@ -204,19 +202,24 @@ h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
   transition: border-color 0.25s ease, transform 0.2s ease;
 }
 
-/* POSITIONS BADGE STYLES */
-.badge-tier {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
+.season-card:hover,
+.player-card:hover {
+  border-color: var(--panel-hover-border);
+  transform: translateY(-2px);
 }
 
-.tier-gold { background: rgba(245, 185, 66, 0.2); border: 1px solid var(--gold); color: var(--gold); }
-.tier-silver { background: rgba(224, 224, 224, 0.2); border: 1px solid var(--silver); color: var(--silver); }
-.tier-premier { background: rgba(39, 211, 176, 0.2); border: 1px solid var(--teal); color: var(--teal); }
-.tier-red { background: rgba(255, 85, 85, 0.2); border: 1px solid var(--red); color: var(--red); }
+.season-card.active {
+  border-color: var(--gold);
+  background: linear-gradient(145deg, rgba(20, 36, 59, 0.9), rgba(15, 28, 46, 0.9));
+}
+
+.status {
+  display: inline-block;
+  margin-top: 8px;
+  color: var(--gold);
+  font-size: 10px;
+  font-weight: 800;
+}
 
 /* PVP CARD COMPARISON STYLES */
 .pvp-card {
