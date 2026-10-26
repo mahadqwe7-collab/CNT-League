@@ -8,6 +8,7 @@
   --gold: #f5b942;
   --silver: #e0e0e0;
   --teal: #27d3b0;
+  --blue: #2796ff;
   --purple: #b39aff;
   --red: #ff5555;
   --orange: #ff8c00;
@@ -202,7 +203,22 @@ h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
   transition: border-color 0.25s ease, transform 0.2s ease;
 }
 
-/* VISUAL KNOCKOUT BRACKET STYLES */
+/* POSITIONS BADGE STYLES (PREMIER, GOLD, SILVER, NORMAL, RED) */
+.badge-tier {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tier-premier { background: rgba(39, 211, 176, 0.2); border: 1px solid var(--teal); color: var(--teal); }
+.tier-gold { background: rgba(245, 185, 66, 0.2); border: 1px solid var(--gold); color: var(--gold); }
+.tier-silver { background: rgba(224, 224, 224, 0.2); border: 1px solid var(--silver); color: var(--silver); }
+.tier-normal { background: rgba(39, 150, 255, 0.2); border: 1px solid var(--blue); color: var(--blue); }
+.tier-red { background: rgba(255, 85, 85, 0.2); border: 1px solid var(--red); color: var(--red); }
+
+/* VISUAL KNOCKOUT BRACKET STYLES (NO SCORES) */
 .bracket-container {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -220,8 +236,7 @@ h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   border-radius: var(--radius-md);
-  padding: 12px 14px;
-  position: relative;
+  padding: 14px 16px;
   box-shadow: var(--shadow-glow);
 }
 
@@ -234,8 +249,9 @@ h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
   padding: 4px 0;
+  font-weight: 700;
 }
 
 .bracket-winner {
