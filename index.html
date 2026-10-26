@@ -29,7 +29,6 @@
     <div class="links">
       <a href="#seasons">SEASONS</a>
       <a href="#standings">STANDINGS</a>
-      <a href="#positions">POSITIONS</a>
       <a href="#fixtures">MATCH LOG</a>
       <a href="#pvp">PVP COMPARE</a>
       <a href="#players">PLAYERS</a>
@@ -45,7 +44,7 @@
     <h1 id="heroTitle">THE GAME.<br><span class="gradient">THE GLORY.</span></h1>
     <div>
       <a class="btn primary" href="#standings">VIEW STANDINGS</a>
-      <a class="btn secondary" href="#positions">TOURNAMENT POSITIONS</a>
+      <a class="btn secondary" href="#fixtures">MATCH LOG</a>
     </div>
   </section>
 
@@ -78,15 +77,6 @@
         <tbody id="pointsBody"></tbody>
       </table>
     </div>
-  </section>
-
-  <!-- POSITIONS SECTION (GOLD, SILVER, PREMIER, RED TIERS) -->
-  <section id="positions">
-    <div class="section-head">
-      <div class="kicker">Tournament Standings</div>
-      <h2>Positions & Bracket Status</h2>
-    </div>
-    <div class="positions-grid" id="positionsGrid"></div>
   </section>
 
   <section id="fixtures">
@@ -150,20 +140,16 @@
     <div class="player-grid" id="playerGrid"></div>
   </section>
 
-  <!-- PUBLIC COMPLAINT & FEEDBACK FORM -->
+  <!-- PUBLIC COMPLAINT & FEEDBACK FORM (NAME & MESSAGE ONLY) -->
   <section id="feedback">
     <div class="section-head">
       <div class="kicker">Support & Feedback</div>
-      <h2>Submit Complaint or Inquiry</h2>
+      <h2>Submit Complaint or Message</h2>
     </div>
     <div class="panel" style="padding:20px;max-width:650px;margin:auto;">
       <form onsubmit="submitPublicFeedback(event)">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-          <input type="text" id="feedbackName" placeholder="Your Name" required>
-          <input type="text" id="feedbackContact" placeholder="Phone or Email" required>
-        </div>
-        <input type="text" id="feedbackSubject" placeholder="Subject / Query Title" required style="margin-bottom:10px;">
-        <textarea id="feedbackMessage" rows="4" placeholder="Write your feedback or complaint here..." required style="margin-bottom:12px;"></textarea>
+        <input type="text" id="feedbackName" placeholder="Your Name" required style="margin-bottom:10px;">
+        <textarea id="feedbackMessage" rows="4" placeholder="Write your complaint or message here..." required style="margin-bottom:12px;"></textarea>
         <button type="submit" class="btn primary" style="width:100%">📨 Send Message to Admin</button>
       </form>
     </div>
@@ -314,11 +300,11 @@
           </div>
         </div>
 
-        <!-- PANEL 4: POSITIONS & TIERS MANAGER -->
+        <!-- PANEL 4: POSITIONS & TIERS MANAGER (ADMIN ONLY) -->
         <div id="tabPositions" class="tab-content">
           <h3>POSITIONS & BRACKET TIERS MANAGER</h3>
           <p class="sub" style="margin-bottom:12px">
-            Assign team standings: Gold (Final Winners/Finalists), Silver (Semi-Finalists), Premier (Top Tier), or Red (Eliminated).
+            Assign team bracket standings: Gold (Final Winner/Finalist), Silver (Semi-Finalist), Premier (Top Tier), or Red (Eliminated).
           </p>
           <div id="adminPositionsContainer"></div>
         </div>
@@ -366,7 +352,7 @@
 
         <!-- PANEL 6: ADMIN NOTIFICATIONS (USER COMPLAINTS / INQUIRIES) -->
         <div id="tabNotifications" class="tab-content">
-          <h3>🔔 User Feedback & Complaints Inbox</h3>
+          <h3>🔔 User Complaints & Feedback Inbox</h3>
           <p class="sub" style="margin-bottom:12px">Messages submitted by website visitors from the public feedback form.</p>
           <div id="adminNotificationsList"></div>
         </div>
