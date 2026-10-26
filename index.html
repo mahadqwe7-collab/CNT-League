@@ -19,7 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <!-- Supabase JS Client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -37,7 +37,6 @@
       <a href="#fixtures" onclick="closeMobileMenu()">MATCH LOG</a>
       <a href="#pvp" onclick="closeMobileMenu()">PVP COMPARE</a>
       <a href="#players" onclick="closeMobileMenu()">INDIVIDUAL CAREER</a>
-      <a href="#feedback" onclick="closeMobileMenu()">FEEDBACK</a>
       <a class="admin-nav-btn" onclick="openModal('loginModal'); closeMobileMenu();">ADMIN LOG-IN</a>
     </div>
   </nav>
@@ -154,25 +153,10 @@
     </div>
     <div class="player-grid" id="playerGrid"></div>
   </section>
-
-  <!-- PUBLIC COMPLAINT & FEEDBACK FORM -->
-  <section id="feedback">
-    <div class="section-head">
-      <div class="kicker">Support & Feedback</div>
-      <h2>Submit Complaint or Message</h2>
-    </div>
-    <div class="panel" style="padding:20px;max-width:650px;margin:auto;">
-      <form onsubmit="submitPublicFeedback(event)">
-        <input type="text" id="feedbackName" placeholder="Your Name" required style="margin-bottom:10px;">
-        <textarea id="feedbackMessage" rows="4" placeholder="Write your complaint or message here..." required style="margin-bottom:12px;"></textarea>
-        <button type="submit" class="btn primary" style="width:100%">📨 Send Message to Admin</button>
-      </form>
-    </div>
-  </section>
 </main>
 
-<!-- LOGIN MODAL (HIDDEN BY DEFAULT) -->
-<div id="loginModal" class="modal-overlay" style="display:none;">
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal-overlay" style="display:none !important;">
   <div class="modal" style="max-width:380px;">
     <h3>Admin Verification</h3>
     <input type="password" id="adminPassword" placeholder="Enter Password" style="margin:12px 0;">
@@ -181,8 +165,8 @@
   </div>
 </div>
 
-<!-- MATCH SCORECARD DETAIL MODAL (HIDDEN BY DEFAULT) -->
-<div id="matchDetailModal" class="modal-overlay" style="display:none;">
+<!-- MATCH SCORECARD DETAIL MODAL -->
+<div id="matchDetailModal" class="modal-overlay" style="display:none !important;">
   <div class="modal" style="max-width:500px;">
     <h3 id="detailMatchTitle">Match Details</h3>
     <p class="sub" id="detailMatchStatus" style="margin-bottom:12px"></p>
@@ -207,8 +191,8 @@
   </div>
 </div>
 
-<!-- FULL ADMIN WORKSPACE DASHBOARD MODAL (HIDDEN BY DEFAULT) -->
-<div id="adminModal" class="modal-overlay" style="display:none;">
+<!-- FULL ADMIN WORKSPACE DASHBOARD MODAL -->
+<div id="adminModal" class="modal-overlay" style="display:none !important;">
   <div class="modal admin-large-panel">
     
     <div class="admin-top-bar">
@@ -437,8 +421,8 @@
   </div>
 </div>
 
-<!-- ERROR / WARNING POPUP MODAL (HIDDEN BY DEFAULT) -->
-<div id="errorModal" class="modal-overlay" style="display:none;">
+<!-- ERROR / WARNING POPUP MODAL -->
+<div id="errorModal" class="modal-overlay" style="display:none !important;">
   <div class="modal" style="max-width:420px;border-color:var(--red);">
     <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ Alert Message</h3>
     <p id="errorMessageText" style="margin:12px 0;font-size:13px;line-height:1.5;color:var(--text-main);"></p>
@@ -450,6 +434,6 @@
   <div class="wrap">CNT-LEAGUE ENGINE · REAL-TIME TOURNAMENT DASHBOARD</div>
 </footer>
 
-<script src="./app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
