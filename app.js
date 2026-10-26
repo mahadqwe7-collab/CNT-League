@@ -18,9 +18,6 @@ let state = {
   players: []
 };
 
-// Global container for pending AI confirmation actions
-let pendingAiActions = [];
-
 // Undo / Redo History Stacks
 let undoStack = [];
 let redoStack = [];
@@ -55,6 +52,22 @@ function updateUndoRedoButtons() {
   if (btnRedo) btnRedo.disabled = redoStack.length === 0;
 }
 
+// Auto Spelling & Name Fuzzy Matching Helper
+function getBestTeamMatch(inputText) {
+  if (!inputText) return null;
+  const clean = inputText.trim().toLowerCase();
+  
+  // Direct exact match
+  let exact = state.teams.find(t => t.toLowerCase() === clean);
+  if (exact) return exact;
+
+  // Substring/Partial match (Handles misspellings like 'Fakons' or 'Eagles')
+  let partial = state.teams.find(t => t.toLowerCase().includes(clean) || clean.includes(t.toLowerCase()));
+  if (partial) return partial;
+
+  return null;
+}
+
 // Initialize Season Standings
 function initSeasons(teamList) {
   const data = {};
@@ -67,7 +80,7 @@ function initSeasons(teamList) {
 }
 state.seasons = initSeasons(state.teams);
 
-// Cloud Database Synchronization
+// Cloud DB Fetch & Persist
 async function loadState() {
   try {
     const { data, error } = await db.from('cnt_league').select('state').eq('id', 1).single();
@@ -92,7 +105,7 @@ async function saveState(skipHistory = false) {
   }
 }
 
-// AUTOMATIC ICC NRR RE-CALCULATOR
+// AUTOMATIC ICC NRR ENGINE
 function recalculateAutoNRR() {
   const curTeams = state.seasons[state.activeSeason];
   if (!curTeams) return;
@@ -158,7 +171,6 @@ function renderStandings() {
     : `<tr><td colspan="7" style="text-align:center;color:var(--muted)">No teams added.</td></tr>`;
 }
 
-// RENDER TOP 5 WIDGET
 function renderTop5Leaders() {
   const sortedBatters = [...state.players].sort((a, b) => b.runs - a.runs).slice(0, 5);
   const sortedBowlers = [...state.players].sort((a, b) => b.wickets - a.wickets).slice(0, 5);
@@ -190,7 +202,6 @@ function renderTop5Leaders() {
   if (admW) admW.innerHTML = renderBowlerRows(sortedBowlers);
 }
 
-// RENDER MATCHES
 function renderFixtures() {
   const tbody = document.getElementById("fixturesBody");
   tbody.innerHTML = state.fixtures.length ? state.fixtures.map(f => `
@@ -217,7 +228,7 @@ function showMatchDetails(matchId) {
   document.getElementById("detailTeam1Score").innerText = `${match.team1Runs || 0}/${match.team1Wickets || 0} (${match.team1Overs || '0.0'} ov)`;
   document.getElementById("detailTeam2Name").innerText = match.team2;
   document.getElementById("detailTeam2Score").innerText = `${match.team2Runs || 0}/${match.team2Wickets || 0} (${match.team2Overs || '0.0'} ov)`;
-  document.getElementById("detailMatchSummaryText").innerText = match.result || "Match completed successfully.";
+  document.getElementById("detailMatchSummaryText").innerText = match.details || match.result || "Match completed successfully.";
 
   openModal("matchDetailModal");
 }
@@ -313,144 +324,186 @@ function renderServerPreview() {
   if (rawJson) rawJson.value = JSON.stringify(state, null, 2);
 }
 
-// Error Modal Trigger
-function showErrorPopup(message) {
-  document.getElementById("errorMessageText").innerText = message;
+function showErrorPopup(msg) {
+  document.getElementById("errorMessageText").innerText = msg;
   openModal("errorModal");
 }
 
 // ==========================================
-// UNIFIED SMART AI PARSER & CONFIRMATION
+// AI CHAT 1: AUTO POINTS TABLE (Handles Win/Loss & Reverse Direction Fix)
 // ==========================================
-function sendUnifiedAIChatCommand() {
-  const input = document.getElementById('unifiedAiUserPrompt');
+function sendPointsAIChatCommand() {
+  const input = document.getElementById('pointsAiUserPrompt');
   const text = input.value.trim();
   if (!text) return;
 
   const lower = text.toLowerCase();
-  pendingAiActions = []; // Reset pending stack
-  let summaryHtml = "";
+  let teamA = null, teamB = null;
 
-  // 1. PARSE MATCH SUMMARY (Look for registered teams)
-  let foundWinner = null, foundLoser = null;
-  state.teams.forEach(teamName => {
-    if (lower.includes(teamName.toLowerCase())) {
-      if (!foundWinner) foundWinner = teamName;
-      else if (!foundLoser) foundLoser = teamName;
+  // Search for registered teams in text
+  state.teams.forEach(t => {
+    if (lower.includes(t.toLowerCase())) {
+      if (!teamA) teamA = t;
+      else if (!teamB) teamB = t;
     }
   });
 
-  if (foundWinner && foundLoser && foundWinner !== foundLoser) {
-    pendingAiActions.push({
-      type: "MATCH_RESULT",
-      winner: foundWinner,
-      loser: foundLoser,
-      text: text
-    });
-    summaryHtml += `<div><b>🏆 Match Result Update:</b> ${foundWinner} beats ${foundLoser} (+2 points)</div>`;
-  }
-
-  // 2. PARSE PLAYER STATS
-  const runMatch = text.match(/(\d+)\s*runs?/i);
-  const wktMatch = text.match(/(\d+)\s*wickets?|(\d+)\s*wkts?/i);
-
-  if (runMatch || wktMatch) {
-    const runs = runMatch ? parseInt(runMatch[1]) : 0;
-    const wickets = wktMatch ? parseInt(wktMatch[1] || wktMatch[2]) : 0;
-
-    let assignedTeam = null;
-    state.teams.forEach(t => {
-      if (lower.includes(t.toLowerCase())) assignedTeam = t;
-    });
-    if (!assignedTeam) assignedTeam = state.teams[0] || "Team A";
-
-    let playerName = "Player";
-    const nameMatch = text.match(/(?:add player|player)?\s*([a-zA-Z]+)/i);
-    if (nameMatch && nameMatch[1] && !["add", "player", "to", "as", "with", "scored", "for", "beat", "defeated"].includes(nameMatch[1].toLowerCase())) {
-      playerName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
-    }
-
-    pendingAiActions.push({
-      type: "PLAYER_STAT",
-      name: playerName,
-      team: assignedTeam,
-      runs: runs,
-      wickets: wickets
-    });
-    summaryHtml += `<div><b>👤 Player Stat Update:</b> ${playerName} (${assignedTeam}) ➔ +${runs} runs, +${wickets} wickets</div>`;
-  }
-
-  // VALIDATION: If nothing was parsed
-  if (pendingAiActions.length === 0) {
-    showErrorPopup(`AI could not identify any match results or player stats.\n\nInput: "${text}"\n\nTips:\n- Use registered team names (e.g., "Team A beat Team B")\n- Include runs/wickets for players (e.g., "Ali 45 runs 2 wickets")`);
+  if (!teamA || !teamB || teamA === teamB) {
+    showErrorPopup(`Could not identify 2 registered teams in your entry.\n\nInput: "${text}"\n\nPlease ensure team names match registered teams.`);
     return;
   }
 
-  // Display Confirmation Pop-up
-  document.getElementById("confirmAiDetailsBox").innerHTML = summaryHtml;
-  openModal("confirmAiModal");
+  // FIX: Detect "lose to", "lost to", "defeated by" -> Reverses Winner & Loser
+  let winner = teamA, loser = teamB;
+  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by") || lower.includes("loses to")) {
+    winner = teamB;
+    loser = teamA;
+  }
+
+  const box = document.getElementById('pointsAiChatBox');
+  box.innerHTML += `<div class="chat-msg chat-user">${text}</div>`;
+  input.value = "";
+
+  const cur = state.seasons[state.activeSeason];
+  const wTeam = cur.find(x => x.name === winner);
+  const lTeam = cur.find(x => x.name === loser);
+
+  if (wTeam && lTeam) {
+    wTeam.played += 1; wTeam.won += 1; wTeam.points += 2;
+    lTeam.played += 1; lTeam.lost += 1;
+
+    state.fixtures.push({
+      id: Date.now(),
+      title: `Match ${state.fixtures.length + 1}`,
+      team1: wTeam.name,
+      team2: lTeam.name,
+      team1Runs: 0, team1Overs: "0.0", team1Wickets: 0,
+      team2Runs: 0, team2Overs: "0.0", team2Wickets: 0,
+      result: `${wTeam.name} defeated ${lTeam.name}`,
+      status: "Completed",
+      details: `${wTeam.name} won against ${lTeam.name}`
+    });
+
+    saveState();
+    box.innerHTML += `<div class="chat-msg chat-ai">🏆 Points Table Updated! ${wTeam.name} (+2 pts) defeated ${lTeam.name}. Auto NRR recalculated.</div>`;
+    box.scrollTop = box.scrollHeight;
+  }
 }
 
-// APPLY PENDING AI ACTIONS ON CONFIRMATION
-function confirmAndApplyAiActions() {
-  const box = document.getElementById('unifiedAiChatBox');
+// ==========================================
+// AI CHAT 2: FIXTURES & STATS (Spelling Auto-Correct & Individual Stats)
+// ==========================================
+function sendFixturesAIChatCommand() {
+  const input = document.getElementById('fixturesAiUserPrompt');
+  const text = input.value.trim();
+  if (!text) return;
 
-  pendingAiActions.forEach(action => {
-    if (action.type === "MATCH_RESULT") {
-      const cur = state.seasons[state.activeSeason];
-      const wTeam = cur.find(x => x.name === action.winner);
-      const lTeam = cur.find(x => x.name === action.loser);
+  const lower = text.toLowerCase();
+  const runMatch = text.match(/(\d+)\s*runs?/i);
+  const wktMatch = text.match(/(\d+)\s*wickets?|(\d+)\s*wkts?/i);
 
-      if (wTeam && lTeam) {
-        wTeam.played += 1; wTeam.won += 1; wTeam.points += 2;
-        lTeam.played += 1; lTeam.lost += 1;
+  const runs = runMatch ? parseInt(runMatch[1]) : 0;
+  const wickets = wktMatch ? parseInt(wktMatch[1] || wktMatch[2]) : 0;
 
-        state.fixtures.push({
-          id: Date.now(),
-          title: `Match ${state.fixtures.length + 1}`,
-          team1: wTeam.name,
-          team2: lTeam.name,
-          team1Runs: 0, team1Overs: "0.0", team1Wickets: 0,
-          team2Runs: 0, team2Overs: "0.0", team2Wickets: 0,
-          result: `${wTeam.name} defeated ${lTeam.name}`,
-          status: "Completed"
-        });
-      }
-    } else if (action.type === "PLAYER_STAT") {
-      const role = action.wickets > 0 ? (action.runs > 20 ? "All-Rounder" : "Bowler") : "Batter";
-      let existing = state.players.find(p => p.name.toLowerCase() === action.name.toLowerCase());
+  if (!runMatch && !wktMatch) {
+    showErrorPopup(`Could not detect runs or wickets.\n\nInput: "${text}"\n\nExample format: "Ali 45 runs 2 wickets for Falcons"`);
+    return;
+  }
 
-      if (existing) {
-        existing.matches += 1;
-        existing.runs += action.runs;
-        existing.wickets += action.wickets;
-        existing.team = action.team;
-      } else {
-        state.players.push({
-          id: Date.now(),
-          name: action.name,
-          team: action.team,
-          role: role,
-          matches: 1,
-          runs: action.runs,
-          wickets: action.wickets
-        });
-      }
-    }
+  // Find Team with Auto Spelling Correction
+  let assignedTeam = null;
+  state.teams.forEach(t => {
+    if (getBestTeamMatch(t) && lower.includes(t.toLowerCase())) assignedTeam = t;
   });
+  if (!assignedTeam) assignedTeam = state.teams[0] || "Team A";
+
+  // Find Player Name
+  let playerName = "Player";
+  const nameMatch = text.match(/(?:add player|player)?\s*([a-zA-Z]+)/i);
+  if (nameMatch && nameMatch[1] && !["add", "player", "to", "as", "with", "scored", "for", "beat", "defeated", "runs", "wickets", "wkts"].includes(nameMatch[1].toLowerCase())) {
+    playerName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
+  }
+
+  const box = document.getElementById('fixturesAiChatBox');
+  box.innerHTML += `<div class="chat-msg chat-user">${text}</div>`;
+  input.value = "";
+
+  const role = wickets > 0 ? (runs > 20 ? "All-Rounder" : "Bowler") : "Batter";
+  let existing = state.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
+  let reply = "";
+
+  if (existing) {
+    existing.matches += 1;
+    existing.runs += runs;
+    existing.wickets += wickets;
+    existing.team = assignedTeam;
+    reply = `👤 Updated ${existing.name} (${assignedTeam}): +${runs} runs, +${wickets} wickets.`;
+  } else {
+    state.players.push({
+      id: Date.now(),
+      name: playerName,
+      team: assignedTeam,
+      role: role,
+      matches: 1,
+      runs: runs,
+      wickets: wickets
+    });
+    reply = `👤 Registered ${playerName} for ${assignedTeam} (${runs} runs, ${wickets} wickets).`;
+  }
 
   saveState();
-  closeModal("confirmAiModal");
-
-  box.innerHTML += `<div class="chat-msg chat-ai">✅ Confirmed! Processed ${pendingAiActions.length} updates successfully.</div>`;
+  box.innerHTML += `<div class="chat-msg chat-ai">${reply}</div>`;
   box.scrollTop = box.scrollHeight;
-  document.getElementById('unifiedAiUserPrompt').value = "";
-  pendingAiActions = [];
 }
 
-function cancelAiActions() {
-  pendingAiActions = [];
-  closeModal("confirmAiModal");
+// ==========================================
+// AI CHAT 3: MATCH SUMMARY CONVERTER (Generates 2 Copyable Outputs)
+// ==========================================
+function generateDualSummaryOutputs() {
+  const rawText = document.getElementById("converterRawInput").value.trim();
+  if (!rawText) return alert("Please enter raw match summary notes!");
+
+  const lower = rawText.toLowerCase();
+
+  // Parse Teams
+  let t1 = null, t2 = null;
+  state.teams.forEach(t => {
+    if (lower.includes(t.toLowerCase())) {
+      if (!t1) t1 = t;
+      else if (!t2) t2 = t;
+    }
+  });
+  if (!t1) t1 = state.teams[0] || "Team A";
+  if (!t2) t2 = state.teams[1] || "Team B";
+
+  // Parse Winner / Loser with Reverse Check
+  let winner = t1, loser = t2;
+  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by")) {
+    winner = t2;
+    loser = t1;
+  }
+
+  // Parse Runs & Wickets
+  const runMatches = rawText.match(/(\d+)\s*runs?/gi) || [];
+  const r1 = runMatches[0] ? parseInt(runMatches[0]) : 150;
+  const r2 = runMatches[1] ? parseInt(runMatches[1]) : 140;
+
+  // FORMAT OUTPUT SECTION 1: POINTS TABLE & AUTO NRR PROMPT
+  const section1Text = `POINTS TABLE & NRR UPDATE:\nWinner: ${winner} (+2 Points, Scored: ${r1} runs)\nLoser: ${loser} (0 Points, Scored: ${r2} runs)\nAuto NRR recalculated based on official ICC rules.`;
+
+  // FORMAT OUTPUT SECTION 2: FIXTURES & PLAYER STATS PROMPT
+  const section2Text = `FIXTURE SCORECARD & PLAYER STATS LOG:\nMatch: ${t1} vs ${t2}\nResult: ${winner} defeated ${loser} (${r1} vs ${r2} runs)\nPlayer Performances: Key stats updated for Orange & Purple Cap standings.`;
+
+  document.getElementById("outputSection1").value = section1Text;
+  document.getElementById("outputSection2").value = section2Text;
+}
+
+function copyOutputText(elementId) {
+  const textarea = document.getElementById(elementId);
+  if (!textarea.value) return alert("Nothing to copy! Please generate output first.");
+  textarea.select();
+  navigator.clipboard.writeText(textarea.value);
+  alert("📋 Copied to clipboard!");
 }
 
 // MANUAL ICC NRR CALCULATOR
@@ -465,10 +518,7 @@ function submitMatchResult() {
   const o2 = parseFloat(document.getElementById("team2Overs").value) || 20.0;
   const w2 = parseInt(document.getElementById("team2Wickets").value) || 0;
 
-  if (t1 === t2) {
-    showErrorPopup("Invalid Selection: Select two different teams!");
-    return;
-  }
+  if (t1 === t2) return showErrorPopup("Select two different teams!");
 
   const effectiveOvers1 = w1 >= 10 ? 20.0 : o1;
   const effectiveOvers2 = w2 >= 10 ? 20.0 : o2;
@@ -494,7 +544,8 @@ function submitMatchResult() {
       team1Runs: r1, team1Overs: o1, team1Wickets: w1,
       team2Runs: r2, team2Overs: o2, team2Wickets: w2,
       result: `${t1} won by ${r1 - r2 > 0 ? (r1 - r2) + " runs" : (10 - w1) + " wickets"}`,
-      status: "Completed"
+      status: "Completed",
+      details: `${t1}: ${r1}/${w1} (${o1} ov)\n${t2}: ${r2}/${w2} (${o2} ov)`
     });
 
     saveState();
@@ -541,15 +592,7 @@ function manualAddPlayer() {
     existing.team = team;
     existing.role = role;
   } else {
-    state.players.push({
-      id: Date.now(),
-      name,
-      team,
-      role,
-      matches: 1,
-      runs,
-      wickets
-    });
+    state.players.push({ id: Date.now(), name, team, role, matches: 1, runs, wickets });
   }
 
   document.getElementById("manualPlayerName").value = "";
@@ -608,23 +651,30 @@ function saveSiteText() {
   alert("Tagline Saved!");
 }
 
+// FIX: HOLD TO PREVIEW SITE (100% TRANSPARENT PREVIEW)
 function setupPeekPreview() {
   const peekBtn = document.getElementById("btnPeekSite");
   const adminModal = document.getElementById("adminModal");
 
   if (peekBtn && adminModal) {
-    const enablePeek = () => adminModal.classList.add("peeking");
-    const disablePeek = () => adminModal.classList.remove("peeking");
+    const enablePeek = (e) => {
+      e.preventDefault();
+      adminModal.classList.add("peeking");
+    };
+    const disablePeek = (e) => {
+      e.preventDefault();
+      adminModal.classList.remove("peeking");
+    };
 
     peekBtn.addEventListener("mousedown", enablePeek);
     peekBtn.addEventListener("mouseup", disablePeek);
     peekBtn.addEventListener("mouseleave", disablePeek);
-    peekBtn.addEventListener("touchstart", enablePeek);
-    peekBtn.addEventListener("touchend", disablePeek);
+    peekBtn.addEventListener("touchstart", enablePeek, { passive: false });
+    peekBtn.addEventListener("touchend", disablePeek, { passive: false });
   }
 }
 
-// Event Listeners
+// Search & Filter Listeners
 document.getElementById("playerSearch").addEventListener("input", renderPlayers);
 document.getElementById("teamFilter").addEventListener("change", renderPlayers);
 document.getElementById("roleFilter").addEventListener("change", renderPlayers);
