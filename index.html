@@ -131,10 +131,11 @@
   <div class="modal">
     <h2>⚡ CNT-League Admin Center</h2>
     <div class="tab-row">
-      <button class="tab-btn active" onclick="switchTab(event, 'tabMatchAI')">🏟️ Match Summary AI</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabPlayerAI')">👤 Player Stats AI</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'tabMatchAI')">🏟️ Match AI</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabPlayerAI')">👤 Player AI</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC NRR Engine</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ Manual Controls</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 Server Preview</button>
     </div>
 
     <!-- PART 1: MATCH SUMMARY AI CHAT -->
@@ -191,15 +192,36 @@
       <button class="btn primary" style="width:100%" onclick="submitMatchResult()">Submit Match & Calculate ICC NRR</button>
     </div>
 
-    <!-- PART 4: MANUAL CONTROLS -->
+    <!-- PART 4: MANUAL CONTROLS (MANUAL TEAM & MANUAL PLAYER MANAGEMENT) -->
     <div id="tabManual" class="tab-content">
+      <!-- TEAM MANAGEMENT -->
       <div style="margin-bottom:15px">
-        <h4>Manage Teams</h4>
+        <h4>Manage Teams (Add / Remove)</h4>
         <div style="display:flex;gap:8px;margin-top:6px">
           <input type="text" id="newTeamName" placeholder="New Team Name">
           <button class="btn primary" onclick="manualAddTeam()">Add Team</button>
         </div>
         <div id="teamsListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+
+      <!-- MANUAL PLAYER MANAGEMENT -->
+      <div style="margin-bottom:15px">
+        <h4>Manage Players (Add / Remove Manually)</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+          <input type="text" id="manualPlayerName" placeholder="Player Name">
+          <select id="manualPlayerTeam"></select>
+          <select id="manualPlayerRole">
+            <option value="Batter">Batter</option>
+            <option value="Bowler">Bowler</option>
+            <option value="All-Rounder">All-Rounder</option>
+          </select>
+          <input type="number" id="manualPlayerRuns" placeholder="Runs Scored">
+          <input type="number" id="manualPlayerWickets" placeholder="Wickets Taken">
+          <button class="btn primary" style="grid-column:span 2" onclick="manualAddPlayer()">Add Player Manually</button>
+        </div>
+        <div id="playersListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
       </div>
 
       <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
@@ -216,6 +238,47 @@
         <h4>Reset Tournament</h4>
         <p class="sub" style="margin-bottom:8px">Clear all teams, match logs, and player statistics from cloud database.</p>
         <button class="btn danger" onclick="resetDefaultData()">⚠️ Reset All Data</button>
+      </div>
+    </div>
+
+    <!-- PART 5: SERVER & DATABASE PREVIEW DASHBOARD -->
+    <div id="tabServer" class="tab-content">
+      <h3>🌐 Live Cloud Server & DB Preview</h3>
+      <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity and raw payload stream.</p>
+      
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
+        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+          <span class="sub">Server Status</span><br>
+          <strong style="color:var(--teal);font-size:13px">🟢 Online (Connected)</strong>
+        </div>
+        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+          <span class="sub">Database Host</span><br>
+          <strong style="color:var(--gold);font-size:11px">slgsxvwzcmogulsrzgqm</strong>
+        </div>
+        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+          <span class="sub">Last Cloud Sync</span><br>
+          <strong id="serverLastSync" style="font-size:11px">Just Now</strong>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
+        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+          <span class="sub">Registered Teams</span><br>
+          <strong id="serverTeamsCount">0</strong>
+        </div>
+        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+          <span class="sub">Matches Logged</span><br>
+          <strong id="serverMatchesCount">0</strong>
+        </div>
+        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+          <span class="sub">Players Recorded</span><br>
+          <strong id="serverPlayersCount">0</strong>
+        </div>
+      </div>
+
+      <div>
+        <h4>Raw Cloud JSON Stream Payload</h4>
+        <textarea id="serverRawJson" rows="6" readonly style="font-family:monospace;font-size:11px;color:var(--teal);margin-top:6px;background:#030810"></textarea>
       </div>
     </div>
 
