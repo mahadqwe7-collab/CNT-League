@@ -28,7 +28,7 @@
     <div class="links">
       <a href="#seasons">SEASONS</a>
       <a href="#standings">STANDINGS</a>
-      <a href="#fixtures">FIXTURES</a>
+      <a href="#fixtures">MATCH LOG</a>
       <a href="#players">PLAYERS</a>
       <a class="admin-nav-btn" onclick="openModal('loginModal')">ADMIN LOG-IN</a>
     </div>
@@ -78,15 +78,15 @@
 
   <section id="fixtures">
     <div class="section-head">
-      <div class="kicker">Match Centre</div>
-      <h2>Fixtures & Results</h2>
+      <div class="kicker">Match Log</div>
+      <h2>Fixtures & Completed Matches</h2>
     </div>
     <div class="panel">
       <table>
         <thead>
           <tr>
             <th>Match</th>
-            <th>Teams</th>
+            <th>Fixture</th>
             <th>Result</th>
             <th>Status</th>
           </tr>
@@ -99,7 +99,7 @@
   <section id="players">
     <div class="section-head">
       <div class="kicker">Performers</div>
-      <h2>Player Leaderboard</h2>
+      <h2>Player Leaderboard & Caps</h2>
     </div>
     <div class="toolbar">
       <input id="playerSearch" type="search" placeholder="Search player or team..." style="max-width:220px;">
@@ -129,46 +129,92 @@
 <!-- CONTROL PANEL MODAL -->
 <div id="adminModal" class="modal-overlay">
   <div class="modal">
-    <h2>⚡ CNT-League Control Hub</h2>
+    <h2>⚡ CNT-League Admin Center</h2>
     <div class="tab-row">
-      <button class="tab-btn active" onclick="switchTab(event, 'tabAI')">🤖 AI Assistant</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabAuto')">⚙️ Auto Engine</button>
+      <button class="tab-btn active" onclick="switchTab(event, 'tabMatchAI')">🏟️ Match Summary AI</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabPlayerAI')">👤 Player Stats AI</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC NRR Engine</button>
       <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ Manual Controls</button>
     </div>
 
-    <!-- TAB 1: AI Chat Assistant -->
-    <div id="tabAI" class="tab-content active">
-      <p class="sub" style="margin-bottom:8px">Commands: <i>"add team Falcons"</i>, <i>"Team A beat Team B"</i>, <i>"add player Ali to Team A as Batter with 50 runs"</i></p>
-      <div class="chat-box" id="aiChatBox">
-        <div class="chat-msg chat-ai">CNT-League Assistant ready. State your command.</div>
+    <!-- PART 1: MATCH SUMMARY AI CHAT -->
+    <div id="tabMatchAI" class="tab-content active">
+      <p class="sub" style="margin-bottom:8px">
+        <b>Match Summary AI Assistant (Win/Loss & Points Only):</b><br>
+        <i>"Team A beat Team B"</i> | <i>"Falcons defeated Eagles"</i>
+      </p>
+      <div class="chat-box" id="matchAiChatBox">
+        <div class="chat-msg chat-ai">Match AI Ready. Send match summary here to update wins, losses, and points.</div>
       </div>
       <div style="display:flex;gap:8px;">
-        <input type="text" id="aiUserPrompt" placeholder="Type prompt..." style="flex:1" onkeypress="if(event.key==='Enter') sendAIChatCommand()">
-        <button class="btn primary" onclick="sendAIChatCommand()">Send</button>
+        <input type="text" id="matchAiUserPrompt" placeholder="Enter match summary..." style="flex:1" onkeypress="if(event.key==='Enter') sendMatchAIChatCommand()">
+        <button class="btn primary" onclick="sendMatchAIChatCommand()">Update Match</button>
       </div>
     </div>
 
-    <!-- TAB 2: Auto Engine -->
-    <div id="tabAuto" class="tab-content">
-      <h3>Automated Generators</h3>
-      <p class="sub" style="margin-bottom:12px">Execute automated tournament functions.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn secondary" onclick="autoGenerateFixtures()">🗓️ Auto-Generate Fixtures (Round Robin)</button>
-        <button class="btn secondary" onclick="recalculateStats()">📊 Recalculate Caps & Leaderboard</button>
+    <!-- PART 2: PLAYER STATS AI CHAT -->
+    <div id="tabPlayerAI" class="tab-content">
+      <p class="sub" style="margin-bottom:8px">
+        <b>Player Stats AI Assistant (Individual Stats Only):</b><br>
+        <i>"add player Babar to Team A with 85 runs"</i> | <i>"Ali scored 45 runs 2 wickets for Team B"</i>
+      </p>
+      <div class="chat-box" id="playerAiChatBox">
+        <div class="chat-msg chat-ai">Player AI Ready. Send player performance here to update individual player stats and caps.</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="playerAiUserPrompt" placeholder="Enter player performance..." style="flex:1" onkeypress="if(event.key==='Enter') sendPlayerAIChatCommand()">
+        <button class="btn primary" onclick="sendPlayerAIChatCommand()">Update Player</button>
       </div>
     </div>
 
-    <!-- TAB 3: Manual Controls -->
+    <!-- PART 3: MANUAL ICC NRR FORM ENGINE -->
+    <div id="tabMatchEngine" class="tab-content">
+      <h3>ICC Match Entry & Auto NRR Calculator</h3>
+      <p class="sub" style="margin-bottom:12px">Log detailed scores here to calculate precise ICC NRR.</p>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label class="sub">Team 1 (Winner)</label>
+          <select id="matchTeam1"></select>
+          <input type="number" id="team1Runs" placeholder="Runs Scored" style="margin-top:4px">
+          <input type="number" step="0.1" id="team1Overs" placeholder="Overs Faced" style="margin-top:4px">
+          <input type="number" id="team1Wickets" placeholder="Wickets Lost" style="margin-top:4px">
+        </div>
+        <div>
+          <label class="sub">Team 2 (Loser)</label>
+          <select id="matchTeam2"></select>
+          <input type="number" id="team2Runs" placeholder="Runs Scored" style="margin-top:4px">
+          <input type="number" step="0.1" id="team2Overs" placeholder="Overs Faced" style="margin-top:4px">
+          <input type="number" id="team2Wickets" placeholder="Wickets Lost" style="margin-top:4px">
+        </div>
+      </div>
+      <button class="btn primary" style="width:100%" onclick="submitMatchResult()">Submit Match & Calculate ICC NRR</button>
+    </div>
+
+    <!-- PART 4: MANUAL CONTROLS -->
     <div id="tabManual" class="tab-content">
-      <div style="margin-bottom:20px;">
-        <h4>Site Tagline Settings</h4>
-        <input type="text" id="editEyebrow" style="margin:8px 0 12px;">
+      <div style="margin-bottom:15px">
+        <h4>Manage Teams</h4>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <input type="text" id="newTeamName" placeholder="New Team Name">
+          <button class="btn primary" onclick="manualAddTeam()">Add Team</button>
+        </div>
+        <div id="teamsListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
+      </div>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+
+      <div style="margin-bottom:15px;">
+        <h4>Tagline Settings</h4>
+        <input type="text" id="editEyebrow" style="margin:6px 0 10px;">
         <button class="btn primary" onclick="saveSiteText()">Update Tagline</button>
       </div>
+
       <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+
       <div>
-        <h4>Reset Tournament Data</h4>
-        <p class="sub" style="margin-bottom:10px;">Clear all matches, standings, and players from cloud database.</p>
+        <h4>Reset Tournament</h4>
+        <p class="sub" style="margin-bottom:8px">Clear all teams, match logs, and player statistics from cloud database.</p>
         <button class="btn danger" onclick="resetDefaultData()">⚠️ Reset All Data</button>
       </div>
     </div>
@@ -176,6 +222,15 @@
     <div style="margin-top:20px;text-align:right">
       <button class="btn secondary" onclick="closeModal('adminModal')">Close Panel</button>
     </div>
+  </div>
+</div>
+
+<!-- ERROR / CONFIRMATION POPUP MODAL -->
+<div id="errorModal" class="modal-overlay">
+  <div class="modal" style="max-width:420px;border-color:var(--red);">
+    <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ AI Chat Error</h3>
+    <p id="errorMessageText" style="margin:12px 0;font-size:13px;line-height:1.5;color:var(--text);"></p>
+    <button class="btn danger" style="width:100%" onclick="closeModal('errorModal')">Got It / Retry</button>
   </div>
 </div>
 
