@@ -29,9 +29,11 @@
     <div class="links">
       <a href="#seasons">SEASONS</a>
       <a href="#standings">STANDINGS</a>
-      <a href="#top5">TOP 5 PLAYERS</a>
+      <a href="#positions">POSITIONS</a>
       <a href="#fixtures">MATCH LOG</a>
-      <a href="#players">ALL PLAYERS</a>
+      <a href="#pvp">PVP COMPARE</a>
+      <a href="#players">PLAYERS</a>
+      <a href="#feedback">FEEDBACK</a>
       <a class="admin-nav-btn" onclick="openModal('loginModal')">ADMIN LOG-IN</a>
     </div>
   </nav>
@@ -43,7 +45,7 @@
     <h1 id="heroTitle">THE GAME.<br><span class="gradient">THE GLORY.</span></h1>
     <div>
       <a class="btn primary" href="#standings">VIEW STANDINGS</a>
-      <a class="btn secondary" href="#top5">TOP PERFORMERS</a>
+      <a class="btn secondary" href="#positions">TOURNAMENT POSITIONS</a>
     </div>
   </section>
 
@@ -78,25 +80,13 @@
     </div>
   </section>
 
-  <!-- TOP 5 PERFORMERS SECTION -->
-  <section id="top5">
+  <!-- POSITIONS SECTION (GOLD, SILVER, PREMIER, RED TIERS) -->
+  <section id="positions">
     <div class="section-head">
-      <div class="kicker">Elite Players</div>
-      <h2>Top 5 Tournament Leaders</h2>
+      <div class="kicker">Tournament Standings</div>
+      <h2>Positions & Bracket Status</h2>
     </div>
-    <div class="top5-container">
-      <div class="top5-box">
-        <h3 class="top5-title" style="color:var(--orange);">🟠 Top 5 Batters (Orange Cap)</h3>
-        <div id="top5BattersList"></div>
-      </div>
-      <div class="top5-box">
-        <h3 class="top5-title" style="color:var(--purple);">🟣 Top 5 Bowlers (Purple Cap)</h3>
-        <div id="top5BowlersList"></div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:16px;">
-      <a href="#players" class="btn secondary">⬇️ View Full Player Roster & All Stats</a>
-    </div>
+    <div class="positions-grid" id="positionsGrid"></div>
   </section>
 
   <section id="fixtures">
@@ -119,10 +109,32 @@
     </div>
   </section>
 
+  <!-- PLAYER VS PLAYER COMPARISON SECTION -->
+  <section id="pvp">
+    <div class="section-head">
+      <div class="kicker">Head to Head</div>
+      <h2>Player vs Player Comparison</h2>
+    </div>
+    <div class="pvp-card">
+      <div class="pvp-selectors">
+        <div>
+          <label class="sub">Select Player 1</label>
+          <select id="pvpPlayer1Select" onchange="updatePvPComparison()"></select>
+        </div>
+        <div style="text-align:center;font-weight:900;color:var(--gold);align-self:end;padding-bottom:10px;">VS</div>
+        <div>
+          <label class="sub">Select Player 2</label>
+          <select id="pvpPlayer2Select" onchange="updatePvPComparison()"></select>
+        </div>
+      </div>
+      <div id="pvpComparisonBox" class="pvp-results"></div>
+    </div>
+  </section>
+
   <section id="players">
     <div class="section-head">
       <div class="kicker">Full Roster</div>
-      <h2>Player Leaderboard & Caps (All Matches)</h2>
+      <h2>Player Leaderboard & Caps</h2>
     </div>
     <div class="toolbar">
       <input id="playerSearch" type="search" placeholder="Search player or team..." style="max-width:220px;">
@@ -136,6 +148,25 @@
       </select>
     </div>
     <div class="player-grid" id="playerGrid"></div>
+  </section>
+
+  <!-- PUBLIC COMPLAINT & FEEDBACK FORM -->
+  <section id="feedback">
+    <div class="section-head">
+      <div class="kicker">Support & Feedback</div>
+      <h2>Submit Complaint or Inquiry</h2>
+    </div>
+    <div class="panel" style="padding:20px;max-width:650px;margin:auto;">
+      <form onsubmit="submitPublicFeedback(event)">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+          <input type="text" id="feedbackName" placeholder="Your Name" required>
+          <input type="text" id="feedbackContact" placeholder="Phone or Email" required>
+        </div>
+        <input type="text" id="feedbackSubject" placeholder="Subject / Query Title" required style="margin-bottom:10px;">
+        <textarea id="feedbackMessage" rows="4" placeholder="Write your feedback or complaint here..." required style="margin-bottom:12px;"></textarea>
+        <button type="submit" class="btn primary" style="width:100%">📨 Send Message to Admin</button>
+      </form>
+    </div>
   </section>
 </main>
 
@@ -167,7 +198,7 @@
     </div>
 
     <div style="background:var(--panel-alt);padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:14px;">
-      <span class="kicker">Match Player Performances & Outcome</span>
+      <span class="kicker">Match Outcome Details</span>
       <p id="detailMatchSummaryText" style="font-size:12px;margin-top:4px;color:var(--text);white-space:pre-line;"></p>
     </div>
 
@@ -189,7 +220,6 @@
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" title="Undo Last Change" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" title="Redo Action" disabled>↪️ Redo</button>
-        <button id="btnPeekSite" class="btn primary" title="Hold to see live site preview behind admin modal">👁️ Hold to Preview Site</button>
         <button class="btn danger" onclick="resetDefaultData()" title="Wipe Data">⚠️ Reset</button>
         <button class="btn secondary" onclick="closeModal('adminModal')" style="padding:8px 12px;">✕</button>
       </div>
@@ -200,20 +230,60 @@
       
       <!-- LEFT SIDEBAR MENU -->
       <aside class="admin-sidebar">
-        <button class="tab-btn active" onclick="switchTab(event, 'tabPointsAI')">📊 AUTO POINTS TABLE</button>
+        <button class="tab-btn active" onclick="switchTab(event, 'tabConverterAI')">📝 CONVERTER</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabPointsAI')">📊 AUTO POINTS TABLE</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabFixturesStatsAI')">🏏 FIXTURES & STATS</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tabConverterAI')">📝 SUMMARY CONVERTER</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC Auto NRR Form</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tabAdminTop5')">⭐ Top 5 Leaders</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ Manual Controls</button>
-        <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 Server Preview</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabPositions')">🏅 POSITIONS & TIERS</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ MANUAL CONTROLS</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabNotifications')">🔔 NOTIFICATIONS <span id="notifBadge" class="badge-count">0</span></button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 SERVER PREVIEW</button>
       </aside>
 
       <!-- RIGHT MAIN CONTENT PANELS -->
       <div class="admin-main-content">
         
-        <!-- PANEL 1: AUTO POINTS TABLE AI CHAT -->
-        <div id="tabPointsAI" class="tab-content active">
+        <!-- PANEL 1: MATCH SUMMARY CONVERTER WITH 3 SEPARATE COPY SECTIONS -->
+        <div id="tabConverterAI" class="tab-content active">
+          <h3>MATCH SUMMARY CONVERTER</h3>
+          <p class="sub" style="margin-bottom:8px">
+            Paste raw match summary notes to generate 3 formatted output blocks below.
+          </p>
+          
+          <div style="margin-bottom:12px;">
+            <textarea id="converterRawInput" rows="3" placeholder="Paste match summary notes (e.g. Team A scored 160/4 in 20 ov, Team B 145/9 in 20 ov. Team A won. Ali scored 55 runs for Team A)..."></textarea>
+            <button class="btn primary" style="width:100%;margin-top:6px;" onclick="generateMatchSummary3Outputs()">⚡ Update Match Summary</button>
+          </div>
+
+          <!-- SECTION 1 COPY BLOCK -->
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="color:var(--gold);font-size:12px;">📊 SECTION 1: Points Table & Auto NRR Summary</strong>
+              <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection1')">📋 Copy Section 1</button>
+            </div>
+            <textarea id="outputSection1" rows="3" readonly style="font-size:11px;color:var(--teal);background:#030810;"></textarea>
+          </div>
+
+          <!-- SECTION 2 COPY BLOCK -->
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:10px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="color:var(--purple);font-size:12px;">🏏 SECTION 2: Fixtures Scorecard & Player Stats Summary</strong>
+              <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection2')">📋 Copy Section 2</button>
+            </div>
+            <textarea id="outputSection2" rows="3" readonly style="font-size:11px;color:var(--purple);background:#030810;"></textarea>
+          </div>
+
+          <!-- SECTION 3 COPY BLOCK -->
+          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+              <strong style="color:var(--orange);font-size:12px;">🏅 SECTION 3: Positions & Bracket Tier Summary</strong>
+              <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection3')">📋 Copy Section 3</button>
+            </div>
+            <textarea id="outputSection3" rows="3" readonly style="font-size:11px;color:var(--orange);background:#030810;"></textarea>
+          </div>
+        </div>
+
+        <!-- PANEL 2: AUTO POINTS TABLE AI CHAT -->
+        <div id="tabPointsAI" class="tab-content">
           <h3>AUTO POINTS TABLE (Win/Loss & Auto NRR)</h3>
           <p class="sub" style="margin-bottom:8px">
             Calculates Wins, Losses, Points (+2), and Auto NRR.<br>
@@ -228,11 +298,11 @@
           </div>
         </div>
 
-        <!-- PANEL 2: FIXTURES & STATS AI CHAT -->
+        <!-- PANEL 3: FIXTURES & STATS AI CHAT -->
         <div id="tabFixturesStatsAI" class="tab-content">
           <h3>FIXTURES & STATS (Match Log & Player Performance)</h3>
           <p class="sub" style="margin-bottom:8px">
-            Logs match details to fixture log and updates individual player cumulative stats.<br>
+            Logs match details and updates cumulative player stats.<br>
             <i>"Ali 45 runs 2 wickets for Falcons vs Eagles"</i>
           </p>
           <div class="chat-box" id="fixturesAiChatBox">
@@ -244,90 +314,30 @@
           </div>
         </div>
 
-        <!-- PANEL 3: MATCH SUMMARY CONVERTER WITH 2 SEPARATE COPY SECTIONS -->
-        <div id="tabConverterAI" class="tab-content">
-          <h3>MATCH SUMMARY CONVERTER</h3>
-          <p class="sub" style="margin-bottom:8px">
-            Processes raw match summaries and generates 2 distinct copyable format blocks below. Disappears on panel refresh while database persists in cloud.
+        <!-- PANEL 4: POSITIONS & TIERS MANAGER -->
+        <div id="tabPositions" class="tab-content">
+          <h3>POSITIONS & BRACKET TIERS MANAGER</h3>
+          <p class="sub" style="margin-bottom:12px">
+            Assign team standings: Gold (Final Winners/Finalists), Silver (Semi-Finalists), Premier (Top Tier), or Red (Eliminated).
           </p>
-          
-          <div style="margin-bottom:12px;">
-            <textarea id="converterRawInput" rows="3" placeholder="Paste raw match notes (e.g. Team A scored 150/5 in 20 ov, Team B 140/8 in 20 ov. Team A won. Ali 65 runs for Team A)..."></textarea>
-            <button class="btn primary" style="width:100%;margin-top:6px;" onclick="generateDualSummaryOutputs()">⚡ Generate & Format Dual Outputs</button>
-          </div>
-
-          <!-- SECTION 1 COPY BLOCK -->
-          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);margin-bottom:12px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <strong style="color:var(--gold);font-size:12px;">📊 SECTION 1: Points Table & Auto NRR Prompt</strong>
-              <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection1')">📋 Copy Section 1</button>
-            </div>
-            <textarea id="outputSection1" rows="3" readonly style="font-size:11px;color:var(--teal);background:#030810;"></textarea>
-          </div>
-
-          <!-- SECTION 2 COPY BLOCK -->
-          <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid var(--line);">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-              <strong style="color:var(--purple);font-size:12px;">🏏 SECTION 2: Fixture Scorecard & Player Stats Prompt</strong>
-              <button class="btn secondary" style="padding:3px 10px;font-size:11px;" onclick="copyOutputText('outputSection2')">📋 Copy Section 2</button>
-            </div>
-            <textarea id="outputSection2" rows="4" readonly style="font-size:11px;color:var(--purple);background:#030810;"></textarea>
-          </div>
+          <div id="adminPositionsContainer"></div>
         </div>
 
-        <!-- PANEL 4: MANUAL ICC NRR FORM ENGINE -->
-        <div id="tabMatchEngine" class="tab-content">
-          <h3>ICC Scorecard & Auto NRR Calculator</h3>
-          <p class="sub" style="margin-bottom:12px">Log detailed match scores to automatically compute ICC NRR.</p>
-          
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-            <div>
-              <label class="sub">Team 1 (Winner)</label>
-              <select id="matchTeam1"></select>
-              <input type="number" id="team1Runs" placeholder="Runs Scored" style="margin-top:4px">
-              <input type="number" step="0.1" id="team1Overs" placeholder="Overs Faced" style="margin-top:4px">
-              <input type="number" id="team1Wickets" placeholder="Wickets Lost" style="margin-top:4px">
-            </div>
-            <div>
-              <label class="sub">Team 2 (Loser)</label>
-              <select id="matchTeam2"></select>
-              <input type="number" id="team2Runs" placeholder="Runs Scored" style="margin-top:4px">
-              <input type="number" step="0.1" id="team2Overs" placeholder="Overs Faced" style="margin-top:4px">
-              <input type="number" id="team2Wickets" placeholder="Wickets Lost" style="margin-top:4px">
-            </div>
-          </div>
-          <button class="btn primary" style="width:100%" onclick="submitMatchResult()">Submit Match & Calculate ICC NRR</button>
-        </div>
-
-        <!-- PANEL 5: ADMIN TOP 5 PREVIEW -->
-        <div id="tabAdminTop5" class="tab-content">
-          <h3>⭐ Current Top 5 Tournament Leaders</h3>
-          <p class="sub" style="margin-bottom:12px">Real-time Top 5 Orange & Purple cap standings widget.</p>
-          <div class="top5-container">
-            <div class="top5-box">
-              <h4 style="color:var(--orange);margin-bottom:8px">Top 5 Batters</h4>
-              <div id="adminTop5Batters"></div>
-            </div>
-            <div class="top5-box">
-              <h4 style="color:var(--purple);margin-bottom:8px">Top 5 Bowlers</h4>
-              <div id="adminTop5Bowlers"></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PANEL 6: MANUAL CONTROLS -->
+        <!-- PANEL 5: MANUAL CONTROLS (DASHBOARD DUPLICATE) -->
         <div id="tabManual" class="tab-content">
+          <!-- TEAM CONTROLS (ADD, DELETE, RENAME) -->
           <div style="margin-bottom:15px">
-            <h4>Manage Teams (Add / Remove)</h4>
+            <h4>Manage Teams (➕ Add / ➖ Delete / ✏️ Rename)</h4>
             <div style="display:flex;gap:8px;margin-top:6px">
               <input type="text" id="newTeamName" placeholder="New Team Name">
-              <button class="btn primary" onclick="manualAddTeam()">Add Team</button>
+              <button class="btn primary" onclick="manualAddTeam()">➕ Add Team</button>
             </div>
             <div id="teamsListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
           </div>
 
           <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
 
+          <!-- MANUAL PLAYER CONTROLS -->
           <div style="margin-bottom:15px">
             <h4>Manage Players (Add / Remove Manually)</h4>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
@@ -352,6 +362,13 @@
             <input type="text" id="editEyebrow" style="margin:6px 0 10px;">
             <button class="btn primary" onclick="saveSiteText()">Update Tagline</button>
           </div>
+        </div>
+
+        <!-- PANEL 6: ADMIN NOTIFICATIONS (USER COMPLAINTS / INQUIRIES) -->
+        <div id="tabNotifications" class="tab-content">
+          <h3>🔔 User Feedback & Complaints Inbox</h3>
+          <p class="sub" style="margin-bottom:12px">Messages submitted by website visitors from the public feedback form.</p>
+          <div id="adminNotificationsList"></div>
         </div>
 
         <!-- PANEL 7: SERVER PREVIEW -->
@@ -403,7 +420,7 @@
 <!-- ERROR / WARNING POPUP MODAL -->
 <div id="errorModal" class="modal-overlay">
   <div class="modal" style="max-width:420px;border-color:var(--red);">
-    <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ AI Engine Alert</h3>
+    <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ Alert Message</h3>
     <p id="errorMessageText" style="margin:12px 0;font-size:13px;line-height:1.5;color:var(--text);"></p>
     <button class="btn danger" style="width:100%" onclick="closeModal('errorModal')">Got It / Retry</button>
   </div>
