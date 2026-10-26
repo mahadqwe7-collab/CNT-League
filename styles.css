@@ -224,6 +224,39 @@ h2 {
   font-weight: 800;
 }
 
+/* TOP 5 WIDGET STYLES */
+.top5-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.top5-box {
+  background: linear-gradient(145deg, var(--panel-alt), var(--panel));
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.top5-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+}
+
+.top5-row:last-child {
+  border-bottom: none;
+}
+
+.top5-rank {
+  font-weight: 900;
+  color: var(--muted);
+  width: 24px;
+}
+
 /* Tables */
 .panel {
   padding: 0;
@@ -310,7 +343,6 @@ textarea {
   transition: opacity 0.15s ease, background 0.15s ease;
 }
 
-/* PEEK / LIVE SITE PREVIEW HOLD STATE */
 .modal-overlay.peeking {
   background: transparent !important;
   pointer-events: none;
@@ -353,7 +385,6 @@ textarea {
   flex-wrap: wrap;
 }
 
-/* ADMIN WORKSPACE LAYOUT (SIDEBAR + MAIN PANEL) */
 .admin-workspace {
   display: flex;
   gap: 20px;
@@ -449,7 +480,6 @@ footer {
   text-align: center;
 }
 
-/* Responsive Sidebar for Small Screens */
 @media (max-width: 680px) {
   .admin-workspace {
     flex-direction: column;
