@@ -25,7 +25,7 @@ let redoStack = [];
 function pushHistory() {
   undoStack.push(JSON.stringify(state));
   if (undoStack.length > 25) undoStack.shift();
-  redoStack = []; // Clear redo stack on new action
+  redoStack = [];
   updateUndoRedoButtons();
 }
 
@@ -52,7 +52,7 @@ function updateUndoRedoButtons() {
   if (btnRedo) btnRedo.disabled = redoStack.length === 0;
 }
 
-// Initialize Standings Structure
+// Initialize Season Standings
 function initSeasons(teamList) {
   const data = {};
   for (let i = 1; i <= 4; i++) {
@@ -64,7 +64,7 @@ function initSeasons(teamList) {
 }
 state.seasons = initSeasons(state.teams);
 
-// Sync with Supabase Database
+// Cloud Database Synchronization
 async function loadState() {
   try {
     const { data, error } = await db.from('cnt_league').select('state').eq('id', 1).single();
@@ -74,17 +74,35 @@ async function loadState() {
   } catch (e) {
     console.error("Cloud DB load error:", e);
   }
+  recalculateAutoNRR();
   renderAll();
 }
 
 async function saveState(skipHistory = false) {
   if (!skipHistory) pushHistory();
+  recalculateAutoNRR();
   renderAll();
   try {
     await db.from('cnt_league').upsert({ id: 1, state: state });
   } catch (e) {
     console.error("Cloud DB save error:", e);
   }
+}
+
+// AUTOMATIC ICC NRR RE-CALCULATOR
+function recalculateAutoNRR() {
+  const curTeams = state.seasons[state.activeSeason];
+  if (!curTeams) return;
+
+  curTeams.forEach(t => {
+    if (t.oversFaced > 0 && t.oversBowled > 0) {
+      const runRateFor = t.runsScored / t.oversFaced;
+      const runRateAgainst = t.runsConceded / t.oversBowled;
+      t.nrr = (runRateFor - runRateAgainst).toFixed(3);
+    } else {
+      t.nrr = "0.000";
+    }
+  });
 }
 
 // Master Render Engine
@@ -95,6 +113,7 @@ function renderAll() {
   renderSeasonsGrid();
   renderStandings();
   renderFixtures();
+  renderTop5Leaders();
   renderPlayers();
   populateDropdowns();
   renderTeamsManageList();
@@ -116,6 +135,7 @@ function renderSeasonsGrid() {
 
 function switchSeason(num) {
   state.activeSeason = num;
+  recalculateAutoNRR();
   renderSeasonsGrid();
   renderStandings();
 }
@@ -130,19 +150,75 @@ function renderStandings() {
       <tr>
         <td>${i + 1}</td><td><strong>${t.name}</strong></td>
         <td>${t.played}</td><td>${t.won}</td><td>${t.lost}</td>
-        <td>${t.nrr}</td><td style="color:var(--gold);font-weight:800">${t.points}</td>
+        <td style="color:var(--teal);font-weight:700">${t.nrr}</td><td style="color:var(--gold);font-weight:800">${t.points}</td>
       </tr>`).join("")
     : `<tr><td colspan="7" style="text-align:center;color:var(--muted)">No teams added.</td></tr>`;
 }
 
+// RENDER TOP 5 WIDGET (Public Dashboard & Admin Panel)
+function renderTop5Leaders() {
+  const sortedBatters = [...state.players].sort((a, b) => b.runs - a.runs).slice(0, 5);
+  const sortedBowlers = [...state.players].sort((a, b) => b.wickets - a.wickets).slice(0, 5);
+
+  const renderBatterRows = (list) => list.length ? list.map((p, i) => `
+    <div class="top5-row">
+      <span class="top5-rank">#${i + 1}</span>
+      <div style="flex:1"><strong>${p.name}</strong> <span class="sub">(${p.team})</span></div>
+      <strong style="color:var(--orange)">${p.runs} runs</strong>
+    </div>
+  `).join("") : '<div class="sub" style="padding:10px">No batting stats yet.</div>';
+
+  const renderBowlerRows = (list) => list.length ? list.map((p, i) => `
+    <div class="top5-row">
+      <span class="top5-rank">#${i + 1}</span>
+      <div style="flex:1"><strong>${p.name}</strong> <span class="sub">(${p.team})</span></div>
+      <strong style="color:var(--purple)">${p.wickets} wkts</strong>
+    </div>
+  `).join("") : '<div class="sub" style="padding:10px">No bowling stats yet.</div>';
+
+  // Render on Main Site
+  const pubB = document.getElementById("top5BattersList");
+  const pubW = document.getElementById("top5BowlersList");
+  if (pubB) pubB.innerHTML = renderBatterRows(sortedBatters);
+  if (pubW) pubW.innerHTML = renderBowlerRows(sortedBowlers);
+
+  // Render in Admin Panel
+  const admB = document.getElementById("adminTop5Batters");
+  const admW = document.getElementById("adminTop5Bowlers");
+  if (admB) admB.innerHTML = renderBatterRows(sortedBatters);
+  if (admW) admW.innerHTML = renderBowlerRows(sortedBowlers);
+}
+
+// RENDER MATCHES & DETAILED SCORECARD TRIGGER
 function renderFixtures() {
   const tbody = document.getElementById("fixturesBody");
   tbody.innerHTML = state.fixtures.length ? state.fixtures.map(f => `
     <tr>
-      <td>${f.title}</td><td>${f.team1} vs ${f.team2}</td>
-      <td>${f.result}</td><td><span class="eyebrow" style="padding:2px 8px">${f.status}</span></td>
+      <td>${f.title}</td>
+      <td><strong>${f.team1}</strong> vs <strong>${f.team2}</strong></td>
+      <td>${f.result}</td>
+      <td>
+        <button class="btn secondary" style="padding:4px 10px;font-size:11px" onclick="showMatchDetails(${f.id})">
+          🔍 Click for Details
+        </button>
+      </td>
     </tr>`).join("")
     : `<tr><td colspan="4" style="text-align:center;color:var(--muted)">No match records logged.</td></tr>`;
+}
+
+function showMatchDetails(matchId) {
+  const match = state.fixtures.find(m => m.id === matchId);
+  if (!match) return;
+
+  document.getElementById("detailMatchTitle").innerText = `${match.title}: ${match.team1} vs ${match.team2}`;
+  document.getElementById("detailMatchStatus").innerText = `Status: ${match.status || 'Completed'}`;
+  document.getElementById("detailTeam1Name").innerText = match.team1;
+  document.getElementById("detailTeam1Score").innerText = `${match.team1Runs || 0}/${match.team1Wickets || 0} (${match.team1Overs || '0.0'} ov)`;
+  document.getElementById("detailTeam2Name").innerText = match.team2;
+  document.getElementById("detailTeam2Score").innerText = `${match.team2Runs || 0}/${match.team2Wickets || 0} (${match.team2Overs || '0.0'} ov)`;
+  document.getElementById("detailMatchSummaryText").innerText = match.result || "Match completed successfully.";
+
+  openModal("matchDetailModal");
 }
 
 function renderPlayers() {
@@ -280,6 +356,8 @@ function sendMatchAIChatCommand() {
       title: `Match ${state.fixtures.length + 1}`,
       team1: wTeam.name,
       team2: lTeam.name,
+      team1Runs: 0, team1Overs: "0.0", team1Wickets: 0,
+      team2Runs: 0, team2Overs: "0.0", team2Wickets: 0,
       result: `${wTeam.name} defeated ${lTeam.name}`,
       status: "Completed"
     });
@@ -353,7 +431,7 @@ function sendPlayerAIChatCommand() {
   box.scrollTop = box.scrollHeight;
 }
 
-// ICC NRR CALCULATOR
+// ICC NRR CALCULATOR (Form Submission)
 function submitMatchResult() {
   const t1 = document.getElementById("matchTeam1").value;
   const t2 = document.getElementById("matchTeam2").value;
@@ -386,24 +464,23 @@ function submitMatchResult() {
     loser.runsScored += r2; loser.oversFaced += effectiveOvers2;
     loser.runsConceded += r1; loser.oversBowled += effectiveOvers1;
 
-    winner.nrr = ((winner.runsScored / winner.oversFaced) - (winner.runsConceded / winner.oversBowled)).toFixed(3);
-    loser.nrr = ((loser.runsScored / loser.oversFaced) - (loser.runsConceded / loser.oversBowled)).toFixed(3);
-
     state.fixtures.push({
       id: Date.now(),
       title: `Match ${state.fixtures.length + 1}`,
       team1: t1,
       team2: t2,
+      team1Runs: r1, team1Overs: o1, team1Wickets: w1,
+      team2Runs: r2, team2Overs: o2, team2Wickets: w2,
       result: `${t1} won by ${r1 - r2 > 0 ? (r1 - r2) + " runs" : (10 - w1) + " wickets"}`,
       status: "Completed"
     });
 
     saveState();
-    alert(`Match Logged! ${t1} won & ICC NRR recalculated.`);
+    alert(`Match Logged! ${t1} won & ICC NRR auto-recalculated.`);
   }
 }
 
-// MANUAL TEAMS & PLAYERS
+// MANUAL CONTROLS
 function manualAddTeam() {
   const name = document.getElementById("newTeamName").value.trim();
   if (name && !state.teams.includes(name)) {
@@ -509,7 +586,6 @@ function saveSiteText() {
   alert("Tagline Saved!");
 }
 
-// Attach Hold-to-Preview (Peek Site) Listener
 function setupPeekPreview() {
   const peekBtn = document.getElementById("btnPeekSite");
   const adminModal = document.getElementById("adminModal");
@@ -531,6 +607,6 @@ document.getElementById("playerSearch").addEventListener("input", renderPlayers)
 document.getElementById("teamFilter").addEventListener("change", renderPlayers);
 document.getElementById("roleFilter").addEventListener("change", renderPlayers);
 
-// Boot App
+// Boot Application
 loadState();
 setupPeekPreview();
