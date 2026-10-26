@@ -18,6 +18,9 @@ let state = {
   players: []
 };
 
+// Global container for pending AI confirmation actions
+let pendingAiActions = [];
+
 // Undo / Redo History Stacks
 let undoStack = [];
 let redoStack = [];
@@ -155,7 +158,7 @@ function renderStandings() {
     : `<tr><td colspan="7" style="text-align:center;color:var(--muted)">No teams added.</td></tr>`;
 }
 
-// RENDER TOP 5 WIDGET (Public Dashboard & Admin Panel)
+// RENDER TOP 5 WIDGET
 function renderTop5Leaders() {
   const sortedBatters = [...state.players].sort((a, b) => b.runs - a.runs).slice(0, 5);
   const sortedBowlers = [...state.players].sort((a, b) => b.wickets - a.wickets).slice(0, 5);
@@ -176,20 +179,18 @@ function renderTop5Leaders() {
     </div>
   `).join("") : '<div class="sub" style="padding:10px">No bowling stats yet.</div>';
 
-  // Render on Main Site
   const pubB = document.getElementById("top5BattersList");
   const pubW = document.getElementById("top5BowlersList");
   if (pubB) pubB.innerHTML = renderBatterRows(sortedBatters);
   if (pubW) pubW.innerHTML = renderBowlerRows(sortedBowlers);
 
-  // Render in Admin Panel
   const admB = document.getElementById("adminTop5Batters");
   const admW = document.getElementById("adminTop5Bowlers");
   if (admB) admB.innerHTML = renderBatterRows(sortedBatters);
   if (admW) admW.innerHTML = renderBowlerRows(sortedBowlers);
 }
 
-// RENDER MATCHES & DETAILED SCORECARD TRIGGER
+// RENDER MATCHES
 function renderFixtures() {
   const tbody = document.getElementById("fixturesBody");
   tbody.innerHTML = state.fixtures.length ? state.fixtures.map(f => `
@@ -312,21 +313,26 @@ function renderServerPreview() {
   if (rawJson) rawJson.value = JSON.stringify(state, null, 2);
 }
 
-// Error Modal
+// Error Modal Trigger
 function showErrorPopup(message) {
   document.getElementById("errorMessageText").innerText = message;
   openModal("errorModal");
 }
 
-// MATCH SUMMARY AI CHAT
-function sendMatchAIChatCommand() {
-  const input = document.getElementById('matchAiUserPrompt');
+// ==========================================
+// UNIFIED SMART AI PARSER & CONFIRMATION
+// ==========================================
+function sendUnifiedAIChatCommand() {
+  const input = document.getElementById('unifiedAiUserPrompt');
   const text = input.value.trim();
   if (!text) return;
 
   const lower = text.toLowerCase();
-  let foundWinner = null, foundLoser = null;
+  pendingAiActions = []; // Reset pending stack
+  let summaryHtml = "";
 
+  // 1. PARSE MATCH SUMMARY (Look for registered teams)
+  let foundWinner = null, foundLoser = null;
   state.teams.forEach(teamName => {
     if (lower.includes(teamName.toLowerCase())) {
       if (!foundWinner) foundWinner = teamName;
@@ -334,104 +340,120 @@ function sendMatchAIChatCommand() {
     }
   });
 
-  if (!foundWinner || !foundLoser) {
-    showErrorPopup(`Could not identify 2 valid teams in your match summary.\n\nInput: "${text}"\n\nPlease ensure team names match registered teams exactly!`);
-    return;
-  }
-
-  const box = document.getElementById('matchAiChatBox');
-  box.innerHTML += `<div class="chat-msg chat-user">${text}</div>`;
-  input.value = "";
-
-  const cur = state.seasons[state.activeSeason];
-  const wTeam = cur.find(x => x.name === foundWinner);
-  const lTeam = cur.find(x => x.name === foundLoser);
-
-  if (wTeam && lTeam) {
-    wTeam.played += 1; wTeam.won += 1; wTeam.points += 2;
-    lTeam.played += 1; lTeam.lost += 1;
-
-    state.fixtures.push({
-      id: Date.now(),
-      title: `Match ${state.fixtures.length + 1}`,
-      team1: wTeam.name,
-      team2: lTeam.name,
-      team1Runs: 0, team1Overs: "0.0", team1Wickets: 0,
-      team2Runs: 0, team2Overs: "0.0", team2Wickets: 0,
-      result: `${wTeam.name} defeated ${lTeam.name}`,
-      status: "Completed"
+  if (foundWinner && foundLoser && foundWinner !== foundLoser) {
+    pendingAiActions.push({
+      type: "MATCH_RESULT",
+      winner: foundWinner,
+      loser: foundLoser,
+      text: text
     });
-
-    saveState();
-    box.innerHTML += `<div class="chat-msg chat-ai">🏆 Result logged! ${wTeam.name} +2 pts (Won against ${lTeam.name}).</div>`;
-    box.scrollTop = box.scrollHeight;
+    summaryHtml += `<div><b>🏆 Match Result Update:</b> ${foundWinner} beats ${foundLoser} (+2 points)</div>`;
   }
-}
 
-// PLAYER STATS AI CHAT
-function sendPlayerAIChatCommand() {
-  const input = document.getElementById('playerAiUserPrompt');
-  const text = input.value.trim();
-  if (!text) return;
-
-  const lower = text.toLowerCase();
+  // 2. PARSE PLAYER STATS
   const runMatch = text.match(/(\d+)\s*runs?/i);
   const wktMatch = text.match(/(\d+)\s*wickets?|(\d+)\s*wkts?/i);
 
-  const runs = runMatch ? parseInt(runMatch[1]) : 0;
-  const wickets = wktMatch ? parseInt(wktMatch[1] || wktMatch[2]) : 0;
+  if (runMatch || wktMatch) {
+    const runs = runMatch ? parseInt(runMatch[1]) : 0;
+    const wickets = wktMatch ? parseInt(wktMatch[1] || wktMatch[2]) : 0;
 
-  if (!runMatch && !wktMatch) {
-    showErrorPopup(`Could not detect runs or wickets in player entry.\n\nInput: "${text}"\n\nExample format: "Ali 45 runs 2 wickets for Team A"`);
-    return;
-  }
+    let assignedTeam = null;
+    state.teams.forEach(t => {
+      if (lower.includes(t.toLowerCase())) assignedTeam = t;
+    });
+    if (!assignedTeam) assignedTeam = state.teams[0] || "Team A";
 
-  let assignedTeam = null;
-  state.teams.forEach(t => {
-    if (lower.includes(t.toLowerCase())) assignedTeam = t;
-  });
-  if (!assignedTeam) assignedTeam = state.teams[0] || "Team A";
+    let playerName = "Player";
+    const nameMatch = text.match(/(?:add player|player)?\s*([a-zA-Z]+)/i);
+    if (nameMatch && nameMatch[1] && !["add", "player", "to", "as", "with", "scored", "for", "beat", "defeated"].includes(nameMatch[1].toLowerCase())) {
+      playerName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
+    }
 
-  let playerName = "Player";
-  const nameMatch = text.match(/(?:add player|player)?\s*([a-zA-Z]+)/i);
-  if (nameMatch && nameMatch[1] && !["add", "player", "to", "as", "with", "scored", "for"].includes(nameMatch[1].toLowerCase())) {
-    playerName = nameMatch[1].charAt(0).toUpperCase() + nameMatch[1].slice(1);
-  }
-
-  const box = document.getElementById('playerAiChatBox');
-  box.innerHTML += `<div class="chat-msg chat-user">${text}</div>`;
-  input.value = "";
-
-  const role = wickets > 0 ? (runs > 20 ? "All-Rounder" : "Bowler") : "Batter";
-
-  let existing = state.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
-  let reply = "";
-
-  if (existing) {
-    existing.matches += 1;
-    existing.runs += runs;
-    existing.wickets += wickets;
-    existing.team = assignedTeam;
-    reply = `👤 Updated ${existing.name} (${assignedTeam}): +${runs} runs, +${wickets} wickets.`;
-  } else {
-    state.players.push({
-      id: Date.now(),
+    pendingAiActions.push({
+      type: "PLAYER_STAT",
       name: playerName,
       team: assignedTeam,
-      role: role,
-      matches: 1,
       runs: runs,
       wickets: wickets
     });
-    reply = `👤 Registered new player ${playerName} for ${assignedTeam} (${runs} runs, ${wickets} wickets).`;
+    summaryHtml += `<div><b>👤 Player Stat Update:</b> ${playerName} (${assignedTeam}) ➔ +${runs} runs, +${wickets} wickets</div>`;
   }
 
-  saveState();
-  box.innerHTML += `<div class="chat-msg chat-ai">${reply}</div>`;
-  box.scrollTop = box.scrollHeight;
+  // VALIDATION: If nothing was parsed
+  if (pendingAiActions.length === 0) {
+    showErrorPopup(`AI could not identify any match results or player stats.\n\nInput: "${text}"\n\nTips:\n- Use registered team names (e.g., "Team A beat Team B")\n- Include runs/wickets for players (e.g., "Ali 45 runs 2 wickets")`);
+    return;
+  }
+
+  // Display Confirmation Pop-up
+  document.getElementById("confirmAiDetailsBox").innerHTML = summaryHtml;
+  openModal("confirmAiModal");
 }
 
-// ICC NRR CALCULATOR (Form Submission)
+// APPLY PENDING AI ACTIONS ON CONFIRMATION
+function confirmAndApplyAiActions() {
+  const box = document.getElementById('unifiedAiChatBox');
+
+  pendingAiActions.forEach(action => {
+    if (action.type === "MATCH_RESULT") {
+      const cur = state.seasons[state.activeSeason];
+      const wTeam = cur.find(x => x.name === action.winner);
+      const lTeam = cur.find(x => x.name === action.loser);
+
+      if (wTeam && lTeam) {
+        wTeam.played += 1; wTeam.won += 1; wTeam.points += 2;
+        lTeam.played += 1; lTeam.lost += 1;
+
+        state.fixtures.push({
+          id: Date.now(),
+          title: `Match ${state.fixtures.length + 1}`,
+          team1: wTeam.name,
+          team2: lTeam.name,
+          team1Runs: 0, team1Overs: "0.0", team1Wickets: 0,
+          team2Runs: 0, team2Overs: "0.0", team2Wickets: 0,
+          result: `${wTeam.name} defeated ${lTeam.name}`,
+          status: "Completed"
+        });
+      }
+    } else if (action.type === "PLAYER_STAT") {
+      const role = action.wickets > 0 ? (action.runs > 20 ? "All-Rounder" : "Bowler") : "Batter";
+      let existing = state.players.find(p => p.name.toLowerCase() === action.name.toLowerCase());
+
+      if (existing) {
+        existing.matches += 1;
+        existing.runs += action.runs;
+        existing.wickets += action.wickets;
+        existing.team = action.team;
+      } else {
+        state.players.push({
+          id: Date.now(),
+          name: action.name,
+          team: action.team,
+          role: role,
+          matches: 1,
+          runs: action.runs,
+          wickets: action.wickets
+        });
+      }
+    }
+  });
+
+  saveState();
+  closeModal("confirmAiModal");
+
+  box.innerHTML += `<div class="chat-msg chat-ai">✅ Confirmed! Processed ${pendingAiActions.length} updates successfully.</div>`;
+  box.scrollTop = box.scrollHeight;
+  document.getElementById('unifiedAiUserPrompt').value = "";
+  pendingAiActions = [];
+}
+
+function cancelAiActions() {
+  pendingAiActions = [];
+  closeModal("confirmAiModal");
+}
+
+// MANUAL ICC NRR CALCULATOR
 function submitMatchResult() {
   const t1 = document.getElementById("matchTeam1").value;
   const t2 = document.getElementById("matchTeam2").value;
