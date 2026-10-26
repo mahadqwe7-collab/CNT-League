@@ -1,4 +1,4 @@
-// Supabase Connection Initialization
+// Supabase Cloud Connection Setup
 const SUPABASE_URL = "https://slgsxvwzcmogulsrzgqm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_sQmZXNu5XfQ0m5hQ6v-Cog_HS9sLraa";
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -18,7 +18,41 @@ let state = {
   players: []
 };
 
-// Initialize Season Standings
+// Undo / Redo History Stacks
+let undoStack = [];
+let redoStack = [];
+
+function pushHistory() {
+  undoStack.push(JSON.stringify(state));
+  if (undoStack.length > 25) undoStack.shift();
+  redoStack = []; // Clear redo stack on new action
+  updateUndoRedoButtons();
+}
+
+function undoAction() {
+  if (undoStack.length === 0) return;
+  redoStack.push(JSON.stringify(state));
+  state = JSON.parse(undoStack.pop());
+  saveState(true);
+  updateUndoRedoButtons();
+}
+
+function redoAction() {
+  if (redoStack.length === 0) return;
+  undoStack.push(JSON.stringify(state));
+  state = JSON.parse(redoStack.pop());
+  saveState(true);
+  updateUndoRedoButtons();
+}
+
+function updateUndoRedoButtons() {
+  const btnUndo = document.getElementById("btnUndo");
+  const btnRedo = document.getElementById("btnRedo");
+  if (btnUndo) btnUndo.disabled = undoStack.length === 0;
+  if (btnRedo) btnRedo.disabled = redoStack.length === 0;
+}
+
+// Initialize Standings Structure
 function initSeasons(teamList) {
   const data = {};
   for (let i = 1; i <= 4; i++) {
@@ -30,7 +64,7 @@ function initSeasons(teamList) {
 }
 state.seasons = initSeasons(state.teams);
 
-// Cloud Database Load & Save
+// Sync with Supabase Database
 async function loadState() {
   try {
     const { data, error } = await db.from('cnt_league').select('state').eq('id', 1).single();
@@ -43,7 +77,8 @@ async function loadState() {
   renderAll();
 }
 
-async function saveState() {
+async function saveState(skipHistory = false) {
+  if (!skipHistory) pushHistory();
   renderAll();
   try {
     await db.from('cnt_league').upsert({ id: 1, state: state });
@@ -52,7 +87,7 @@ async function saveState() {
   }
 }
 
-// Master Render Function
+// Master Render Engine
 function renderAll() {
   document.getElementById("siteEyebrow").innerText = state.siteConfig.eyebrow;
   document.getElementById("heroTitle").innerHTML = state.siteConfig.heroHeading;
@@ -65,6 +100,7 @@ function renderAll() {
   renderTeamsManageList();
   renderPlayersManageList();
   renderServerPreview();
+  updateUndoRedoButtons();
 }
 
 function renderSeasonsGrid() {
@@ -200,13 +236,13 @@ function renderServerPreview() {
   if (rawJson) rawJson.value = JSON.stringify(state, null, 2);
 }
 
-// Error Modal Trigger
+// Error Modal
 function showErrorPopup(message) {
   document.getElementById("errorMessageText").innerText = message;
   openModal("errorModal");
 }
 
-// PART 1: MATCH SUMMARY AI CHAT
+// MATCH SUMMARY AI CHAT
 function sendMatchAIChatCommand() {
   const input = document.getElementById('matchAiUserPrompt');
   const text = input.value.trim();
@@ -254,7 +290,7 @@ function sendMatchAIChatCommand() {
   }
 }
 
-// PART 2: PLAYER STATS AI CHAT
+// PLAYER STATS AI CHAT
 function sendPlayerAIChatCommand() {
   const input = document.getElementById('playerAiUserPrompt');
   const text = input.value.trim();
@@ -317,7 +353,7 @@ function sendPlayerAIChatCommand() {
   box.scrollTop = box.scrollHeight;
 }
 
-// PART 3: MANUAL ICC NRR CALCULATOR
+// ICC NRR CALCULATOR
 function submitMatchResult() {
   const t1 = document.getElementById("matchTeam1").value;
   const t2 = document.getElementById("matchTeam2").value;
@@ -367,7 +403,7 @@ function submitMatchResult() {
   }
 }
 
-// PART 4: MANUAL TEAMS & PLAYER CONTROLS
+// MANUAL TEAMS & PLAYERS
 function manualAddTeam() {
   const name = document.getElementById("newTeamName").value.trim();
   if (name && !state.teams.includes(name)) {
@@ -446,12 +482,12 @@ async function resetDefaultData() {
   }
 }
 
-// UI Navigation
+// UI Navigation & Auth
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function switchTab(evt, tabId) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.admin-sidebar .tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   evt.target.classList.add('active');
   document.getElementById(tabId).classList.add('active');
@@ -473,6 +509,23 @@ function saveSiteText() {
   alert("Tagline Saved!");
 }
 
+// Attach Hold-to-Preview (Peek Site) Listener
+function setupPeekPreview() {
+  const peekBtn = document.getElementById("btnPeekSite");
+  const adminModal = document.getElementById("adminModal");
+
+  if (peekBtn && adminModal) {
+    const enablePeek = () => adminModal.classList.add("peeking");
+    const disablePeek = () => adminModal.classList.remove("peeking");
+
+    peekBtn.addEventListener("mousedown", enablePeek);
+    peekBtn.addEventListener("mouseup", disablePeek);
+    peekBtn.addEventListener("mouseleave", disablePeek);
+    peekBtn.addEventListener("touchstart", enablePeek);
+    peekBtn.addEventListener("touchend", disablePeek);
+  }
+}
+
 // Event Listeners
 document.getElementById("playerSearch").addEventListener("input", renderPlayers);
 document.getElementById("teamFilter").addEventListener("change", renderPlayers);
@@ -480,3 +533,4 @@ document.getElementById("roleFilter").addEventListener("change", renderPlayers);
 
 // Boot App
 loadState();
+setupPeekPreview();
