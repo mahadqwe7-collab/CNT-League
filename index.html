@@ -126,164 +126,181 @@
   </div>
 </div>
 
-<!-- CONTROL PANEL MODAL -->
+<!-- FULL ADMIN WORKSPACE DASHBOARD MODAL -->
 <div id="adminModal" class="modal-overlay">
-  <div class="modal">
-    <h2>⚡ CNT-League Admin Center</h2>
-    <div class="tab-row">
-      <button class="tab-btn active" onclick="switchTab(event, 'tabMatchAI')">🏟️ Match AI</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabPlayerAI')">👤 Player AI</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC NRR Engine</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ Manual Controls</button>
-      <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 Server Preview</button>
-    </div>
-
-    <!-- PART 1: MATCH SUMMARY AI CHAT -->
-    <div id="tabMatchAI" class="tab-content active">
-      <p class="sub" style="margin-bottom:8px">
-        <b>Match Summary AI Assistant (Win/Loss & Points Only):</b><br>
-        <i>"Team A beat Team B"</i> | <i>"Falcons defeated Eagles"</i>
-      </p>
-      <div class="chat-box" id="matchAiChatBox">
-        <div class="chat-msg chat-ai">Match AI Ready. Send match summary here to update wins, losses, and points.</div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="matchAiUserPrompt" placeholder="Enter match summary..." style="flex:1" onkeypress="if(event.key==='Enter') sendMatchAIChatCommand()">
-        <button class="btn primary" onclick="sendMatchAIChatCommand()">Update Match</button>
-      </div>
-    </div>
-
-    <!-- PART 2: PLAYER STATS AI CHAT -->
-    <div id="tabPlayerAI" class="tab-content">
-      <p class="sub" style="margin-bottom:8px">
-        <b>Player Stats AI Assistant (Individual Stats Only):</b><br>
-        <i>"add player Babar to Team A with 85 runs"</i> | <i>"Ali scored 45 runs 2 wickets for Team B"</i>
-      </p>
-      <div class="chat-box" id="playerAiChatBox">
-        <div class="chat-msg chat-ai">Player AI Ready. Send player performance here to update individual player stats and caps.</div>
-      </div>
-      <div style="display:flex;gap:8px;">
-        <input type="text" id="playerAiUserPrompt" placeholder="Enter player performance..." style="flex:1" onkeypress="if(event.key==='Enter') sendPlayerAIChatCommand()">
-        <button class="btn primary" onclick="sendPlayerAIChatCommand()">Update Player</button>
-      </div>
-    </div>
-
-    <!-- PART 3: MANUAL ICC NRR FORM ENGINE -->
-    <div id="tabMatchEngine" class="tab-content">
-      <h3>ICC Match Entry & Auto NRR Calculator</h3>
-      <p class="sub" style="margin-bottom:12px">Log detailed scores here to calculate precise ICC NRR.</p>
-      
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-        <div>
-          <label class="sub">Team 1 (Winner)</label>
-          <select id="matchTeam1"></select>
-          <input type="number" id="team1Runs" placeholder="Runs Scored" style="margin-top:4px">
-          <input type="number" step="0.1" id="team1Overs" placeholder="Overs Faced" style="margin-top:4px">
-          <input type="number" id="team1Wickets" placeholder="Wickets Lost" style="margin-top:4px">
-        </div>
-        <div>
-          <label class="sub">Team 2 (Loser)</label>
-          <select id="matchTeam2"></select>
-          <input type="number" id="team2Runs" placeholder="Runs Scored" style="margin-top:4px">
-          <input type="number" step="0.1" id="team2Overs" placeholder="Overs Faced" style="margin-top:4px">
-          <input type="number" id="team2Wickets" placeholder="Wickets Lost" style="margin-top:4px">
-        </div>
-      </div>
-      <button class="btn primary" style="width:100%" onclick="submitMatchResult()">Submit Match & Calculate ICC NRR</button>
-    </div>
-
-    <!-- PART 4: MANUAL CONTROLS (MANUAL TEAM & MANUAL PLAYER MANAGEMENT) -->
-    <div id="tabManual" class="tab-content">
-      <!-- TEAM MANAGEMENT -->
-      <div style="margin-bottom:15px">
-        <h4>Manage Teams (Add / Remove)</h4>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <input type="text" id="newTeamName" placeholder="New Team Name">
-          <button class="btn primary" onclick="manualAddTeam()">Add Team</button>
-        </div>
-        <div id="teamsListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
-      </div>
-
-      <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
-
-      <!-- MANUAL PLAYER MANAGEMENT -->
-      <div style="margin-bottom:15px">
-        <h4>Manage Players (Add / Remove Manually)</h4>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
-          <input type="text" id="manualPlayerName" placeholder="Player Name">
-          <select id="manualPlayerTeam"></select>
-          <select id="manualPlayerRole">
-            <option value="Batter">Batter</option>
-            <option value="Bowler">Bowler</option>
-            <option value="All-Rounder">All-Rounder</option>
-          </select>
-          <input type="number" id="manualPlayerRuns" placeholder="Runs Scored">
-          <input type="number" id="manualPlayerWickets" placeholder="Wickets Taken">
-          <button class="btn primary" style="grid-column:span 2" onclick="manualAddPlayer()">Add Player Manually</button>
-        </div>
-        <div id="playersListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
-      </div>
-
-      <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
-
-      <div style="margin-bottom:15px;">
-        <h4>Tagline Settings</h4>
-        <input type="text" id="editEyebrow" style="margin:6px 0 10px;">
-        <button class="btn primary" onclick="saveSiteText()">Update Tagline</button>
-      </div>
-
-      <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
-
+  <div class="modal admin-large-panel">
+    
+    <!-- TOP ACTION TOOLBAR -->
+    <div class="admin-top-bar">
       <div>
-        <h4>Reset Tournament</h4>
-        <p class="sub" style="margin-bottom:8px">Clear all teams, match logs, and player statistics from cloud database.</p>
-        <button class="btn danger" onclick="resetDefaultData()">⚠️ Reset All Data</button>
+        <h2>⚡ CNT-League Admin Dashboard</h2>
+        <span class="sub">Manage tournament, player stats & server payload</span>
+      </div>
+
+      <!-- TOP RIGHT ACTIONS: UNDO, REDO, HOLD TO PREVIEW, RESET -->
+      <div class="admin-actions">
+        <button id="btnUndo" class="btn secondary" onclick="undoAction()" title="Undo Last Change" disabled>↩️ Undo</button>
+        <button id="btnRedo" class="btn secondary" onclick="redoAction()" title="Redo Action" disabled>↪️ Redo</button>
+        <button id="btnPeekSite" class="btn primary" title="Hold to see live site preview behind admin modal">👁️ Hold to Preview Site</button>
+        <button class="btn danger" onclick="resetDefaultData()" title="Wipe Data">⚠️ Reset</button>
+        <button class="btn secondary" onclick="closeModal('adminModal')" style="padding:8px 12px;">✕</button>
       </div>
     </div>
 
-    <!-- PART 5: SERVER & DATABASE PREVIEW DASHBOARD -->
-    <div id="tabServer" class="tab-content">
-      <h3>🌐 Live Cloud Server & DB Preview</h3>
-      <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity and raw payload stream.</p>
+    <!-- MAIN DASHBOARD BODY (LEFT SIDEBAR + RIGHT CONTENT) -->
+    <div class="admin-workspace">
       
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
-        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
-          <span class="sub">Server Status</span><br>
-          <strong style="color:var(--teal);font-size:13px">🟢 Online (Connected)</strong>
-        </div>
-        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
-          <span class="sub">Database Host</span><br>
-          <strong style="color:var(--gold);font-size:11px">slgsxvwzcmogulsrzgqm</strong>
-        </div>
-        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
-          <span class="sub">Last Cloud Sync</span><br>
-          <strong id="serverLastSync" style="font-size:11px">Just Now</strong>
-        </div>
-      </div>
+      <!-- LEFT SIDEBAR MENU -->
+      <aside class="admin-sidebar">
+        <button class="tab-btn active" onclick="switchTab(event, 'tabMatchAI')">🏟️ Match AI Chat</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabPlayerAI')">👤 Player AI Chat</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabMatchEngine')">🏆 ICC NRR Engine</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabManual')">🛠️ Manual Controls</button>
+        <button class="tab-btn" onclick="switchTab(event, 'tabServer')">🌐 Server Preview</button>
+      </aside>
 
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
-        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
-          <span class="sub">Registered Teams</span><br>
-          <strong id="serverTeamsCount">0</strong>
+      <!-- RIGHT MAIN CONTENT PANELS -->
+      <div class="admin-main-content">
+        
+        <!-- PANEL 1: MATCH SUMMARY AI CHAT -->
+        <div id="tabMatchAI" class="tab-content active">
+          <h3>Match Summary AI Assistant</h3>
+          <p class="sub" style="margin-bottom:8px">
+            Updates <b>Win/Loss & Points Only</b> (NRR untouched to keep site fast).<br>
+            <i>"Team A beat Team B"</i> | <i>"Falcons defeated Eagles"</i>
+          </p>
+          <div class="chat-box" id="matchAiChatBox">
+            <div class="chat-msg chat-ai">Match AI Ready. Send match summary here to update wins, losses, and points.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="matchAiUserPrompt" placeholder="Enter match summary..." style="flex:1" onkeypress="if(event.key==='Enter') sendMatchAIChatCommand()">
+            <button class="btn primary" onclick="sendMatchAIChatCommand()">Update Match</button>
+          </div>
         </div>
-        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
-          <span class="sub">Matches Logged</span><br>
-          <strong id="serverMatchesCount">0</strong>
-        </div>
-        <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
-          <span class="sub">Players Recorded</span><br>
-          <strong id="serverPlayersCount">0</strong>
-        </div>
-      </div>
 
-      <div>
-        <h4>Raw Cloud JSON Stream Payload</h4>
-        <textarea id="serverRawJson" rows="6" readonly style="font-family:monospace;font-size:11px;color:var(--teal);margin-top:6px;background:#030810"></textarea>
-      </div>
-    </div>
+        <!-- PANEL 2: PLAYER STATS AI CHAT -->
+        <div id="tabPlayerAI" class="tab-content">
+          <h3>Player Performance AI Assistant</h3>
+          <p class="sub" style="margin-bottom:8px">
+            Updates <b>Individual Player Runs, Wickets & Leaderboard Caps</b>.<br>
+            <i>"add player Babar to Team A with 85 runs"</i> | <i>"Ali scored 45 runs 2 wickets for Team B"</i>
+          </p>
+          <div class="chat-box" id="playerAiChatBox">
+            <div class="chat-msg chat-ai">Player AI Ready. Send player performance here to update individual player stats and caps.</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="playerAiUserPrompt" placeholder="Enter player performance..." style="flex:1" onkeypress="if(event.key==='Enter') sendPlayerAIChatCommand()">
+            <button class="btn primary" onclick="sendPlayerAIChatCommand()">Update Player</button>
+          </div>
+        </div>
 
-    <div style="margin-top:20px;text-align:right">
-      <button class="btn secondary" onclick="closeModal('adminModal')">Close Panel</button>
+        <!-- PANEL 3: MANUAL ICC NRR FORM ENGINE -->
+        <div id="tabMatchEngine" class="tab-content">
+          <h3>ICC Scorecard & Auto NRR Calculator</h3>
+          <p class="sub" style="margin-bottom:12px">Log detailed scores to calculate precise ICC NRR and update points table.</p>
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+            <div>
+              <label class="sub">Team 1 (Winner)</label>
+              <select id="matchTeam1"></select>
+              <input type="number" id="team1Runs" placeholder="Runs Scored" style="margin-top:4px">
+              <input type="number" step="0.1" id="team1Overs" placeholder="Overs Faced" style="margin-top:4px">
+              <input type="number" id="team1Wickets" placeholder="Wickets Lost" style="margin-top:4px">
+            </div>
+            <div>
+              <label class="sub">Team 2 (Loser)</label>
+              <select id="matchTeam2"></select>
+              <input type="number" id="team2Runs" placeholder="Runs Scored" style="margin-top:4px">
+              <input type="number" step="0.1" id="team2Overs" placeholder="Overs Faced" style="margin-top:4px">
+              <input type="number" id="team2Wickets" placeholder="Wickets Lost" style="margin-top:4px">
+            </div>
+          </div>
+          <button class="btn primary" style="width:100%" onclick="submitMatchResult()">Submit Match & Calculate ICC NRR</button>
+        </div>
+
+        <!-- PANEL 4: MANUAL CONTROLS -->
+        <div id="tabManual" class="tab-content">
+          <!-- TEAM MANAGEMENT -->
+          <div style="margin-bottom:15px">
+            <h4>Manage Teams (Add / Remove)</h4>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <input type="text" id="newTeamName" placeholder="New Team Name">
+              <button class="btn primary" onclick="manualAddTeam()">Add Team</button>
+            </div>
+            <div id="teamsListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
+          </div>
+
+          <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+
+          <!-- MANUAL PLAYER MANAGEMENT -->
+          <div style="margin-bottom:15px">
+            <h4>Manage Players (Add / Remove Manually)</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+              <input type="text" id="manualPlayerName" placeholder="Player Name">
+              <select id="manualPlayerTeam"></select>
+              <select id="manualPlayerRole">
+                <option value="Batter">Batter</option>
+                <option value="Bowler">Bowler</option>
+                <option value="All-Rounder">All-Rounder</option>
+              </select>
+              <input type="number" id="manualPlayerRuns" placeholder="Runs Scored">
+              <input type="number" id="manualPlayerWickets" placeholder="Wickets Taken">
+              <button class="btn primary" style="grid-column:span 2" onclick="manualAddPlayer()">Add Player Manually</button>
+            </div>
+            <div id="playersListContainer" style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"></div>
+          </div>
+
+          <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
+
+          <div style="margin-bottom:15px;">
+            <h4>Tagline Settings</h4>
+            <input type="text" id="editEyebrow" style="margin:6px 0 10px;">
+            <button class="btn primary" onclick="saveSiteText()">Update Tagline</button>
+          </div>
+        </div>
+
+        <!-- PANEL 5: SERVER & DATABASE PREVIEW DASHBOARD -->
+        <div id="tabServer" class="tab-content">
+          <h3>🌐 Live Cloud Server & DB Preview</h3>
+          <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity and raw payload stream.</p>
+          
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+              <span class="sub">Server Status</span><br>
+              <strong style="color:var(--teal);font-size:13px">🟢 Online (Connected)</strong>
+            </div>
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+              <span class="sub">Database Host</span><br>
+              <strong style="color:var(--gold);font-size:11px">slgsxvwzcmogulsrzgqm</strong>
+            </div>
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+              <span class="sub">Last Cloud Sync</span><br>
+              <strong id="serverLastSync" style="font-size:11px">Just Now</strong>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+              <span class="sub">Registered Teams</span><br>
+              <strong id="serverTeamsCount">0</strong>
+            </div>
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+              <span class="sub">Matches Logged</span><br>
+              <strong id="serverMatchesCount">0</strong>
+            </div>
+            <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--line)">
+              <span class="sub">Players Recorded</span><br>
+              <strong id="serverPlayersCount">0</strong>
+            </div>
+          </div>
+
+          <div>
+            <h4>Raw Cloud JSON Stream Payload</h4>
+            <textarea id="serverRawJson" rows="6" readonly style="font-family:monospace;font-size:11px;color:var(--teal);margin-top:6px;background:#030810"></textarea>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 </div>
