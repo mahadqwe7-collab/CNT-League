@@ -15,10 +15,17 @@ let state = {
   teams: [...DEFAULT_TEAMS],
   seasons: { 1: [], 2: [], 3: [], 4: [] },
   fixtures: [],
-  players: []
+  players: [],
+  positions: {
+    "Team A": "Premier",
+    "Team B": "Gold",
+    "Team C": "Silver",
+    "Team D": "Red"
+  },
+  notifications: []
 };
 
-// Undo / Redo History Stacks
+// Undo / Redo Stacks
 let undoStack = [];
 let redoStack = [];
 
@@ -52,23 +59,18 @@ function updateUndoRedoButtons() {
   if (btnRedo) btnRedo.disabled = redoStack.length === 0;
 }
 
-// Auto Spelling & Name Fuzzy Matching Helper
+// Auto Spelling Matcher
 function getBestTeamMatch(inputText) {
   if (!inputText) return null;
   const clean = inputText.trim().toLowerCase();
-  
-  // Direct exact match
   let exact = state.teams.find(t => t.toLowerCase() === clean);
   if (exact) return exact;
-
-  // Substring/Partial match (Handles misspellings like 'Fakons' or 'Eagles')
   let partial = state.teams.find(t => t.toLowerCase().includes(clean) || clean.includes(t.toLowerCase()));
   if (partial) return partial;
-
   return null;
 }
 
-// Initialize Season Standings
+// Initialize Seasons
 function initSeasons(teamList) {
   const data = {};
   for (let i = 1; i <= 4; i++) {
@@ -80,12 +82,14 @@ function initSeasons(teamList) {
 }
 state.seasons = initSeasons(state.teams);
 
-// Cloud DB Fetch & Persist
+// Cloud Database Load & Save
 async function loadState() {
   try {
     const { data, error } = await db.from('cnt_league').select('state').eq('id', 1).single();
     if (data && data.state && Object.keys(data.state).length > 0) {
       state = data.state;
+      if (!state.positions) state.positions = {};
+      if (!state.notifications) state.notifications = [];
     }
   } catch (e) {
     console.error("Cloud DB load error:", e);
@@ -105,7 +109,7 @@ async function saveState(skipHistory = false) {
   }
 }
 
-// AUTOMATIC ICC NRR ENGINE
+// Auto NRR Recalculator
 function recalculateAutoNRR() {
   const curTeams = state.seasons[state.activeSeason];
   if (!curTeams) return;
@@ -128,12 +132,14 @@ function renderAll() {
 
   renderSeasonsGrid();
   renderStandings();
+  renderPositions();
   renderFixtures();
-  renderTop5Leaders();
+  renderPvPDropdowns();
   renderPlayers();
   populateDropdowns();
   renderTeamsManageList();
   renderPlayersManageList();
+  renderNotifications();
   renderServerPreview();
   updateUndoRedoButtons();
 }
@@ -171,35 +177,61 @@ function renderStandings() {
     : `<tr><td colspan="7" style="text-align:center;color:var(--muted)">No teams added.</td></tr>`;
 }
 
-function renderTop5Leaders() {
-  const sortedBatters = [...state.players].sort((a, b) => b.runs - a.runs).slice(0, 5);
-  const sortedBowlers = [...state.players].sort((a, b) => b.wickets - a.wickets).slice(0, 5);
+// RENDER POSITIONS & TIERS (Gold, Silver, Premier, Red)
+function renderPositions() {
+  const grid = document.getElementById("positionsGrid");
+  const adminContainer = document.getElementById("adminPositionsContainer");
 
-  const renderBatterRows = (list) => list.length ? list.map((p, i) => `
-    <div class="top5-row">
-      <span class="top5-rank">#${i + 1}</span>
-      <div style="flex:1"><strong>${p.name}</strong> <span class="sub">(${p.team})</span></div>
-      <strong style="color:var(--orange)">${p.runs} runs</strong>
-    </div>
-  `).join("") : '<div class="sub" style="padding:10px">No batting stats yet.</div>';
+  const tierColors = {
+    "Gold": "tier-gold",
+    "Silver": "tier-silver",
+    "Premier": "tier-premier",
+    "Red": "tier-red"
+  };
 
-  const renderBowlerRows = (list) => list.length ? list.map((p, i) => `
-    <div class="top5-row">
-      <span class="top5-rank">#${i + 1}</span>
-      <div style="flex:1"><strong>${p.name}</strong> <span class="sub">(${p.team})</span></div>
-      <strong style="color:var(--purple)">${p.wickets} wkts</strong>
-    </div>
-  `).join("") : '<div class="sub" style="padding:10px">No bowling stats yet.</div>';
+  const tierLabels = {
+    "Gold": "🥇 Gold Tier (Final Winner/Finalist)",
+    "Silver": "🥈 Silver Tier (Semi-Finalist)",
+    "Premier": "👑 Premier Tier (Top Contender)",
+    "Red": "🔴 Red Tier (Eliminated)"
+  };
 
-  const pubB = document.getElementById("top5BattersList");
-  const pubW = document.getElementById("top5BowlersList");
-  if (pubB) pubB.innerHTML = renderBatterRows(sortedBatters);
-  if (pubW) pubW.innerHTML = renderBowlerRows(sortedBowlers);
+  if (grid) {
+    grid.innerHTML = state.teams.map(teamName => {
+      const tier = state.positions[teamName] || "Premier";
+      return `
+        <article class="position-card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>${teamName}</h3>
+            <span class="badge-tier ${tierColors[tier]}">${tier}</span>
+          </div>
+          <p class="sub" style="margin-top:8px">${tierLabels[tier]}</p>
+        </article>
+      `;
+    }).join("");
+  }
 
-  const admB = document.getElementById("adminTop5Batters");
-  const admW = document.getElementById("adminTop5Bowlers");
-  if (admB) admB.innerHTML = renderBatterRows(sortedBatters);
-  if (admW) admW.innerHTML = renderBowlerRows(sortedBowlers);
+  if (adminContainer) {
+    adminContainer.innerHTML = state.teams.map(teamName => {
+      const currentTier = state.positions[teamName] || "Premier";
+      return `
+        <div style="display:flex;justify-content:space-between;align-items:center;background:#060d17;padding:10px 14px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px">
+          <strong>${teamName}</strong>
+          <select style="max-width:200px" onchange="updateTeamPositionTier('${teamName}', this.value)">
+            <option value="Gold" ${currentTier==='Gold'?'selected':''}>🥇 Gold Tier</option>
+            <option value="Silver" ${currentTier==='Silver'?'selected':''}>🥈 Silver Tier</option>
+            <option value="Premier" ${currentTier==='Premier'?'selected':''}>👑 Premier Tier</option>
+            <option value="Red" ${currentTier==='Red'?'selected':''}>🔴 Red Tier (Eliminated)</option>
+          </select>
+        </div>
+      `;
+    }).join("");
+  }
+}
+
+function updateTeamPositionTier(teamName, newTier) {
+  state.positions[teamName] = newTier;
+  saveState();
 }
 
 function renderFixtures() {
@@ -231,6 +263,43 @@ function showMatchDetails(matchId) {
   document.getElementById("detailMatchSummaryText").innerText = match.details || match.result || "Match completed successfully.";
 
   openModal("matchDetailModal");
+}
+
+// PLAYER VS PLAYER COMPARISON WIDGET ENGINE
+function renderPvPDropdowns() {
+  const p1 = document.getElementById("pvpPlayer1Select");
+  const p2 = document.getElementById("pvpPlayer2Select");
+  if (!p1 || !p2) return;
+
+  const options = state.players.map(p => `<option value="${p.id}">${p.name} (${p.team})</option>`).join("");
+  p1.innerHTML = options;
+  p2.innerHTML = options;
+
+  if (state.players.length >= 2) p2.selectedIndex = 1;
+  updatePvPComparison();
+}
+
+function updatePvPComparison() {
+  const id1 = parseInt(document.getElementById("pvpPlayer1Select").value);
+  const id2 = parseInt(document.getElementById("pvpPlayer2Select").value);
+  const box = document.getElementById("pvpComparisonBox");
+
+  const pl1 = state.players.find(p => p.id === id1);
+  const pl2 = state.players.find(p => p.id === id2);
+
+  if (!pl1 || !pl2) {
+    box.innerHTML = '<div class="sub" style="text-align:center;padding:15px">Select 2 players to compare stats.</div>';
+    return;
+  }
+
+  box.innerHTML = `
+    <div class="pvp-stat-row"><strong style="color:var(--gold)">${pl1.name}</strong><span class="sub">NAME</span><strong style="color:var(--gold)">${pl2.name}</strong></div>
+    <div class="pvp-stat-row"><span>${pl1.team}</span><span class="sub">TEAM</span><span>${pl2.team}</span></div>
+    <div class="pvp-stat-row"><span>${pl1.role}</span><span class="sub">ROLE</span><span>${pl2.role}</span></div>
+    <div class="pvp-stat-row"><strong style="color:${pl1.matches>=pl2.matches?'var(--teal)':'var(--text)'}">${pl1.matches || 1}</strong><span class="sub">MATCHES</span><strong style="color:${pl2.matches>=pl1.matches?'var(--teal)':'var(--text)'}">${pl2.matches || 1}</strong></div>
+    <div class="pvp-stat-row"><strong style="color:${pl1.runs>=pl2.runs?'var(--orange)':'var(--text)'}">${pl1.runs}</strong><span class="sub">TOTAL RUNS</span><strong style="color:${pl2.runs>=pl1.runs?'var(--orange)':'var(--text)'}">${pl2.runs}</strong></div>
+    <div class="pvp-stat-row"><strong style="color:${pl1.wickets>=pl2.wickets?'var(--purple)':'var(--text)'}">${pl1.wickets}</strong><span class="sub">TOTAL WICKETS</span><strong style="color:${pl2.wickets>=pl1.wickets?'var(--purple)':'var(--text)'}">${pl2.wickets}</strong></div>
+  `;
 }
 
 function renderPlayers() {
@@ -274,13 +343,6 @@ function renderPlayers() {
 function populateDropdowns() {
   const filter = document.getElementById("teamFilter");
   filter.innerHTML = `<option value="All">All Teams</option>` + state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
-  
-  const m1 = document.getElementById("matchTeam1");
-  const m2 = document.getElementById("matchTeam2");
-  if(m1 && m2) {
-    m1.innerHTML = state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
-    m2.innerHTML = state.teams.map(t => `<option value="${t}">${t}</option>`).join("");
-  }
 
   const manualPlayerTeam = document.getElementById("manualPlayerTeam");
   if(manualPlayerTeam) {
@@ -292,8 +354,10 @@ function renderTeamsManageList() {
   const container = document.getElementById("teamsListContainer");
   if(container) {
     container.innerHTML = state.teams.map(t => `
-      <span class="eyebrow" style="background:#14243b;display:inline-flex;align-items:center;gap:6px">
-        ${t} <b style="color:var(--red);cursor:pointer" onclick="manualDeleteTeam('${t}')">×</b>
+      <span class="eyebrow" style="background:#14243b;display:inline-flex;align-items:center;gap:6px;margin-bottom:4px">
+        ${t} 
+        <b style="color:var(--gold);cursor:pointer" title="Rename" onclick="manualRenameTeam('${t}')">✏️</b>
+        <b style="color:var(--red);cursor:pointer" title="Delete" onclick="manualDeleteTeam('${t}')">➖</b>
       </span>
     `).join("");
   }
@@ -303,11 +367,75 @@ function renderPlayersManageList() {
   const container = document.getElementById("playersListContainer");
   if(container) {
     container.innerHTML = state.players.length ? state.players.map(p => `
-      <span class="eyebrow" style="background:#14243b;color:var(--text);display:inline-flex;align-items:center;gap:6px">
+      <span class="eyebrow" style="background:#14243b;color:var(--text);display:inline-flex;align-items:center;gap:6px;margin-bottom:4px">
         ${p.name} (${p.team}) <b style="color:var(--red);cursor:pointer" onclick="manualDeletePlayer(${p.id})">×</b>
       </span>
     `).join("") : '<span class="sub">No players added yet.</span>';
   }
+}
+
+// PUBLIC FEEDBACK SUBMISSION & ADMIN NOTIFICATIONS INBOX
+function submitPublicFeedback(evt) {
+  evt.preventDefault();
+  const name = document.getElementById("feedbackName").value.trim();
+  const contact = document.getElementById("feedbackContact").value.trim();
+  const subject = document.getElementById("feedbackSubject").value.trim();
+  const message = document.getElementById("feedbackMessage").value.trim();
+
+  if (!name || !contact || !message) return alert("Please fill in all required fields!");
+
+  state.notifications.unshift({
+    id: Date.now(),
+    name,
+    contact,
+    subject,
+    message,
+    date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(),
+    read: false
+  });
+
+  document.getElementById("feedbackName").value = "";
+  document.getElementById("feedbackContact").value = "";
+  document.getElementById("feedbackSubject").value = "";
+  document.getElementById("feedbackMessage").value = "";
+
+  saveState();
+  alert("📨 Feedback / Complaint submitted successfully to Admin!");
+}
+
+function renderNotifications() {
+  const list = document.getElementById("adminNotificationsList");
+  const badge = document.getElementById("notifBadge");
+  const unreadCount = state.notifications.filter(n => !n.read).length;
+
+  if (badge) badge.innerText = unreadCount;
+
+  if (list) {
+    list.innerHTML = state.notifications.length ? state.notifications.map(n => `
+      <div style="background:#060d17;padding:12px;border-radius:8px;border:1px solid ${n.read ? 'var(--line)' : 'var(--gold)'};margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <strong style="color:var(--gold);font-size:13px">${n.subject}</strong>
+          <span class="sub" style="font-size:10px">${n.date}</span>
+        </div>
+        <div style="font-size:11px;margin:4px 0;color:var(--text)"><b>From:</b> ${n.name} (${n.contact})</div>
+        <p style="font-size:12px;color:var(--text-muted);background:#0f1c2e;padding:8px;border-radius:6px;margin-top:6px">${n.message}</p>
+        <div style="text-align:right;margin-top:6px;">
+          ${!n.read ? `<button class="btn secondary" style="padding:2px 8px;font-size:10px" onclick="markNotifRead(${n.id})">Mark as Read</button>` : '<span class="sub">✓ Read</span>'}
+          <button class="btn danger" style="padding:2px 8px;font-size:10px;margin-left:6px" onclick="deleteNotif(${n.id})">Delete</button>
+        </div>
+      </div>
+    `).join("") : '<div class="sub">No feedback or complaints received yet.</div>';
+  }
+}
+
+function markNotifRead(id) {
+  const notif = state.notifications.find(n => n.id === id);
+  if (notif) { notif.read = true; saveState(); }
+}
+
+function deleteNotif(id) {
+  state.notifications = state.notifications.filter(n => n.id !== id);
+  saveState();
 }
 
 function renderServerPreview() {
@@ -329,9 +457,47 @@ function showErrorPopup(msg) {
   openModal("errorModal");
 }
 
-// ==========================================
-// AI CHAT 1: AUTO POINTS TABLE (Handles Win/Loss & Reverse Direction Fix)
-// ==========================================
+// AI CHAT 1: CONVERTER (3 COPY SECTIONS + UPDATE MATCH SUMMARY BUTTON)
+function generateMatchSummary3Outputs() {
+  const rawText = document.getElementById("converterRawInput").value.trim();
+  if (!rawText) return alert("Please paste match summary notes first!");
+
+  const lower = rawText.toLowerCase();
+
+  let t1 = null, t2 = null;
+  state.teams.forEach(t => {
+    if (lower.includes(t.toLowerCase())) {
+      if (!t1) t1 = t;
+      else if (!t2) t2 = t;
+    }
+  });
+  if (!t1) t1 = state.teams[0] || "Team A";
+  if (!t2) t2 = state.teams[1] || "Team B";
+
+  let winner = t1, loser = t2;
+  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by")) {
+    winner = t2;
+    loser = t1;
+  }
+
+  const runMatches = rawText.match(/(\d+)\s*runs?/gi) || [];
+  const r1 = runMatches[0] ? parseInt(runMatches[0]) : 150;
+  const r2 = runMatches[1] ? parseInt(runMatches[1]) : 140;
+
+  document.getElementById("outputSection1").value = `POINTS TABLE & AUTO NRR:\nWinner: ${winner} (+2 Pts, Scored: ${r1} runs)\nLoser: ${loser} (0 Pts, Scored: ${r2} runs)\nICC NRR Auto-Calculated.`;
+  document.getElementById("outputSection2").value = `FIXTURES & PLAYER STATS:\nMatch: ${t1} vs ${t2}\nResult: ${winner} won over ${loser}\nIndividual Player Runs & Wickets updated on leaderboard.`;
+  document.getElementById("outputSection3").value = `POSITIONS & TIERS BRACKET:\nTeam '${winner}' assigned Gold/Premier Tier Standing.\nTeam '${loser}' moved to Silver/Red Tier Standing.`;
+}
+
+function copyOutputText(elementId) {
+  const textarea = document.getElementById(elementId);
+  if (!textarea.value) return alert("Nothing to copy! Please click 'Update Match Summary' first.");
+  textarea.select();
+  navigator.clipboard.writeText(textarea.value);
+  alert("📋 Copied section to clipboard!");
+}
+
+// AI CHAT 2: AUTO POINTS TABLE
 function sendPointsAIChatCommand() {
   const input = document.getElementById('pointsAiUserPrompt');
   const text = input.value.trim();
@@ -340,7 +506,6 @@ function sendPointsAIChatCommand() {
   const lower = text.toLowerCase();
   let teamA = null, teamB = null;
 
-  // Search for registered teams in text
   state.teams.forEach(t => {
     if (lower.includes(t.toLowerCase())) {
       if (!teamA) teamA = t;
@@ -349,13 +514,12 @@ function sendPointsAIChatCommand() {
   });
 
   if (!teamA || !teamB || teamA === teamB) {
-    showErrorPopup(`Could not identify 2 registered teams in your entry.\n\nInput: "${text}"\n\nPlease ensure team names match registered teams.`);
+    showErrorPopup(`Could not identify 2 registered teams in your entry.\n\nInput: "${text}"`);
     return;
   }
 
-  // FIX: Detect "lose to", "lost to", "defeated by" -> Reverses Winner & Loser
   let winner = teamA, loser = teamB;
-  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by") || lower.includes("loses to")) {
+  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by")) {
     winner = teamB;
     loser = teamA;
   }
@@ -390,9 +554,7 @@ function sendPointsAIChatCommand() {
   }
 }
 
-// ==========================================
-// AI CHAT 2: FIXTURES & STATS (Spelling Auto-Correct & Individual Stats)
-// ==========================================
+// AI CHAT 3: FIXTURES & STATS
 function sendFixturesAIChatCommand() {
   const input = document.getElementById('fixturesAiUserPrompt');
   const text = input.value.trim();
@@ -406,18 +568,16 @@ function sendFixturesAIChatCommand() {
   const wickets = wktMatch ? parseInt(wktMatch[1] || wktMatch[2]) : 0;
 
   if (!runMatch && !wktMatch) {
-    showErrorPopup(`Could not detect runs or wickets.\n\nInput: "${text}"\n\nExample format: "Ali 45 runs 2 wickets for Falcons"`);
+    showErrorPopup(`Could not detect runs or wickets.\n\nInput: "${text}"`);
     return;
   }
 
-  // Find Team with Auto Spelling Correction
   let assignedTeam = null;
   state.teams.forEach(t => {
     if (getBestTeamMatch(t) && lower.includes(t.toLowerCase())) assignedTeam = t;
   });
   if (!assignedTeam) assignedTeam = state.teams[0] || "Team A";
 
-  // Find Player Name
   let playerName = "Player";
   const nameMatch = text.match(/(?:add player|player)?\s*([a-zA-Z]+)/i);
   if (nameMatch && nameMatch[1] && !["add", "player", "to", "as", "with", "scored", "for", "beat", "defeated", "runs", "wickets", "wkts"].includes(nameMatch[1].toLowerCase())) {
@@ -430,134 +590,27 @@ function sendFixturesAIChatCommand() {
 
   const role = wickets > 0 ? (runs > 20 ? "All-Rounder" : "Bowler") : "Batter";
   let existing = state.players.find(p => p.name.toLowerCase() === playerName.toLowerCase());
-  let reply = "";
 
   if (existing) {
     existing.matches += 1;
     existing.runs += runs;
     existing.wickets += wickets;
     existing.team = assignedTeam;
-    reply = `👤 Updated ${existing.name} (${assignedTeam}): +${runs} runs, +${wickets} wickets.`;
   } else {
-    state.players.push({
-      id: Date.now(),
-      name: playerName,
-      team: assignedTeam,
-      role: role,
-      matches: 1,
-      runs: runs,
-      wickets: wickets
-    });
-    reply = `👤 Registered ${playerName} for ${assignedTeam} (${runs} runs, ${wickets} wickets).`;
+    state.players.push({ id: Date.now(), name: playerName, team: assignedTeam, role, matches: 1, runs, wickets });
   }
 
   saveState();
-  box.innerHTML += `<div class="chat-msg chat-ai">${reply}</div>`;
+  box.innerHTML += `<div class="chat-msg chat-ai">👤 Registered/Updated ${playerName} (${assignedTeam}): +${runs} runs, +${wickets} wickets.</div>`;
   box.scrollTop = box.scrollHeight;
 }
 
-// ==========================================
-// AI CHAT 3: MATCH SUMMARY CONVERTER (Generates 2 Copyable Outputs)
-// ==========================================
-function generateDualSummaryOutputs() {
-  const rawText = document.getElementById("converterRawInput").value.trim();
-  if (!rawText) return alert("Please enter raw match summary notes!");
-
-  const lower = rawText.toLowerCase();
-
-  // Parse Teams
-  let t1 = null, t2 = null;
-  state.teams.forEach(t => {
-    if (lower.includes(t.toLowerCase())) {
-      if (!t1) t1 = t;
-      else if (!t2) t2 = t;
-    }
-  });
-  if (!t1) t1 = state.teams[0] || "Team A";
-  if (!t2) t2 = state.teams[1] || "Team B";
-
-  // Parse Winner / Loser with Reverse Check
-  let winner = t1, loser = t2;
-  if (lower.includes("lose to") || lower.includes("lost to") || lower.includes("defeated by")) {
-    winner = t2;
-    loser = t1;
-  }
-
-  // Parse Runs & Wickets
-  const runMatches = rawText.match(/(\d+)\s*runs?/gi) || [];
-  const r1 = runMatches[0] ? parseInt(runMatches[0]) : 150;
-  const r2 = runMatches[1] ? parseInt(runMatches[1]) : 140;
-
-  // FORMAT OUTPUT SECTION 1: POINTS TABLE & AUTO NRR PROMPT
-  const section1Text = `POINTS TABLE & NRR UPDATE:\nWinner: ${winner} (+2 Points, Scored: ${r1} runs)\nLoser: ${loser} (0 Points, Scored: ${r2} runs)\nAuto NRR recalculated based on official ICC rules.`;
-
-  // FORMAT OUTPUT SECTION 2: FIXTURES & PLAYER STATS PROMPT
-  const section2Text = `FIXTURE SCORECARD & PLAYER STATS LOG:\nMatch: ${t1} vs ${t2}\nResult: ${winner} defeated ${loser} (${r1} vs ${r2} runs)\nPlayer Performances: Key stats updated for Orange & Purple Cap standings.`;
-
-  document.getElementById("outputSection1").value = section1Text;
-  document.getElementById("outputSection2").value = section2Text;
-}
-
-function copyOutputText(elementId) {
-  const textarea = document.getElementById(elementId);
-  if (!textarea.value) return alert("Nothing to copy! Please generate output first.");
-  textarea.select();
-  navigator.clipboard.writeText(textarea.value);
-  alert("📋 Copied to clipboard!");
-}
-
-// MANUAL ICC NRR CALCULATOR
-function submitMatchResult() {
-  const t1 = document.getElementById("matchTeam1").value;
-  const t2 = document.getElementById("matchTeam2").value;
-  const r1 = parseInt(document.getElementById("team1Runs").value) || 0;
-  const o1 = parseFloat(document.getElementById("team1Overs").value) || 20.0;
-  const w1 = parseInt(document.getElementById("team1Wickets").value) || 0;
-  
-  const r2 = parseInt(document.getElementById("team2Runs").value) || 0;
-  const o2 = parseFloat(document.getElementById("team2Overs").value) || 20.0;
-  const w2 = parseInt(document.getElementById("team2Wickets").value) || 0;
-
-  if (t1 === t2) return showErrorPopup("Select two different teams!");
-
-  const effectiveOvers1 = w1 >= 10 ? 20.0 : o1;
-  const effectiveOvers2 = w2 >= 10 ? 20.0 : o2;
-
-  const currentTeams = state.seasons[state.activeSeason];
-  const winner = currentTeams.find(x => x.name === t1);
-  const loser = currentTeams.find(x => x.name === t2);
-
-  if (winner && loser) {
-    winner.played += 1; winner.won += 1; winner.points += 2;
-    winner.runsScored += r1; winner.oversFaced += effectiveOvers1;
-    winner.runsConceded += r2; winner.oversBowled += effectiveOvers2;
-
-    loser.played += 1; loser.lost += 1;
-    loser.runsScored += r2; loser.oversFaced += effectiveOvers2;
-    loser.runsConceded += r1; loser.oversBowled += effectiveOvers1;
-
-    state.fixtures.push({
-      id: Date.now(),
-      title: `Match ${state.fixtures.length + 1}`,
-      team1: t1,
-      team2: t2,
-      team1Runs: r1, team1Overs: o1, team1Wickets: w1,
-      team2Runs: r2, team2Overs: o2, team2Wickets: w2,
-      result: `${t1} won by ${r1 - r2 > 0 ? (r1 - r2) + " runs" : (10 - w1) + " wickets"}`,
-      status: "Completed",
-      details: `${t1}: ${r1}/${w1} (${o1} ov)\n${t2}: ${r2}/${w2} (${o2} ov)`
-    });
-
-    saveState();
-    alert(`Match Logged! ${t1} won & ICC NRR auto-recalculated.`);
-  }
-}
-
-// MANUAL CONTROLS
+// MANUAL TEAM CONTROLS (ADD, DELETE, RENAME)
 function manualAddTeam() {
   const name = document.getElementById("newTeamName").value.trim();
   if (name && !state.teams.includes(name)) {
     state.teams.push(name);
+    state.positions[name] = "Premier";
     for (let s in state.seasons) {
       state.seasons[s].push({ name, played: 0, won: 0, lost: 0, runsScored: 0, oversFaced: 0, runsConceded: 0, oversBowled: 0, nrr: "0.000", points: 0 });
     }
@@ -569,10 +622,38 @@ function manualAddTeam() {
 function manualDeleteTeam(name) {
   if (confirm(`Delete ${name}?`)) {
     state.teams = state.teams.filter(t => t !== name);
+    delete state.positions[name];
     for (let s in state.seasons) {
       state.seasons[s] = state.seasons[s].filter(t => t.name !== name);
     }
     saveState();
+  }
+}
+
+function manualRenameTeam(oldName) {
+  const newName = prompt(`Enter new name for team '${oldName}':`, oldName);
+  if (newName && newName.trim() && !state.teams.includes(newName.trim())) {
+    const cleanName = newName.trim();
+    const idx = state.teams.indexOf(oldName);
+    if (idx !== -1) state.teams[idx] = cleanName;
+
+    if (state.positions[oldName]) {
+      state.positions[cleanName] = state.positions[oldName];
+      delete state.positions[oldName];
+    }
+
+    for (let s in state.seasons) {
+      state.seasons[s].forEach(t => { if (t.name === oldName) t.name = cleanName; });
+    }
+
+    state.players.forEach(p => { if (p.team === oldName) p.team = cleanName; });
+    state.fixtures.forEach(f => {
+      if (f.team1 === oldName) f.team1 = cleanName;
+      if (f.team2 === oldName) f.team2 = cleanName;
+    });
+
+    saveState();
+    alert(`Team renamed from '${oldName}' to '${cleanName}'!`);
   }
 }
 
@@ -617,7 +698,9 @@ async function resetDefaultData() {
       teams: [...DEFAULT_TEAMS],
       seasons: initSeasons([...DEFAULT_TEAMS]),
       fixtures: [],
-      players: []
+      players: [],
+      positions: { "Team A": "Premier", "Team B": "Gold", "Team C": "Silver", "Team D": "Red" },
+      notifications: []
     };
     await saveState();
     location.reload();
@@ -651,34 +734,10 @@ function saveSiteText() {
   alert("Tagline Saved!");
 }
 
-// FIX: HOLD TO PREVIEW SITE (100% TRANSPARENT PREVIEW)
-function setupPeekPreview() {
-  const peekBtn = document.getElementById("btnPeekSite");
-  const adminModal = document.getElementById("adminModal");
-
-  if (peekBtn && adminModal) {
-    const enablePeek = (e) => {
-      e.preventDefault();
-      adminModal.classList.add("peeking");
-    };
-    const disablePeek = (e) => {
-      e.preventDefault();
-      adminModal.classList.remove("peeking");
-    };
-
-    peekBtn.addEventListener("mousedown", enablePeek);
-    peekBtn.addEventListener("mouseup", disablePeek);
-    peekBtn.addEventListener("mouseleave", disablePeek);
-    peekBtn.addEventListener("touchstart", enablePeek, { passive: false });
-    peekBtn.addEventListener("touchend", disablePeek, { passive: false });
-  }
-}
-
-// Search & Filter Listeners
+// Event Listeners
 document.getElementById("playerSearch").addEventListener("input", renderPlayers);
 document.getElementById("teamFilter").addEventListener("change", renderPlayers);
 document.getElementById("roleFilter").addEventListener("change", renderPlayers);
 
 // Boot Application
 loadState();
-setupPeekPreview();
