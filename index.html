@@ -16,6 +16,8 @@
   <meta name="description" content="CNT-League official tournament dashboard, points table, player stats, and fixtures.">
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -166,7 +168,7 @@
       <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
       <div>
         <h4>Reset Tournament Data</h4>
-        <p class="sub" style="margin-bottom:10px;">Clear all matches, standings, and players from local memory.</p>
+        <p class="sub" style="margin-bottom:10px;">Clear all matches, standings, and players from cloud database.</p>
         <button class="btn danger" onclick="resetDefaultData()">⚠️ Reset All Data</button>
       </div>
     </div>
