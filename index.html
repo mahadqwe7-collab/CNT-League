@@ -80,7 +80,7 @@
     </div>
   </section>
 
-  <!-- PUBLIC KNOCKOUT PLAYOFF BRACKET SECTION -->
+  <!-- PUBLIC KNOCKOUT PLAYOFF BRACKET SECTION (NO SCORES) -->
   <section id="bracket">
     <div class="section-head">
       <div class="kicker">Playoff Stage</div>
@@ -310,52 +310,42 @@
           </div>
         </div>
 
-        <!-- PANEL 4: POSITIONS & PLAYOFF BRACKET MANAGER (ADMIN) -->
+        <!-- PANEL 4: POSITIONS & PLAYOFF BRACKET MANAGER (NO SCORES) -->
         <div id="tabPositions" class="tab-content">
           <h3>🏅 POSITIONS & PLAYOFF BRACKET MANAGER</h3>
           <p class="sub" style="margin-bottom:12px">
-            Set visual bracket matches (Semi-Final 1, Semi-Final 2, Final) and assign team tier badges.
+            Set bracket matchups (teams & winner names) and assign team position tiers.
           </p>
           
           <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--line);margin-bottom:15px;">
             <h4 style="color:var(--gold);margin-bottom:10px">🏆 Knockout Bracket Controls</h4>
             
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-              <!-- SF 1 EDIT -->
+              <!-- SF 1 EDIT (NO SCORES) -->
               <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
                 <strong style="color:var(--teal);font-size:12px">Semi-Final 1</strong>
-                <select id="admSf1Team1" style="margin-top:4px"></select>
-                <input type="text" id="admSf1Score1" placeholder="Score (e.g. 150/4)" style="margin-top:4px">
-                <select id="admSf1Team2" style="margin-top:4px"></select>
-                <input type="text" id="admSf1Score2" placeholder="Score (e.g. 142/8)" style="margin-top:4px">
-                <input type="text" id="admSf1Winner" placeholder="Winner Name / Result" style="margin-top:4px">
+                <select id="admSf1Team1" style="margin-top:6px"></select>
+                <select id="admSf1Team2" style="margin-top:6px"></select>
+                <input type="text" id="admSf1Winner" placeholder="Winner Team Name" style="margin-top:6px">
               </div>
 
-              <!-- SF 2 EDIT -->
+              <!-- SF 2 EDIT (NO SCORES) -->
               <div style="background:var(--panel-alt);padding:10px;border-radius:8px;">
                 <strong style="color:var(--teal);font-size:12px">Semi-Final 2</strong>
-                <select id="admSf2Team1" style="margin-top:4px"></select>
-                <input type="text" id="admSf2Score1" placeholder="Score (e.g. 175/5)" style="margin-top:4px">
-                <select id="admSf2Team2" style="margin-top:4px"></select>
-                <input type="text" id="admSf2Score2" placeholder="Score (e.g. 160/9)" style="margin-top:4px">
-                <input type="text" id="admSf2Winner" placeholder="Winner Name / Result" style="margin-top:4px">
+                <select id="admSf2Team1" style="margin-top:6px"></select>
+                <select id="admSf2Team2" style="margin-top:6px"></select>
+                <input type="text" id="admSf2Winner" placeholder="Winner Team Name" style="margin-top:6px">
               </div>
             </div>
 
-            <!-- FINAL EDIT -->
+            <!-- FINAL EDIT (NO SCORES) -->
             <div style="background:var(--panel-alt);padding:10px;border-radius:8px;margin-bottom:10px;">
               <strong style="color:var(--gold);font-size:12px">🏆 GRAND FINAL MATCH</strong>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
-                <div>
-                  <select id="admFinalTeam1"></select>
-                  <input type="text" id="admFinalScore1" placeholder="Score" style="margin-top:4px">
-                </div>
-                <div>
-                  <select id="admFinalTeam2"></select>
-                  <input type="text" id="admFinalScore2" placeholder="Score" style="margin-top:4px">
-                </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;">
+                <select id="admFinalTeam1"></select>
+                <select id="admFinalTeam2"></select>
               </div>
-              <input type="text" id="admFinalWinner" placeholder="Final Champion / Winner Team Name" style="margin-top:4px">
+              <input type="text" id="admFinalWinner" placeholder="Final Champion / Winner Team Name" style="margin-top:6px">
             </div>
 
             <button class="btn primary" style="width:100%" onclick="saveAdminBracketData()">💾 Update Bracket On Dashboard</button>
@@ -363,7 +353,7 @@
 
           <hr style="border:0;border-top:1px solid var(--line);margin:15px 0;">
 
-          <h4>Team Position Badges (Tiers)</h4>
+          <h4>Team Position Tiers (Premier, Golden, Silver, Normal, Red)</h4>
           <div id="adminPositionsContainer" style="margin-top:8px"></div>
         </div>
 
