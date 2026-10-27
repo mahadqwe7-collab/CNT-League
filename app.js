@@ -30,15 +30,37 @@ let state = {
   notifications: []
 };
 
-// MOBILE HAMBURGER MENU HELPERS
-function toggleMobileMenu() {
-  const links = document.getElementById("navLinks");
-  if (links) links.classList.toggle("mobile-open");
+// UI CLOUD SYNC STATUS UPDATER
+function updateSyncStatus(status, isError = false) {
+  const syncElem = document.getElementById("serverLastSync");
+  if (syncElem) {
+    syncElem.innerText = `${status} (${new Date().toLocaleTimeString()})`;
+    syncElem.style.color = isError ? "var(--red)" : "var(--teal)";
+  }
 }
 
-function closeMobileMenu() {
-  const links = document.getElementById("navLinks");
-  if (links) links.classList.remove("mobile-open");
+// CRICKET OVERS CONVERTER HELPER (19.3 overs -> 19.5 decimal overs)
+function parseCricketOversToDecimal(oversVal) {
+  const num = parseFloat(oversVal) || 0;
+  const overs = Math.floor(num);
+  const balls = Math.round((num - overs) * 10);
+  
+  if (balls >= 6) {
+    return overs + Math.floor(balls / 6) + ((balls % 6) / 6);
+  }
+  return overs + (balls / 6);
+}
+
+// VALIDATION HELPERS
+function isValidCricketOvers(oversVal) {
+  const num = parseFloat(oversVal);
+  if (isNaN(num) || num < 0) return false;
+  const balls = Math.round((num - Math.floor(num)) * 10);
+  return balls <= 5;
+}
+
+function sanitizeText(str) {
+  return (str || "").trim().replace(/[<>]/g, "");
 }
 
 // Undo / Redo Stacks
@@ -75,10 +97,9 @@ function updateUndoRedoButtons() {
   if (btnRedo) btnRedo.disabled = redoStack.length === 0;
 }
 
-// Auto Spelling Matcher
 function getBestTeamMatch(inputText) {
   if (!inputText) return null;
-  const clean = inputText.trim().toLowerCase();
+  const clean = sanitizeText(inputText).toLowerCase();
   let exact = state.teams.find(t => t.toLowerCase() === clean);
   if (exact) return exact;
   let partial = state.teams.find(t => t.toLowerCase().includes(clean) || clean.includes(t.toLowerCase()));
@@ -86,7 +107,6 @@ function getBestTeamMatch(inputText) {
   return null;
 }
 
-// Initialize Seasons
 function initSeasons(teamList) {
   const data = {};
   for (let i = 1; i <= 4; i++) {
@@ -98,10 +118,13 @@ function initSeasons(teamList) {
 }
 state.seasons = initSeasons(state.teams);
 
-// Cloud Database Load & Save
+// Cloud Database Load & Save with Error Status Feedback
 async function loadState() {
+  updateSyncStatus("Fetching Data...");
   try {
     const { data, error } = await db.from('cnt_league').select('state').eq('id', 1).single();
+    if (error) throw error;
+
     if (data && data.state && Object.keys(data.state).length > 0) {
       state = data.state;
       if (!state.positions) state.positions = {};
@@ -113,9 +136,11 @@ async function loadState() {
           final: { team1: "", team2: "", winner: "" }
         };
       }
+      updateSyncStatus("Synced");
     }
   } catch (e) {
     console.error("Cloud DB load error:", e);
+    updateSyncStatus("Cloud Sync Failed", true);
   }
   recalculateAutoNRR();
   renderAll();
@@ -125,22 +150,30 @@ async function saveState(skipHistory = false) {
   if (!skipHistory) pushHistory();
   recalculateAutoNRR();
   renderAll();
+  updateSyncStatus("Saving...");
   try {
-    await db.from('cnt_league').upsert({ id: 1, state: state });
+    const { error } = await db.from('cnt_league').upsert({ id: 1, state: state });
+    if (error) throw error;
+    updateSyncStatus("Saved to Cloud");
   } catch (e) {
     console.error("Cloud DB save error:", e);
+    updateSyncStatus("Save Failed!", true);
+    showErrorPopup("Failed to save data to the cloud database. Please check your internet connection.");
   }
 }
 
-// Auto NRR Recalculator
+// FIXED AUTO NRR RECALCULATOR USING CRICKET OVER MATH
 function recalculateAutoNRR() {
   const curTeams = state.seasons[state.activeSeason];
   if (!curTeams) return;
 
   curTeams.forEach(t => {
-    if (t.oversFaced > 0 && t.oversBowled > 0) {
-      const runRateFor = t.runsScored / t.oversFaced;
-      const runRateAgainst = t.runsConceded / t.oversBowled;
+    const decimalOversFaced = parseCricketOversToDecimal(t.oversFaced);
+    const decimalOversBowled = parseCricketOversToDecimal(t.oversBowled);
+
+    if (decimalOversFaced > 0 && decimalOversBowled > 0) {
+      const runRateFor = t.runsScored / decimalOversFaced;
+      const runRateAgainst = t.runsConceded / decimalOversBowled;
       t.nrr = (runRateFor - runRateAgainst).toFixed(3);
     } else {
       t.nrr = "0.000";
@@ -206,7 +239,6 @@ function renderStandings() {
     : `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No teams added.</td></tr>`;
 }
 
-// POPULATE ADMIN BRACKET CONTROLS
 function renderAdminBracketControls() {
   const b = state.bracket || {};
 
@@ -233,17 +265,17 @@ function saveAdminBracketData() {
     sf1: {
       team1: document.getElementById("admSf1Team1").value,
       team2: document.getElementById("admSf1Team2").value,
-      winner: document.getElementById("admSf1Winner").value || ""
+      winner: sanitizeText(document.getElementById("admSf1Winner").value)
     },
     sf2: {
       team1: document.getElementById("admSf2Team1").value,
       team2: document.getElementById("admSf2Team2").value,
-      winner: document.getElementById("admSf2Winner").value || ""
+      winner: sanitizeText(document.getElementById("admSf2Winner").value)
     },
     final: {
       team1: document.getElementById("admFinalTeam1").value,
       team2: document.getElementById("admFinalTeam2").value,
-      winner: document.getElementById("admFinalWinner").value || ""
+      winner: sanitizeText(document.getElementById("admFinalWinner").value)
     }
   };
 
@@ -251,7 +283,6 @@ function saveAdminBracketData() {
   alert("🏆 Tournament Bracket updated!");
 }
 
-// RENDER ADMIN TIERS
 function renderAdminPositions() {
   const adminContainer = document.getElementById("adminPositionsContainer");
   if (adminContainer) {
@@ -310,7 +341,6 @@ function showMatchDetails(matchId) {
   openModal("matchDetailModal");
 }
 
-// PLAYER VS PLAYER COMPARISON ENGINE
 function renderPvPDropdowns() {
   const p1 = document.getElementById("pvpPlayer1Select");
   const p2 = document.getElementById("pvpPlayer2Select");
@@ -360,7 +390,6 @@ function updatePvPComparison() {
   `;
 }
 
-// RENDER INDIVIDUAL CAREER CARDS
 function renderPlayers() {
   const searchEl = document.getElementById("playerSearch");
   const teamEl = document.getElementById("teamFilter");
@@ -368,7 +397,7 @@ function renderPlayers() {
   const grid = document.getElementById("playerGrid");
   if (!grid) return;
 
-  const q = searchEl ? searchEl.value.toLowerCase() : "";
+  const q = searchEl ? sanitizeText(searchEl.value).toLowerCase() : "";
   const team = teamEl ? teamEl.value : "All";
   const role = roleEl ? roleEl.value : "All";
 
@@ -440,13 +469,12 @@ function renderPlayersManageList() {
   }
 }
 
-// PUBLIC FEEDBACK SUBMISSION
 function submitPublicFeedback(evt) {
   evt.preventDefault();
-  const name = document.getElementById("feedbackName").value.trim();
-  const message = document.getElementById("feedbackMessage").value.trim();
+  const name = sanitizeText(document.getElementById("feedbackName").value);
+  const message = sanitizeText(document.getElementById("feedbackMessage").value);
 
-  if (!name || !message) return alert("Please fill in both Name and Message fields!");
+  if (!name || !message) return showErrorPopup("Please fill in both Name and Message fields.");
 
   state.notifications.unshift({
     id: Date.now(),
@@ -460,7 +488,7 @@ function submitPublicFeedback(evt) {
   document.getElementById("feedbackMessage").value = "";
 
   saveState();
-  alert("📨 Complaint / Message submitted successfully to Admin!");
+  alert("📨 Message submitted successfully to Admin!");
 }
 
 function renderNotifications() {
@@ -498,13 +526,11 @@ function deleteNotif(id) {
 }
 
 function renderServerPreview() {
-  const lastSync = document.getElementById("serverLastSync");
   const teamsCount = document.getElementById("serverTeamsCount");
   const matchesCount = document.getElementById("serverMatchesCount");
   const playersCount = document.getElementById("serverPlayersCount");
   const rawJson = document.getElementById("serverRawJson");
 
-  if (lastSync) lastSync.innerText = new Date().toLocaleTimeString();
   if (teamsCount) teamsCount.innerText = state.teams.length;
   if (matchesCount) matchesCount.innerText = state.fixtures.length;
   if (playersCount) playersCount.innerText = state.players.length;
@@ -516,10 +542,9 @@ function showErrorPopup(msg) {
   openModal("errorModal");
 }
 
-// AI CHAT 1: CONVERTER
 function generateMatchSummary3Outputs() {
-  const rawText = document.getElementById("converterRawInput").value.trim();
-  if (!rawText) return alert("Please paste match summary notes first!");
+  const rawText = sanitizeText(document.getElementById("converterRawInput").value);
+  if (!rawText) return showErrorPopup("Please paste match summary notes first.");
 
   const lower = rawText.toLowerCase();
 
@@ -550,16 +575,15 @@ function generateMatchSummary3Outputs() {
 
 function copyOutputText(elementId) {
   const textarea = document.getElementById(elementId);
-  if (!textarea || !textarea.value) return alert("Nothing to copy! Please click 'Update Match Summary' first.");
+  if (!textarea || !textarea.value) return showErrorPopup("Nothing to copy! Please click 'Update Match Summary' first.");
   textarea.select();
   navigator.clipboard.writeText(textarea.value);
   alert("📋 Copied section to clipboard!");
 }
 
-// AI CHAT 2: AUTO POINTS TABLE
 function sendPointsAIChatCommand() {
   const input = document.getElementById('pointsAiUserPrompt');
-  const text = input.value.trim();
+  const text = sanitizeText(input.value);
   if (!text) return;
 
   const lower = text.toLowerCase();
@@ -613,10 +637,9 @@ function sendPointsAIChatCommand() {
   }
 }
 
-// AI CHAT 3: FIXTURES & CAREER STATS
 function sendFixturesAIChatCommand() {
   const input = document.getElementById('fixturesAiUserPrompt');
-  const text = input.value.trim();
+  const text = sanitizeText(input.value);
   if (!text) return;
 
   const lower = text.toLowerCase();
@@ -683,18 +706,21 @@ function sendFixturesAIChatCommand() {
   box.scrollTop = box.scrollHeight;
 }
 
-// MANUAL TEAM CONTROLS
+// MANUAL TEAM CONTROLS WITH VALIDATION
 function manualAddTeam() {
-  const name = document.getElementById("newTeamName").value.trim();
-  if (name && !state.teams.includes(name)) {
-    state.teams.push(name);
-    state.positions[name] = "Premier";
-    for (let s in state.seasons) {
-      state.seasons[s].push({ name, played: 0, won: 0, lost: 0, runsScored: 0, oversFaced: 0, runsConceded: 0, oversBowled: 0, nrr: "0.000", points: 0 });
-    }
-    document.getElementById("newTeamName").value = "";
-    saveState();
+  const name = sanitizeText(document.getElementById("newTeamName").value);
+  if (!name) return showErrorPopup("Team name cannot be empty!");
+  if (state.teams.some(t => t.toLowerCase() === name.toLowerCase())) {
+    return showErrorPopup(`Team '${name}' already exists!`);
   }
+
+  state.teams.push(name);
+  state.positions[name] = "Premier";
+  for (let s in state.seasons) {
+    state.seasons[s].push({ name, played: 0, won: 0, lost: 0, runsScored: 0, oversFaced: 0, runsConceded: 0, oversBowled: 0, nrr: "0.000", points: 0 });
+  }
+  document.getElementById("newTeamName").value = "";
+  saveState();
 }
 
 function manualDeleteTeam(name) {
@@ -710,8 +736,12 @@ function manualDeleteTeam(name) {
 
 function manualRenameTeam(oldName) {
   const newName = prompt(`Enter new name for team '${oldName}':`, oldName);
-  if (newName && newName.trim() && !state.teams.includes(newName.trim())) {
-    const cleanName = newName.trim();
+  const cleanName = sanitizeText(newName);
+  if (cleanName && cleanName !== oldName) {
+    if (state.teams.some(t => t.toLowerCase() === cleanName.toLowerCase())) {
+      return showErrorPopup(`Team name '${cleanName}' already exists.`);
+    }
+
     const idx = state.teams.indexOf(oldName);
     if (idx !== -1) state.teams[idx] = cleanName;
 
@@ -735,14 +765,19 @@ function manualRenameTeam(oldName) {
   }
 }
 
+// MANUAL PLAYER CONTROLS WITH VALIDATION
 function manualAddPlayer() {
-  const name = document.getElementById("manualPlayerName").value.trim();
+  const name = sanitizeText(document.getElementById("manualPlayerName").value);
   const team = document.getElementById("manualPlayerTeam").value;
   const role = document.getElementById("manualPlayerRole").value;
-  const runs = parseInt(document.getElementById("manualPlayerRuns").value) || 0;
-  const wickets = parseInt(document.getElementById("manualPlayerWickets").value) || 0;
+  const runsVal = document.getElementById("manualPlayerRuns").value;
+  const wktsVal = document.getElementById("manualPlayerWickets").value;
 
-  if (!name) return alert("Enter Player Name!");
+  const runs = parseInt(runsVal) || 0;
+  const wickets = parseInt(wktsVal) || 0;
+
+  if (!name) return showErrorPopup("Enter Player Name!");
+  if (runs < 0 || wickets < 0) return showErrorPopup("Runs and wickets cannot be negative numbers!");
 
   let existing = state.players.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (existing) {
@@ -836,12 +871,12 @@ async function verifyPassword() {
     if (document.getElementById('editEyebrow')) document.getElementById('editEyebrow').value = state.siteConfig.eyebrow;
     document.getElementById('adminPassword').value = "";
   } else {
-    alert("Access Denied: Incorrect Password");
+    showErrorPopup("Access Denied: Incorrect Password");
   }
 }
 
 function saveSiteText() {
-  state.siteConfig.eyebrow = document.getElementById('editEyebrow').value;
+  state.siteConfig.eyebrow = sanitizeText(document.getElementById('editEyebrow').value);
   saveState();
   alert("Tagline Saved!");
 }
