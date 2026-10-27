@@ -23,9 +23,9 @@ let state = {
     "Team D": "Normal"
   },
   bracket: {
-    sf1: { team1: "Team A", team2: "Team D", winner: "Team A" },
-    sf2: { team1: "Team B", team2: "Team C", winner: "Team B" },
-    final: { team1: "Team A", team2: "Team B", winner: "TBD" }
+    sf1: { team1: "Team A", team2: "Team D", winner: "" },
+    sf2: { team1: "Team B", team2: "Team C", winner: "" },
+    final: { team1: "", team2: "", winner: "" }
   },
   notifications: []
 };
@@ -108,9 +108,9 @@ async function loadState() {
       if (!state.notifications) state.notifications = [];
       if (!state.bracket) {
         state.bracket = {
-          sf1: { team1: "Team A", team2: "Team D", winner: "TBD" },
-          sf2: { team1: "Team B", team2: "Team C", winner: "TBD" },
-          final: { team1: "TBD", team2: "TBD", winner: "TBD" }
+          sf1: { team1: "Team A", team2: "Team D", winner: "" },
+          sf2: { team1: "Team B", team2: "Team C", winner: "" },
+          final: { team1: "", team2: "", winner: "" }
         };
       }
     }
@@ -155,7 +155,6 @@ function renderAll() {
 
   renderSeasonsGrid();
   renderStandings();
-  renderPublicBracket();
   renderAdminBracketControls();
   renderAdminPositions();
   renderFixtures();
@@ -207,43 +206,6 @@ function renderStandings() {
     : `<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No teams added.</td></tr>`;
 }
 
-// RENDER PUBLIC VISUAL BRACKET
-function renderPublicBracket() {
-  const container = document.getElementById("publicBracketContainer");
-  if (!container) return;
-
-  const b = state.bracket || {};
-  const sf1 = b.sf1 || { team1: "Team A", team2: "Team D", winner: "TBD" };
-  const sf2 = b.sf2 || { team1: "Team B", team2: "Team C", winner: "TBD" };
-  const fn = b.final || { team1: "TBD", team2: "TBD", winner: "TBD" };
-
-  container.innerHTML = `
-    <div class="bracket-round">
-      <div class="bracket-match-card">
-        <div class="kicker">Semi-Final 1</div>
-        <div class="bracket-team-row"><span>${sf1.team1}</span> <span>vs</span> <span>${sf1.team2}</span></div>
-        <div style="font-size:11px;margin-top:6px" class="bracket-winner">Winner: ${sf1.winner}</div>
-      </div>
-
-      <div class="bracket-match-card">
-        <div class="kicker">Semi-Final 2</div>
-        <div class="bracket-team-row"><span>${sf2.team1}</span> <span>vs</span> <span>${sf2.team2}</span></div>
-        <div style="font-size:11px;margin-top:6px" class="bracket-winner">Winner: ${sf2.winner}</div>
-      </div>
-    </div>
-
-    <div style="text-align:center;font-weight:900;color:var(--gold);font-size:18px">➔</div>
-
-    <div class="bracket-round">
-      <div class="bracket-match-card final-card">
-        <div class="kicker" style="color:var(--gold)">🏆 GRAND FINAL</div>
-        <div class="bracket-team-row"><strong>${fn.team1}</strong> <span>vs</span> <strong>${fn.team2}</strong></div>
-        <div style="font-size:12px;margin-top:8px;color:var(--gold);font-weight:900">👑 Champion: ${fn.winner}</div>
-      </div>
-    </div>
-  `;
-}
-
 // POPULATE ADMIN BRACKET CONTROLS
 function renderAdminBracketControls() {
   const b = state.bracket || {};
@@ -271,22 +233,22 @@ function saveAdminBracketData() {
     sf1: {
       team1: document.getElementById("admSf1Team1").value,
       team2: document.getElementById("admSf1Team2").value,
-      winner: document.getElementById("admSf1Winner").value || "TBD"
+      winner: document.getElementById("admSf1Winner").value || ""
     },
     sf2: {
       team1: document.getElementById("admSf2Team1").value,
       team2: document.getElementById("admSf2Team2").value,
-      winner: document.getElementById("admSf2Winner").value || "TBD"
+      winner: document.getElementById("admSf2Winner").value || ""
     },
     final: {
       team1: document.getElementById("admFinalTeam1").value,
       team2: document.getElementById("admFinalTeam2").value,
-      winner: document.getElementById("admFinalWinner").value || "TBD"
+      winner: document.getElementById("admFinalWinner").value || ""
     }
   };
 
   saveState();
-  alert("🏆 Tournament Bracket updated on Main Dashboard!");
+  alert("🏆 Tournament Bracket updated!");
 }
 
 // RENDER ADMIN TIERS
@@ -801,9 +763,9 @@ async function resetDefaultData() {
       players: [],
       positions: { "Team A": "Premier", "Team B": "Gold", "Team C": "Silver", "Team D": "Normal" },
       bracket: {
-        sf1: { team1: "Team A", team2: "Team D", winner: "Team A" },
-        sf2: { team1: "Team B", team2: "Team C", winner: "Team B" },
-        final: { team1: "Team A", team2: "Team B", winner: "TBD" }
+        sf1: { team1: "Team A", team2: "Team D", winner: "" },
+        sf2: { team1: "Team B", team2: "Team C", winner: "" },
+        final: { team1: "", team2: "", winner: "" }
       },
       notifications: []
     };
