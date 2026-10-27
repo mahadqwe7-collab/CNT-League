@@ -7,7 +7,6 @@
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-CXDE05HGT7');
   </script>
 
@@ -26,7 +25,7 @@
 <header>
   <nav class="wrap">
     <a class="brand" href="#home">CNT-<span>LEAGUE</span></a>
-    
+
     <!-- MOBILE HAMBURGER MENU BUTTON -->
     <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Toggle Navigation">☰</button>
 
@@ -176,7 +175,7 @@
   <div class="modal" style="max-width:500px;">
     <h3 id="detailMatchTitle">Match Details</h3>
     <p class="sub" id="detailMatchStatus" style="margin-bottom:12px"></p>
-    
+
     <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--panel-border);margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;margin-bottom:8px">
         <strong id="detailTeam1Name">Team 1</strong>
@@ -196,11 +195,9 @@
     <button class="btn primary" style="width:100%" onclick="closeModal('matchDetailModal')">Close Scorecard</button>
   </div>
 </div>
-
 <!-- FULL ADMIN WORKSPACE DASHBOARD MODAL -->
 <div id="adminModal" class="modal-overlay" style="display:none;">
   <div class="modal admin-large-panel">
-    
     <div class="admin-top-bar">
       <div>
         <h2>⚡ CNT-League Admin Dashboard</h2>
@@ -216,7 +213,6 @@
     </div>
 
     <div class="admin-workspace">
-      
       <aside class="admin-sidebar">
         <button class="tab-btn active" onclick="switchTab(event, 'tabConverterAI')">📝 CONVERTER</button>
         <button class="tab-btn" onclick="switchTab(event, 'tabPointsAI')">📊 AUTO POINTS TABLE</button>
@@ -228,13 +224,12 @@
       </aside>
 
       <div class="admin-main-content">
-        
         <div id="tabConverterAI" class="tab-content active">
           <h3>MATCH SUMMARY CONVERTER</h3>
           <p class="sub" style="margin-bottom:8px">
             Paste raw match summary notes to generate 3 formatted output blocks below.
           </p>
-          
+
           <div style="margin-bottom:12px;">
             <textarea id="converterRawInput" rows="3" placeholder="Paste match summary notes (e.g. Team A scored 160/4 in 20 ov, Team B 145/9 in 20 ov. Team A won. Ali scored 55 runs for Team A)..."></textarea>
             <button class="btn primary" style="width:100%;margin-top:6px;" onclick="generateMatchSummary3Outputs()">⚡ Update Match Summary</button>
@@ -281,17 +276,42 @@
         </div>
 
         <div id="tabFixturesStatsAI" class="tab-content">
-          <h3>FIXTURES & INDIVIDUAL CAREER AI</h3>
-          <p class="sub" style="margin-bottom:8px">
-            Logs match details and updates player career best ratios.<br>
-            <i>"Ali 65 runs 3 wickets for Falcons vs Eagles"</i>
-          </p>
-          <div class="chat-box" id="fixturesAiChatBox">
-            <div class="chat-msg chat-ai">Fixtures & Career Engine Ready. Auto-updates career bests & spelling errors.</div>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="fixturesAiUserPrompt" placeholder="e.g. Ali scored 65 runs 3 wkts for Falcons..." style="flex:1" onkeypress="if(event.key==='Enter') sendFixturesAIChatCommand()">
-            <button class="btn primary" onclick="sendFixturesAIChatCommand()">Log Fixture & Career</button>
+          <h3>🏏 STRUCTURED MATCH ENTRY & PLAYER PERFORMANCE</h3>
+          <p class="sub" style="margin-bottom:12px">Enter the full scorecard once. Completed matches automatically recalculate points, wins/losses, NRR and player career totals.</p>
+
+          <div class="phase2-form-panel">
+            <h4>Match details</h4>
+            <div class="phase2-match-grid">
+              <label>Match title<input id="matchTitle" type="text" placeholder="e.g. Match 1 — League Stage" maxlength="80"></label>
+              <label>Season<select id="matchSeason"><option value="1">Season 1</option><option value="2">Season 2</option><option value="3">Season 3</option><option value="4">Season 4</option></select></label>
+              <label>Team 1<select id="matchTeam1"></select></label>
+              <label>Team 2<select id="matchTeam2"></select></label>
+              <label>Match status<select id="matchStatus"><option>Completed</option><option>No Result</option><option>Abandoned</option></select></label>
+              <label>Innings overs limit<input id="matchOversLimit" type="number" min="1" max="100" value="20"></label>
+            </div>
+
+            <h4 class="phase2-subheading">Team 1 score</h4>
+            <div class="phase2-score-grid">
+              <label>Runs<input id="matchTeam1Runs" type="number" min="0" max="1000" placeholder="e.g. 165" value=""></label>
+              <label>Wickets<input id="matchTeam1Wickets" type="number" min="0" max="10" placeholder="0–10" value=""></label>
+              <label>Overs faced<input id="matchTeam1Overs" type="text" inputmode="decimal" placeholder="e.g. 19.4" value="20.0"></label>
+            </div>
+
+            <h4 class="phase2-subheading">Team 2 score</h4>
+            <div class="phase2-score-grid">
+              <label>Runs<input id="matchTeam2Runs" type="number" min="0" max="1000" placeholder="e.g. 158" value=""></label>
+              <label>Wickets<input id="matchTeam2Wickets" type="number" min="0" max="10" placeholder="0–10" value=""></label>
+              <label>Overs faced<input id="matchTeam2Overs" type="text" inputmode="decimal" placeholder="e.g. 20.0" value="20.0"></label>
+            </div>
+
+            <div class="phase2-note">Overs format reminder: <strong>19.3 means 19 overs and 3 balls</strong>, not 19.3 decimal overs. Add players in Manual Controls before entering their performance.</div>
+            <h4 class="phase2-subheading">Individual performances (optional, add one row per player)</h4>
+            <div id="matchPerformanceRows"></div>
+            <div class="phase2-form-actions">
+              <button type="button" class="btn secondary" onclick="addMatchPerformanceRow()">＋ Add Player Performance</button>
+              <button type="button" id="saveStructuredMatchBtn" class="btn primary" onclick="saveStructuredMatch()">Save Match & Update Tournament</button>
+              <button type="button" class="btn secondary" onclick="phase2ResetMatchForm()">Clear Form</button>
+            </div>
           </div>
         </div>
 
@@ -300,10 +320,10 @@
           <p class="sub" style="margin-bottom:12px">
             Set bracket matchups (teams & winner names) and assign team position tiers.
           </p>
-          
+
           <div style="background:#060d17;padding:14px;border-radius:10px;border:1px solid var(--panel-border);margin-bottom:15px;">
             <h4 style="color:var(--gold);margin-bottom:10px">🏆 Knockout Bracket Controls</h4>
-            
+
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
               <div style="background:rgba(20, 36, 59, 0.9);padding:10px;border-radius:8px;">
                 <strong style="color:var(--teal);font-size:12px">Semi-Final 1</strong>
@@ -333,8 +353,7 @@
           </div>
 
           <hr style="border:0;border-top:1px solid var(--panel-border);margin:15px 0;">
-
-          <h4>Team Position Tiers (Premier, Golden, Silver, Normal, Red)</h4>
+                    <h4>Team Position Tiers (Premier, Golden, Silver, Normal, Red)</h4>
           <div id="adminPositionsContainer" style="margin-top:8px"></div>
         </div>
 
@@ -385,7 +404,7 @@
         <div id="tabServer" class="tab-content">
           <h3>🌐 Live Cloud Server & DB Preview</h3>
           <p class="sub" style="margin-bottom:12px">Real-time status of your Supabase database connectivity.</p>
-          
+
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:15px;">
             <div style="background:#060d17;padding:10px;border-radius:8px;border:1px solid var(--panel-border)">
               <span class="sub">Server Status</span><br>
