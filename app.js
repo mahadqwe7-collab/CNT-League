@@ -440,6 +440,29 @@ function renderPlayersManageList() {
   }
 }
 
+// PUBLIC FEEDBACK SUBMISSION
+function submitPublicFeedback(evt) {
+  evt.preventDefault();
+  const name = document.getElementById("feedbackName").value.trim();
+  const message = document.getElementById("feedbackMessage").value.trim();
+
+  if (!name || !message) return alert("Please fill in both Name and Message fields!");
+
+  state.notifications.unshift({
+    id: Date.now(),
+    name,
+    message,
+    date: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString(),
+    read: false
+  });
+
+  document.getElementById("feedbackName").value = "";
+  document.getElementById("feedbackMessage").value = "";
+
+  saveState();
+  alert("📨 Complaint / Message submitted successfully to Admin!");
+}
+
 function renderNotifications() {
   const list = document.getElementById("adminNotificationsList");
   const badge = document.getElementById("notifBadge");
@@ -777,12 +800,12 @@ async function resetDefaultData() {
 // UI NAVIGATION & MODALS
 function openModal(id) {
   const m = document.getElementById(id);
-  if (m) m.style.setAttribute("style", "display: flex !important;");
+  if (m) m.style.display = 'flex';
 }
 
 function closeModal(id) {
   const m = document.getElementById(id);
-  if (m) m.style.setAttribute("style", "display: none !important;");
+  if (m) m.style.display = 'none';
 }
 
 function switchTab(evt, tabId) {
