@@ -36,6 +36,7 @@
       <a href="#fixtures" onclick="closeMobileMenu()">MATCH LOG</a>
       <a href="#pvp" onclick="closeMobileMenu()">PVP COMPARE</a>
       <a href="#players" onclick="closeMobileMenu()">INDIVIDUAL CAREER</a>
+      <a href="#feedback" onclick="closeMobileMenu()">FEEDBACK</a>
       <a class="admin-nav-btn" onclick="openModal('loginModal'); closeMobileMenu();">ADMIN LOG-IN</a>
     </div>
   </nav>
@@ -143,10 +144,25 @@
     </div>
     <div class="player-grid" id="playerGrid"></div>
   </section>
+
+  <!-- PUBLIC COMPLAINT & FEEDBACK FORM -->
+  <section id="feedback">
+    <div class="section-head">
+      <div class="kicker">Support & Feedback</div>
+      <h2>Submit Complaint or Message</h2>
+    </div>
+    <div class="panel" style="padding:20px;max-width:650px;margin:auto;">
+      <form onsubmit="submitPublicFeedback(event)">
+        <input type="text" id="feedbackName" placeholder="Your Name" required style="margin-bottom:10px;">
+        <textarea id="feedbackMessage" rows="4" placeholder="Write your complaint or message here..." required style="margin-bottom:12px;"></textarea>
+        <button type="submit" class="btn primary" style="width:100%">📨 Send Message to Admin</button>
+      </form>
+    </div>
+  </section>
 </main>
 
 <!-- LOGIN MODAL -->
-<div id="loginModal" class="modal-overlay" style="display:none !important;">
+<div id="loginModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="max-width:380px;">
     <h3>Admin Verification</h3>
     <input type="password" id="adminPassword" placeholder="Enter Password" style="margin:12px 0;">
@@ -156,7 +172,7 @@
 </div>
 
 <!-- MATCH SCORECARD DETAIL MODAL -->
-<div id="matchDetailModal" class="modal-overlay" style="display:none !important;">
+<div id="matchDetailModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="max-width:500px;">
     <h3 id="detailMatchTitle">Match Details</h3>
     <p class="sub" id="detailMatchStatus" style="margin-bottom:12px"></p>
@@ -182,7 +198,7 @@
 </div>
 
 <!-- FULL ADMIN WORKSPACE DASHBOARD MODAL -->
-<div id="adminModal" class="modal-overlay" style="display:none !important;">
+<div id="adminModal" class="modal-overlay" style="display:none;">
   <div class="modal admin-large-panel">
     
     <div class="admin-top-bar">
@@ -313,7 +329,7 @@
               <input type="text" id="admFinalWinner" placeholder="Final Champion / Winner Team Name" style="margin-top:6px">
             </div>
 
-            <button class="btn primary" style="width:100%" onclick="saveAdminBracketData()">💾 Update Bracket On Dashboard</button>
+            <button class="btn primary" style="width:100%" onclick="saveAdminBracketData()">💾 Update Bracket Controls</button>
           </div>
 
           <hr style="border:0;border-top:1px solid var(--panel-border);margin:15px 0;">
@@ -412,7 +428,7 @@
 </div>
 
 <!-- ERROR / WARNING POPUP MODAL -->
-<div id="errorModal" class="modal-overlay" style="display:none !important;">
+<div id="errorModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="max-width:420px;border-color:var(--red);">
     <h3 style="color:var(--red);display:flex;align-items:center;gap:6px;">⚠️ Alert Message</h3>
     <p id="errorMessageText" style="margin:12px 0;font-size:13px;line-height:1.5;color:var(--text-main);"></p>
