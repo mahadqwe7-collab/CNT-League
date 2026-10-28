@@ -1,6 +1,5 @@
-/* CNT-League engine
- * Security model: the browser only HIDES admin UI. Real protection is Supabase Auth + Row Level Security
- * (see the SQL I gave you). Never rely on client-side checks alone.
+/* CNT-League Tournament Engine
+ * Security Model: Client hides UI, Row Level Security in Supabase enforces authorization.
  */
 const SUPABASE_URL = "https://slgsxvwzcmogulsrzgqm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_sQmZXNu5XfQ0m5hQ6v-Cog_HS9sLraa";
@@ -9,6 +8,8 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const clean = (s, n = 80) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
+const generateId = () => (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
 const TIERS = { Premier: "👑 Premier", Gold: "🥇 Golden", Silver: "🥈 Silver", Normal: "Normal", Red: "🔴 Eliminated" };
 const BR = [["sf1", "admSf1"], ["sf2", "admSf2"], ["final", "admFinal"]];
 const DEFAULT_TEAMS = ["Team A", "Team B", "Team C", "Team D"];
@@ -32,15 +33,14 @@ let state = freshState();
 let viewSeason = 1, loaded = false, serverRev = 0, isAdmin = false, adminEmail = "";
 let undoStack = [], redoStack = [], feedback = [], S = {};
 
-/* ---------- Cricket maths ---------- */
+/* ---------- Cricket Maths & Calculations ---------- */
 const validOvers = v => /^\d+(\.[0-5])?$/.test(String(v).trim());
+
 function oversToBalls(v) {
   const n = parseFloat(v) || 0, o = Math.floor(n);
   return o * 6 + Math.round((n - o) * 10);
 }
-const ballsToOvers = b => `${Math.floor(b / 6)}.${b % 6}`;
 
-/* Standings are DERIVED from fixtures, so deleting a match cleanly reverses everything. */
 function computeTable(season) {
   const rows = Object.fromEntries(state.teams.map(n => [n, { name: n, p: 0, w: 0, l: 0, t: 0, rs: 0, bf: 0, rc: 0, bb: 0, pts: 0 }]));
   state.fixtures.filter(f => f.season === season).forEach(f => {
@@ -60,11 +60,10 @@ function computeTable(season) {
     }
   });
   return Object.values(rows)
-    .map(r => ({ ...r, nrr: r.bf && r.bb ? r.rs / (r.bf / 6) - r.rc / (r.bb / 6) : 0 }))
+    .map(r => ({ ...r, nrr: r.bf && r.bb ? (r.rs / (r.bf / 6)) - (r.rc / (r.bb / 6)) : 0 }))
     .sort((x, y) => y.pts - x.pts || y.nrr - x.nrr || x.name.localeCompare(y.name));
 }
 
-/* Player careers = manual base + every performance in saved matches. */
 function playerStats(p) {
   const b = p.base || {};
   const s = { matches: b.matches || 0, runs: b.runs || 0, wickets: b.wickets || 0, hs: b.hs || 0, hsNo: !!b.hsNo, bw: b.bw || 0, bc: b.bc ?? null };
@@ -79,19 +78,22 @@ function playerStats(p) {
   return s;
 }
 
-/* ---------- UI helpers ---------- */
+/* ---------- UI & Dialog Helpers ---------- */
 function toast(msg, bad = false) {
   const t = document.createElement("div");
   t.className = "toast" + (bad ? " bad" : ""); t.textContent = msg;
   $("toasts").appendChild(t); setTimeout(() => t.remove(), 3200);
 }
+
 function showError(msg) { $("errorMessageText").textContent = msg; openModal("errorModal"); return false; }
+
 let lastFocus = null;
 function openModal(id) {
   lastFocus = document.activeElement;
   const m = $(id); m.style.display = "flex";
   (m.querySelector("input:not([hidden]),button,select") || m).focus();
 }
+
 function closeModal(id) { $(id).style.display = "none"; lastFocus?.focus?.(); }
 const adminOpen = () => $("adminModal").style.display === "flex";
 
@@ -125,15 +127,27 @@ function setSync(status, isErr = false) {
   if (el) el.textContent = `${status} (${new Date().toLocaleTimeString()})`;
   if (st) { st.textContent = isErr ? "🔴 Problem" : "🟢 Connected"; st.style.color = isErr ? "var(--red)" : "var(--teal)"; }
 }
-function toggleMobileMenu() { $("navLinks").classList.toggle("mobile-open"); }
-function closeMobileMenu() { $("navLinks").classList.remove("mobile-open"); }
+
+function toggleMobileMenu() {
+  const links = $("navLinks");
+  const toggle = $("mobileMenuToggle");
+  const isOpen = links.classList.toggle("mobile-open");
+  if (toggle) toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
+function closeMobileMenu() {
+  $("navLinks").classList.remove("mobile-open");
+  const toggle = $("mobileMenuToggle");
+  if (toggle) toggle.setAttribute("aria-expanded", "false");
+}
+
 function switchTab(btn, id) {
   document.querySelectorAll(".admin-sidebar .tab-btn").forEach(b => b.classList.remove("active"));
   document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
   btn.classList.add("active"); $(id).classList.add("active");
 }
 
-/* ---------- Persistence ---------- */
+/* ---------- Persistence & Database Sync ---------- */
 function migrate(raw) {
   const d = freshState(), s = { ...d, ...raw };
   s.siteConfig = { ...d.siteConfig, ...raw.siteConfig };
@@ -164,22 +178,21 @@ async function loadState() {
     setSync("Synced");
   } catch (e) {
     console.error("Cloud load error:", e); setSync("Load failed", true);
-    toast("Could not load data from the cloud. Editing is disabled until it loads.", true);
+    toast("Could not load data from the cloud. Local editing disabled.", true);
   }
   if (!state.seasons.includes(viewSeason)) viewSeason = state.seasons[0];
   renderAll();
 }
 
-/* returns true | false | "conflict" */
 async function saveState() {
-  if (!loaded) return showError("Data has not loaded from the cloud yet. Reload the page.");
-  if (!isAdmin) return showError("Please log in as admin to save changes.");
+  if (!loaded) return showError("Data has not loaded from cloud yet.");
+  if (!isAdmin) return showError("Please log in as admin to save.");
   setSync("Saving…");
   try {
     const { data: r, error: e1 } = await db.from("cnt_league").select("rev:state->>rev").eq("id", 1).maybeSingle();
     if (e1) throw e1;
     if (r && Number(r.rev || 0) !== serverRev) {
-      showError("Someone else changed the data while you were editing. The latest version has been loaded; please redo your change.");
+      showError("Conflict detected: Someone else updated data. Fresh version reloaded.");
       await loadState(); return "conflict";
     }
     state.rev = serverRev + 1;
@@ -188,11 +201,10 @@ async function saveState() {
     serverRev = state.rev; setSync("Saved"); return true;
   } catch (e) {
     console.error("Cloud save error:", e); setSync("Save failed", true);
-    showError("Failed to save. Your change was NOT stored and has been rolled back. Check your connection and that you are logged in."); return false;
+    showError("Failed to save changes. Connection error or unauthenticated."); return false;
   }
 }
 
-/* Every admin edit goes through commit(): snapshot -> mutate -> save -> rollback on failure. */
 async function commit(fn, okMsg) {
   if (!isAdmin) return showError("Please log in as admin.");
   const snap = JSON.stringify(state);
@@ -205,6 +217,7 @@ async function commit(fn, okMsg) {
   updateHistoryButtons();
   return ok === true;
 }
+
 async function stepHistory(from, to) {
   if (!from.length || !isAdmin) return;
   const cur = JSON.stringify(state), snap = from.pop();
@@ -216,18 +229,21 @@ const undoAction = () => stepHistory(undoStack, redoStack);
 const redoAction = () => stepHistory(redoStack, undoStack);
 function updateHistoryButtons() { $("btnUndo").disabled = !undoStack.length; $("btnRedo").disabled = !redoStack.length; }
 
-/* ---------- Auth ---------- */
+/* ---------- Authentication ---------- */
 function setAdmin(session) {
   isAdmin = !!session; adminEmail = session?.user?.email || "";
   $("adminNavBtn").textContent = isAdmin ? "ADMIN PANEL" : "ADMIN LOG-IN";
   if (!isAdmin) closeModal("adminModal"); else setTimeout(loadFeedback, 0);
 }
+
 async function initAuth() {
   const { data } = await db.auth.getSession(); setAdmin(data.session);
   db.auth.onAuthStateChange((_e, s) => setAdmin(s));
 }
+
 const adminNavClick = () => isAdmin ? openAdmin() : openModal("loginModal");
 function openAdmin() { openModal("adminModal"); $("editEyebrow").value = state.siteConfig.eyebrow; renderAdmin(); loadFeedback(); }
+
 async function login(e) {
   e.preventDefault();
   const { error } = await db.auth.signInWithPassword({ email: $("adminEmail").value.trim(), password: $("adminPassword").value });
@@ -237,18 +253,19 @@ async function login(e) {
 }
 async function logout() { await db.auth.signOut(); toast("Signed out"); }
 
-/* ---------- Feedback (separate table, insert-only for the public) ---------- */
+/* ---------- Public Feedback ---------- */
 async function submitFeedback(e) {
   e.preventDefault();
   const last = Number(localStorage.getItem("cnt-fb") || 0);
-  if (Date.now() - last < 30000) return showError("Please wait a little before sending another message.");
+  if (Date.now() - last < 30000) return showError("Please wait 30s before submitting another feedback.");
   const name = clean($("feedbackName").value, 60), message = String($("feedbackMessage").value).trim().slice(0, 1000);
-  if (!name || !message) return showError("Please fill in both name and message.");
+  if (!name || !message) return showError("Please fill in name and message.");
   const { error } = await db.from("cnt_feedback").insert({ name, message });
-  if (error) return showError("Could not send your message. Please try again later.");
+  if (error) return showError("Could not send feedback. Try again later.");
   try { localStorage.setItem("cnt-fb", Date.now()); } catch {}
-  $("feedbackName").value = ""; $("feedbackMessage").value = ""; toast("📨 Message sent to admin");
+  $("feedbackName").value = ""; $("feedbackMessage").value = ""; toast("📨 Feedback submitted to admin");
 }
+
 async function loadFeedback() {
   if (!isAdmin) return;
   const { data, error } = await db.from("cnt_feedback").select("*").order("created_at", { ascending: false }).limit(200);
@@ -258,7 +275,7 @@ async function loadFeedback() {
 async function markRead(id) { await db.from("cnt_feedback").update({ read: true }).eq("id", id); loadFeedback(); }
 async function deleteFeedback(id) { await db.from("cnt_feedback").delete().eq("id", id); loadFeedback(); }
 
-/* ---------- Rendering: public ---------- */
+/* ---------- Public UI Rendering ---------- */
 function renderAll() { renderPublic(); if (adminOpen()) renderAdmin(); }
 
 function fillSelect(id, pairs) {
@@ -271,6 +288,13 @@ function fillSelect(id, pairs) {
 function renderPublic() {
   S = Object.fromEntries(state.players.map(p => [p.id, playerStats(p)]));
   $("siteEyebrow").textContent = state.siteConfig.eyebrow;
+  
+  // Ticker updates dynamically based on recent matches
+  const recentMatch = state.fixtures[state.fixtures.length - 1];
+  if (recentMatch) {
+    $("tickerText").textContent = `LATEST RESULT: ${recentMatch.title} — ${recentMatch.result}`;
+  }
+
   $("seasonsGrid").innerHTML = state.seasons.map(i => `
     <button class="season-card ${viewSeason === i ? "active" : ""}" data-act="season" data-id="${i}" aria-pressed="${viewSeason === i}">
       <div class="kicker">SEASON 0${i}</div><h3>Season ${i}</h3>
@@ -280,11 +304,13 @@ function renderPublic() {
   $("standingsTitle").textContent = `Points Table — Season ${viewSeason}`;
   const rows = computeTable(viewSeason);
   $("pointsBody").innerHTML = rows.length ? rows.map((t, i) => `
-    <tr><td>${i + 1}</td>
-    <td><strong>${esc(t.name)}</strong> <span class="badge-tier tier-${esc((state.positions[t.name] || "Normal").toLowerCase())}">${esc(TIERS[state.positions[t.name]] || "Normal")}</span></td>
-    <td>${t.p}</td><td>${t.w}</td><td>${t.l}</td><td>${t.t}</td>
-    <td class="nrr">${(t.nrr > 0 ? "+" : "") + t.nrr.toFixed(3)}</td><td class="pts">${t.pts}</td></tr>`).join("")
-    : `<tr><td colspan="8" class="empty">No teams added.</td></tr>`;
+    <tr>
+      <td class="sticky-col"><strong>${i + 1}</strong></td>
+      <td class="sticky-col-2"><strong>${esc(t.name)}</strong> <span class="badge-tier tier-${esc((state.positions[t.name] || "Normal").toLowerCase())}">${esc(TIERS[state.positions[t.name]] || "Normal")}</span></td>
+      <td>${t.p}</td><td>${t.w}</td><td>${t.l}</td><td>${t.t}</td>
+      <td class="nrr">${(t.nrr > 0 ? "+" : "") + t.nrr.toFixed(3)}</td><td class="pts">${t.pts}</td>
+    </tr>`).join("")
+    : `<tr><td colspan="8" class="empty">No teams added yet.</td></tr>`;
 
   renderBracketPublic(); renderFixtures(); renderPvP(); renderPlayers();
   fillSelect("teamFilter", [["All", "All Teams"], ...state.teams.map(t => [t, t])]);
@@ -333,7 +359,7 @@ function renderPvP() {
   const keep = [p1.value, p2.value];
   if (!state.players.length) {
     p1.innerHTML = p2.innerHTML = '<option value="">No players</option>';
-    box.innerHTML = '<div class="empty">Add players to compare careers.</div>'; return;
+    box.innerHTML = '<div class="empty">Add players to compare stats.</div>'; return;
   }
   const opts = state.players.map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.team)})</option>`).join("");
   p1.innerHTML = p2.innerHTML = opts;
@@ -341,13 +367,14 @@ function renderPvP() {
   if (state.players.some(p => String(p.id) === keep[1])) p2.value = keep[1]; else if (state.players.length > 1) p2.selectedIndex = 1;
   updatePvP();
 }
+
 function updatePvP() {
   const a = state.players.find(p => String(p.id) === $("pvpPlayer1Select").value);
   const b = state.players.find(p => String(p.id) === $("pvpPlayer2Select").value);
   const box = $("pvpComparisonBox");
   if (!a || !b) { box.innerHTML = '<div class="empty">Select 2 players to compare.</div>'; return; }
-  const x = S[a.id], y = S[b.id];
-  const cmp = (lab, va, vb, color, fa = va, fb = vb) => `<div class="pvp-stat-row">
+  const x = S[a.id] || {}, y = S[b.id] || {};
+  const cmp = (lab, va = 0, vb = 0, color, fa = va, fb = vb) => `<div class="pvp-stat-row">
     <strong style="color:${va >= vb ? color : "var(--text-main)"}">${esc(fa)}</strong><span class="sub">${lab}</span>
     <strong style="color:${vb >= va ? color : "var(--text-main)"}">${esc(fb)}</strong></div>`;
   box.innerHTML = `
@@ -363,37 +390,36 @@ function updatePvP() {
 
 function renderPlayers() {
   const q = clean($("playerSearch").value).toLowerCase(), team = $("teamFilter").value, role = $("roleFilter").value;
-  const topRuns = Math.max(0, ...state.players.map(p => S[p.id].runs));
-  const topWk = Math.max(0, ...state.players.map(p => S[p.id].wickets));
+  const topRuns = Math.max(0, ...state.players.map(p => (S[p.id] || {}).runs || 0));
+  const topWk = Math.max(0, ...state.players.map(p => (S[p.id] || {}).wickets || 0));
   const list = state.players.filter(p => (p.name + " " + p.team).toLowerCase().includes(q) && (team === "All" || p.team === team) && (role === "All" || p.role === role));
   $("playerGrid").innerHTML = list.length ? list.map(p => {
-    const s = S[p.id];
+    const s = S[p.id] || {};
     return `<article class="player-card">
       <div class="name">${esc(p.name)}${s.runs > 0 && s.runs === topRuns ? '<span class="badge-cap cap-orange">Orange Cap</span>' : ""}${s.wickets > 0 && s.wickets === topWk ? '<span class="badge-cap cap-purple">Purple Cap</span>' : ""}</div>
       <div class="sub">${esc(p.team)} · ${esc(p.role)}</div>
       <div class="stat-grid">
-        <div class="stat-cell"><span class="sub">Matches</span><br><strong>${s.matches}</strong></div>
-        <div class="stat-cell"><span class="sub">Runs</span><br><strong style="color:var(--orange)">${s.runs}</strong></div>
-        <div class="stat-cell"><span class="sub">Highest score</span><br><strong class="gold">${esc(s.hsText)}</strong></div>
-        <div class="stat-cell"><span class="sub">Wickets</span><br><strong style="color:var(--purple)">${s.wickets}</strong></div>
-        <div class="stat-cell span2"><span class="sub">Best bowling</span><br><strong class="teal">${esc(s.bb)}</strong></div>
+        <div class="stat-cell"><span class="sub">Matches</span><br><strong>${s.matches || 0}</strong></div>
+        <div class="stat-cell"><span class="sub">Runs</span><br><strong style="color:var(--orange)">${s.runs || 0}</strong></div>
+        <div class="stat-cell"><span class="sub">Highest score</span><br><strong class="gold">${esc(s.hsText || "0")}</strong></div>
+        <div class="stat-cell"><span class="sub">Wickets</span><br><strong style="color:var(--purple)">${s.wickets || 0}</strong></div>
+        <div class="stat-cell span2"><span class="sub">Best bowling</span><br><strong class="teal">${esc(s.bb || "–")}</strong></div>
       </div></article>`;
-  }).join("") : '<div class="sub">No player career records found.</div>';
+  }).join("") : '<div class="sub">No player records found.</div>';
 }
 
-/* ---------- Rendering: admin ---------- */
+/* ---------- Admin Workspace Rendering ---------- */
 function renderAdmin() {
   const teamPairs = state.teams.map(t => [t, t]);
   fillSelect("matchSeason", state.seasons.map(s => [s, `Season ${s}`]));
-  if (!$("matchSeason").dataset.set) { $("matchSeason").value = viewSeason; $("matchSeason").dataset.set = 1; }
   fillSelect("matchTeam1", teamPairs); fillSelect("matchTeam2", teamPairs);
   if ($("matchTeam1").value === $("matchTeam2").value && state.teams.length > 1) $("matchTeam2").selectedIndex = 1;
   fillSelect("manualPlayerTeam", teamPairs);
   renderBracketAdmin();
 
   $("adminPositionsContainer").innerHTML = state.teams.map(t => `
-    <div class="list-item"><strong>${esc(t)}</strong>
-    <select data-tier="${esc(t)}" aria-label="Tier for ${esc(t)}">${Object.entries(TIERS).map(([k, l]) =>
+    <div class="list-item mt6"><strong>${esc(t)}</strong>
+    <select onchange="setTier('${esc(t)}', this.value)" aria-label="Tier for ${esc(t)}">${Object.entries(TIERS).map(([k, l]) =>
       `<option value="${k}" ${(state.positions[t] || "Normal") === k ? "selected" : ""}>${l}</option>`).join("")}</select></div>`).join("");
 
   $("teamsListContainer").innerHTML = state.teams.map(t => `<span class="chip">${esc(t)}
@@ -405,7 +431,7 @@ function renderAdmin() {
     : '<span class="sub">No players yet.</span>';
 
   $("matchesManageList").innerHTML = state.fixtures.length ? [...state.fixtures].reverse().map(f => `
-    <div class="list-item"><span>S${f.season} · <strong>${esc(f.title)}</strong> — ${esc(f.result)}</span>
+    <div class="list-item mt6"><span>S${f.season} · <strong>${esc(f.title)}</strong> — ${esc(f.result)}</span>
     <button class="btn danger mini" data-act="deleteMatch" data-id="${f.id}">Delete</button></div>`).join("")
     : '<div class="sub">No matches saved.</div>';
 
@@ -421,16 +447,15 @@ function renderNotifications() {
   const unread = feedback.filter(n => !n.read).length;
   $("notifBadge").textContent = unread;
   $("adminNotificationsList").innerHTML = feedback.length ? feedback.map(n => `
-    <div class="notif ${n.read ? "" : "unread"}">
+    <div class="notif ${n.read ? "" : "unread"} mt10 inset">
       <div class="row-between"><strong class="gold small">From: ${esc(n.name)}</strong><span class="sub">${esc(new Date(n.created_at).toLocaleString())}</span></div>
-      <p>${esc(n.message)}</p>
+      <p class="mt6">${esc(n.message)}</p>
       <div class="row-between mt6"><span></span><span>
         ${n.read ? '<span class="sub">✓ Read</span>' : `<button class="btn secondary mini" data-act="readNotif" data-id="${n.id}">Mark as read</button>`}
         <button class="btn danger mini" data-act="delNotif" data-id="${n.id}">Delete</button></span></div>
     </div>`).join("") : '<div class="sub">No feedback received yet.</div>';
 }
 
-/* Bracket admin: winner can only be one of the two chosen teams. */
 function renderBracketAdmin() {
   const opts = cur => `<option value="">— TBD —</option>` + state.teams.map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
   BR.forEach(([k, p]) => {
@@ -439,23 +464,25 @@ function renderBracketAdmin() {
     fillWinner(p, m.winner);
   });
 }
+
 function fillWinner(p, cur) {
   const teams = [...new Set([$(p + "Team1").value, $(p + "Team2").value].filter(Boolean))];
   $(p + "Winner").innerHTML = `<option value="">No winner yet</option>` + teams.map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
 }
-BR.forEach(([, p]) => ["Team1", "Team2"].forEach(s => $(p + s).addEventListener("change", () => fillWinner(p, $(p + "Winner").value))));
+
+BR.forEach(([, p]) => ["Team1", "Team2"].forEach(s => $(p + s)?.addEventListener("change", () => fillWinner(p, $(p + "Winner").value))));
 
 function saveBracket() {
   const nb = {};
   BR.forEach(([k, p]) => nb[k] = { team1: $(p + "Team1").value, team2: $(p + "Team2").value, winner: $(p + "Winner").value });
-  for (const [k, m] of Object.entries(nb)) if (m.team1 && m.team1 === m.team2) return showError(`${k.toUpperCase()}: pick two different teams.`);
+  for (const [k, m] of Object.entries(nb)) if (m.team1 && m.team1 === m.team2) return showError(`${k.toUpperCase()}: Pick two different teams.`);
   if (nb.sf1.winner) nb.final.team1 = nb.sf1.winner;
   if (nb.sf2.winner) nb.final.team2 = nb.sf2.winner;
   if (![nb.final.team1, nb.final.team2].includes(nb.final.winner)) nb.final.winner = "";
   commit(() => state.bracket = nb, "🏆 Bracket updated");
 }
 
-/* ---------- Admin actions ---------- */
+/* ---------- Admin Actions ---------- */
 const dup = n => state.teams.some(t => t.toLowerCase() === n.toLowerCase());
 
 function addTeam() {
@@ -465,15 +492,17 @@ function addTeam() {
   $("newTeamName").value = "";
   commit(() => { state.teams.push(n); state.positions[n] = "Normal"; }, "Team added");
 }
+
 async function deleteTeam(name) {
   if (state.fixtures.some(f => f.team1 === name || f.team2 === name)) return showError(`'${name}' has saved matches. Delete those matches first.`);
-  if (state.players.some(p => p.team === name)) return showError(`'${name}' still has players. Remove or move them first.`);
+  if (state.players.some(p => p.team === name)) return showError(`'${name}' still has players. Move/remove players first.`);
   if (!await askDialog({ title: "Delete team", message: `Delete ${name}?`, okText: "Delete" })) return;
   commit(() => {
     state.teams = state.teams.filter(t => t !== name); delete state.positions[name];
     Object.values(state.bracket).forEach(m => ["team1", "team2", "winner"].forEach(k => { if (m[k] === name) m[k] = ""; }));
   }, "Team deleted");
 }
+
 async function renameTeam(old) {
   const v = await askDialog({ title: "Rename team", message: `New name for '${old}':`, input: old, okText: "Rename" });
   const n = clean(v, 40);
@@ -487,6 +516,7 @@ async function renameTeam(old) {
     Object.values(state.bracket).forEach(m => ["team1", "team2", "winner"].forEach(k => { if (m[k] === old) m[k] = n; }));
   }, `Renamed to ${n}`);
 }
+
 const setTier = (team, tier) => commit(() => state.positions[team] = tier);
 const addSeason = () => commit(() => state.seasons.push(Math.max(...state.seasons) + 1), "Season added");
 const saveSiteText = () => { const v = clean($("editEyebrow").value, 60); if (v) commit(() => state.siteConfig.eyebrow = v, "Tagline saved"); };
@@ -498,37 +528,43 @@ function addPlayer() {
   const team = $("manualPlayerTeam").value, role = $("manualPlayerRole").value;
   const matches = num("manualPlayerMatches"), runs = num("manualPlayerRuns"), wickets = num("manualPlayerWickets");
   if (!team) return showError("Add a team first.");
+
   commit(() => {
     const ex = state.players.find(p => p.name.toLowerCase() === name.toLowerCase());
     if (ex) {
       ex.team = team; ex.role = role;
       ex.base.matches += matches; ex.base.runs += runs; ex.base.wickets += wickets;
     } else {
-      state.players.push({ id: Date.now(), name, team, role,
-        base: { matches, runs, wickets, hs: matches <= 1 ? runs : 0, hsNo: false, bw: matches <= 1 ? wickets : 0, bc: null } });
+      state.players.push({
+        id: generateId(), name, team, role,
+        base: { matches, runs, wickets, hs: matches <= 1 ? runs : 0, hsNo: false, bw: matches <= 1 ? wickets : 0, bc: null }
+      });
     }
   }, "Player saved");
   ["manualPlayerName", "manualPlayerMatches", "manualPlayerRuns", "manualPlayerWickets"].forEach(id => $(id).value = "");
 }
+
 async function deletePlayer(id) {
   if (state.fixtures.some(f => (f.perfs || []).some(x => x.pid === id))) return showError("This player has match performances. Delete those matches first.");
-  if (await askDialog({ title: "Remove player", message: "Remove this player from the roster?", okText: "Remove" }))
+  if (await askDialog({ title: "Remove player", message: "Remove player from roster?", okText: "Remove" }))
     commit(() => state.players = state.players.filter(p => p.id !== id), "Player removed");
 }
+
 async function deleteMatch(id) {
-  if (await askDialog({ title: "Delete match", message: "Delete this match? Points, NRR and player stats will be recalculated.", okText: "Delete" }))
+  if (await askDialog({ title: "Delete match", message: "Delete this match? Stats and standings will recalculate.", okText: "Delete" }))
     commit(() => state.fixtures = state.fixtures.filter(f => f.id !== id), "Match deleted");
 }
+
 async function resetDefaultData() {
   const v = await askDialog({ title: "Wipe tournament", message: "This permanently deletes ALL tournament data.\nType RESET to confirm.", input: "", okText: "Wipe" });
   if (v === "RESET") { await commit(() => state = freshState()); undoStack = []; redoStack = []; updateHistoryButtons(); }
 }
 
-/* ---------- Match entry ---------- */
+/* ---------- Structured Match Entry ---------- */
 function addPerfRow() {
   const t1 = $("matchTeam1").value, t2 = $("matchTeam2").value;
   const pl = state.players.filter(p => p.team === t1 || p.team === t2);
-  if (!pl.length) return showError("No players on these two teams yet. Add players in Manage first.");
+  if (!pl.length) return showError("No players on these teams yet. Add players in Manage first.");
   const row = document.createElement("div"); row.className = "perf-row";
   row.innerHTML = `<div class="perf-grid">
     <label>Player<select class="perfPlayer">${pl.map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.team)})</option>`).join("")}</select></label>
@@ -539,118 +575,178 @@ function addPerfRow() {
     <button type="button" class="btn danger mini mt6" data-act="rmPerf">Remove</button>`;
   $("matchPerformanceRows").appendChild(row);
 }
+
 function resetMatchForm() {
-  ["matchTitle", "matchTeam1Runs", "matchTeam1Wickets", "matchTeam2Runs", "matchTeam2Wickets"].forEach(id => $(id).value = "");
-  $("matchTeam1Overs").value = $("matchTeam2Overs").value = "20.0"; $("matchPerformanceRows").innerHTML = "";
+  ["matchTitle", "matchTeam1Runs", "matchTeam1Wickets", "matchTeam2Runs", "matchTeam2Wickets"].forEach(id => $(id).value = "0");
+  $("matchTitle").value = "";
+  $("matchTeam1Overs").value = $("matchTeam2Overs").value = "20.0";
+  $("matchPerformanceRows").innerHTML = "";
 }
 
 async function saveMatch() {
   const v = id => $(id).value;
   const t1 = v("matchTeam1"), t2 = v("matchTeam2"), status = v("matchStatus"), season = +v("matchSeason");
   const limit = Math.min(100, Math.max(1, parseInt(v("matchOversLimit")) || 20));
+
   if (!t1 || !t2 || t1 === t2) return showError("Pick two different teams.");
-  const sc = n => ({ runs: parseInt(v(`matchTeam${n}Runs`)), wkts: parseInt(v(`matchTeam${n}Wickets`)), overs: v(`matchTeam${n}Overs`).trim() });
+
+  const sc = n => ({
+    runs: parseInt(v(`matchTeam${n}Runs`)) || 0,
+    wkts: parseInt(v(`matchTeam${n}Wickets`)) || 0,
+    overs: v(`matchTeam${n}Overs`).trim()
+  });
+
   const s1 = sc(1), s2 = sc(2), done = status === "Completed";
-  if (done) for (const [n, s] of [[t1, s1], [t2, s2]]) {
-    if (!(s.runs >= 0)) return showError(`${n}: enter valid runs.`);
-    if (!(s.wkts >= 0 && s.wkts <= 10)) return showError(`${n}: wickets must be 0–10.`);
-    if (!validOvers(s.overs)) return showError(`${n}: invalid overs. Balls must be 0–5 (e.g. 19.5, not 19.7).`);
-    const b = oversToBalls(s.overs);
-    if (b <= 0 || b > limit * 6) return showError(`${n}: overs must be above 0 and within ${limit}.`);
+
+  if (done) {
+    for (const [n, s] of [[t1, s1], [t2, s2]]) {
+      if (s.runs < 0) return showError(`${n}: enter valid runs.`);
+      if (s.wkts < 0 || s.wkts > 10) return showError(`${n}: wickets must be 0–10.`);
+      if (!validOvers(s.overs)) return showError(`${n}: invalid overs. Balls must be 0–5 (e.g. 19.5, not 19.7).`);
+      const b = oversToBalls(s.overs);
+      if (b <= 0 || b > limit * 6) return showError(`${n}: overs must be above 0 and within limit (${limit}).`);
+    }
   }
+
   const perfs = [], seen = new Set();
   for (const row of document.querySelectorAll("#matchPerformanceRows .perf-row")) {
-    const pid = +row.querySelector(".perfPlayer").value, p = state.players.find(x => x.id === pid);
+    const pid = row.querySelector(".perfPlayer").value;
+    const p = state.players.find(x => String(x.id) === String(pid));
     if (!p) continue;
-    if (seen.has(pid)) return showError(`${p.name} is listed twice.`);
+    if (seen.has(pid)) return showError(`Player '${p.name}' is added twice in performance rows.`);
     seen.add(pid);
-    if (p.team !== t1 && p.team !== t2) return showError(`${p.name} does not play for ${t1} or ${t2}.`);
-    const num = c => Math.max(0, parseInt(row.querySelector(c).value) || 0);
-    perfs.push({ pid, runs: num(".perfRuns"), wkts: Math.min(10, num(".perfWkts")), conc: num(".perfConc"), notOut: row.querySelector(".perfNotOut").value === "1" });
+
+    const runs = Math.max(0, parseInt(row.querySelector(".perfRuns").value) || 0);
+    const notOut = row.querySelector(".perfNotOut").value === "1";
+    const wkts = Math.min(10, Math.max(0, parseInt(row.querySelector(".perfWkts").value) || 0));
+    const conc = Math.max(0, parseInt(row.querySelector(".perfConc").value) || 0);
+
+    perfs.push({ pid: p.id, runs, notOut, wkts, conc });
   }
-  let winner = "", result = status;
+
+  let result = "Match Abandoned / No Result";
+  let winner = "";
   if (done) {
-    if (s1.runs > s2.runs) { winner = t1; result = `${t1} won by ${s1.runs - s2.runs} runs`; }
-    else if (s2.runs > s1.runs) { winner = t2; result = `${t2} won by ${10 - s2.wkts} wickets`; }
-    else result = "Match tied";
+    if (s1.runs > s2.runs) {
+      winner = t1;
+      result = `${t1} won by ${s1.runs - s2.runs} runs`;
+    } else if (s2.runs > s1.runs) {
+      winner = t2;
+      const wktsLeft = 10 - s2.wkts;
+      result = `${t2} won by ${wktsLeft} wicket${wktsLeft === 1 ? "" : "s"}`;
+    } else {
+      result = "Match Tied";
+    }
   }
-  const z = n => done ? { runs: n.runs, wkts: n.wkts, overs: n.overs } : { runs: 0, wkts: 0, overs: "0.0" };
-  const a = z(s1), b = z(s2);
-  const fx = {
-    id: Date.now(), season, team1: t1, team2: t2, status, oversLimit: limit, winner, result, perfs,
-    title: clean($("matchTitle").value) || `Match ${state.fixtures.filter(f => f.season === season).length + 1}`,
-    team1Runs: a.runs, team1Wickets: a.wkts, team1Overs: a.overs,
-    team2Runs: b.runs, team2Wickets: b.wkts, team2Overs: b.overs
+
+  const title = clean(v("matchTitle"), 80) || `Match ${state.fixtures.length + 1}`;
+  const matchRecord = {
+    id: generateId(),
+    season,
+    title,
+    team1: t1,
+    team2: t2,
+    status,
+    oversLimit: limit,
+    team1Runs: s1.runs,
+    team1Wickets: s1.wkts,
+    team1Overs: s1.overs,
+    team2Runs: s2.runs,
+    team2Wickets: s2.wkts,
+    team2Overs: s2.overs,
+    winner,
+    result,
+    perfs,
+    noScore: !done
   };
-  if (await commit(() => state.fixtures.push(fx), "✅ Match saved. Table, NRR and careers updated.")) resetMatchForm();
+
+  const ok = await commit(() => state.fixtures.push(matchRecord), "🏏 Match saved successfully");
+  if (ok) resetMatchForm();
 }
 
-/* ---------- Quick result (no scores) ---------- */
-function findTeams(text) {
-  let work = text.toLowerCase(); const found = [];
-  [...state.teams].sort((a, b) => b.length - a.length).forEach(t => {
-    const i = work.indexOf(t.toLowerCase());
-    if (i >= 0) { found.push({ t, i }); work = work.slice(0, i) + " ".repeat(t.length) + work.slice(i + t.length); }
-  });
-  return found.sort((a, b) => a.i - b.i).map(x => x.t);
-}
-async function quickResult() {
-  const input = $("pointsAiUserPrompt"), text = clean(input.value, 120); if (!text) return;
-  const box = $("pointsAiChatBox");
-  const say = (c, m) => { box.insertAdjacentHTML("beforeend", `<div class="chat-msg ${c}">${esc(m)}</div>`); box.scrollTop = box.scrollHeight; };
-  say("chat-user", text); input.value = "";
-  const teams = findTeams(text);
-  if (teams.length < 2) return say("chat-ai", "I couldn't find two registered team names. Try: Team A beat Team B");
-  const [a, b] = teams, low = text.toLowerCase();
-  const tie = /\b(tie|tied|draw|drew)\b/.test(low), rev = /\b(lost to|lose to|loses to|defeated by)\b/.test(low);
-  const winner = tie ? "" : rev ? b : a, loser = winner === a ? b : a;
-  const result = tie ? `${a} tied with ${b}` : `${winner} defeated ${loser}`;
-  const ok = await commit(() => state.fixtures.push({
-    id: Date.now(), title: `Match ${state.fixtures.filter(f => f.season === viewSeason).length + 1}`, season: viewSeason,
-    team1: a, team2: b, status: "Completed", oversLimit: 20, winner, result, noScore: true, perfs: [],
-    team1Runs: 0, team1Wickets: 0, team1Overs: "0.0", team2Runs: 0, team2Wickets: 0, team2Overs: "0.0"
-  }));
-  say("chat-ai", ok ? `✅ ${result} (Season ${viewSeason}). NRR unaffected; use Match Entry to include scores.` : "Could not save that result.");
+/* ---------- Quick Result Parser ---------- */
+function quickResult() {
+  const prompt = clean($("pointsAiUserPrompt").value, 100);
+  if (!prompt) return showError("Enter a result string, e.g. 'Team A beat Team B'.");
+
+  const match = prompt.match(/(.+) (beat|defeated|lost to|tied with) (.+)/i);
+  if (!match) return showError("Format not recognized. Use: 'Team A beat Team B' or 'Team A tied with Team B'.");
+
+  const [, t1Raw, verb, t2Raw] = match;
+  const findTeam = name => state.teams.find(t => t.toLowerCase() === name.trim().toLowerCase());
+  const t1 = findTeam(t1Raw), t2 = findTeam(t2Raw);
+
+  if (!t1 || !t2) return showError("Could not find match for one or both team names.");
+
+  let winner = "";
+  let result = "";
+  const v = verb.toLowerCase();
+
+  if (v === "beat" || v === "defeated") {
+    winner = t1; result = `${t1} beat ${t2}`;
+  } else if (v === "lost to") {
+    winner = t2; result = `${t2} beat ${t1}`;
+  } else {
+    result = `${t1} tied with ${t2}`;
+  }
+
+  const fixture = {
+    id: generateId(),
+    season: viewSeason,
+    title: `Quick Match: ${t1} vs ${t2}`,
+    team1: t1, team2: t2,
+    status: "Completed",
+    winner, result,
+    noScore: true, perfs: []
+  };
+
+  commit(() => state.fixtures.push(fixture), "⚡ Quick result saved");
+  $("pointsAiUserPrompt").value = "";
 }
 
-/* ---------- Consent ---------- */
-function setConsent(v) {
-  try { localStorage.setItem("cnt-consent", v); } catch {}
-  if (v === "granted") gtag("consent", "update", { analytics_storage: "granted" });
-  $("consentBar").hidden = true;
-}
-function initConsent() {
-  let c = null; try { c = localStorage.getItem("cnt-consent"); } catch {}
-  if (c === "granted") gtag("consent", "update", { analytics_storage: "granted" });
-  else if (!c) $("consentBar").hidden = false;
-}
-
-/* ---------- Events (delegated: no inline handlers carrying user data) ---------- */
+/* ---------- Centralized Event Delegation ---------- */
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-act]"); if (!t) return;
-  const { act, id, name } = t.dataset;
-  ({
-    season: () => { viewSeason = +id; renderPublic(); },
-    match: () => showMatchDetails(+id),
-    renameTeam: () => renameTeam(name),
-    deleteTeam: () => deleteTeam(name),
-    deletePlayer: () => deletePlayer(+id),
-    deleteMatch: () => deleteMatch(+id),
-    readNotif: () => markRead(+id),
-    delNotif: () => deleteFeedback(+id),
-    rmPerf: () => t.closest(".perf-row").remove()
-  }[act] || (() => {}))();
-});
-document.addEventListener("change", e => { if (e.target.dataset?.tier) setTier(e.target.dataset.tier, e.target.value); });
-$("pvpPlayer1Select").addEventListener("change", updatePvP);
-$("pvpPlayer2Select").addEventListener("change", updatePvP);
-$("teamFilter").addEventListener("change", renderPlayers);
-$("roleFilter").addEventListener("change", renderPlayers);
-let searchTimer; $("playerSearch").addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(renderPlayers, 150); });
-$("pointsAiUserPrompt").addEventListener("keydown", e => { if (e.key === "Enter") quickResult(); });
-$("newTeamName").addEventListener("keydown", e => { if (e.key === "Enter") addTeam(); });
+  const btn = e.target.closest("[data-act]");
+  if (!btn) return;
 
-/* ---------- Boot ---------- */
-initConsent();
-initAuth();
-loadState();
+  const act = btn.dataset.act;
+  const id = btn.dataset.id;
+  const name = btn.dataset.name;
+
+  switch (act) {
+    case "season":
+      viewSeason = +id;
+      renderAll();
+      break;
+    case "match":
+      showMatchDetails(id);
+      break;
+    case "deleteMatch":
+      deleteMatch(id);
+      break;
+    case "deleteTeam":
+      deleteTeam(name);
+      break;
+    case "renameTeam":
+      renameTeam(name);
+      break;
+    case "deletePlayer":
+      deletePlayer(id);
+      break;
+    case "rmPerf":
+      btn.closest(".perf-row")?.remove();
+      break;
+    case "readNotif":
+      markRead(id);
+      break;
+    case "delNotif":
+      deleteFeedback(id);
+      break;
+  }
+});
+
+/* Init */
+window.addEventListener("DOMContentLoaded", () => {
+  initAuth();
+  loadState();
+});
