@@ -12,8 +12,8 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNT-League | Premier Cricket Tournament Engine</title>
-  <meta name="description" content="CNT-League official tournament dashboard: points table, playoff bracket, fixtures, and player career statistics.">
+  <title>CNT-League | Premier Cricket Engine</title>
+  <meta name="description" content="CNT-League official tournament engine: points table, single semi-final playoff bracket, fixtures, and player career statistics.">
   
   <meta property="og:title" content="CNT-League | Premier Cricket Engine">
   <meta property="og:description" content="Live standings, NRR calculations, playoff brackets, scorecards, and player stats.">
@@ -68,10 +68,11 @@
     <div class="season-grid" id="seasonsGrid"></div>
   </section>
 
+  <!-- Points Table with Shiny Metallic Rows -->
   <section id="standings">
     <div class="section-head"><div class="kicker">Live Overview</div><h2 id="standingsTitle">Points Table</h2></div>
     <div class="panel">
-      <table>
+      <table class="shiny-table">
         <caption class="sr-only">Points table</caption>
         <thead>
           <tr>
@@ -85,7 +86,7 @@
     </div>
   </section>
 
-  <!-- Premier Visual Playoff Bracket -->
+  <!-- Single Semi-Final Visual Playoff Bracket -->
   <section id="bracket">
     <div class="section-head"><div class="kicker">Knockouts</div><h2>Playoff Bracket</h2></div>
     <div id="championBanner"></div>
@@ -130,7 +131,7 @@
     </div>
   </section>
 
-  <!-- Roster with Season vs Overall Stats Toggle -->
+  <!-- Roster with Season vs Overall Stats Filter -->
   <section id="players">
     <div class="section-head row-between">
       <div><div class="kicker">Full Roster</div><h2>Player Stats & Records</h2></div>
@@ -201,7 +202,7 @@
 <div id="adminModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
   <div class="modal admin-large-panel">
     <div class="admin-top-bar">
-      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">AI Engine, Tournament Brackets & Server Data</span></div>
+      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">AI Engine, Single SF Playoff Bracket & Database Controls</span></div>
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" disabled>↪️ Redo</button>
@@ -221,7 +222,7 @@
       </aside>
 
       <div class="admin-main-content">
-        <!-- AI MATCH PARSER ENGINE TAB -->
+        <!-- AI MATCH ENGINE TAB -->
         <div id="tabAi" class="tab-content active">
           <h3>🤖 AI NATURAL MATCH ENGINE</h3>
           <p class="sub mb10">Type or paste match summary in plain / tooti-pooti English. AI automatically extracts scores, overs, winner, NRR, and player stats!</p>
@@ -232,7 +233,6 @@
             <button class="btn primary full" onclick="processAiMatchInput()">⚡ Analyze & Extract Match Data</button>
           </div>
 
-          <!-- Parsed Extracted Preview Box -->
           <div id="aiPreviewBox" class="inset mt12" style="display:none;">
             <h4 class="gold">Match Data Extracted:</h4>
             <div id="aiPreviewContent" class="detail-text mt6 mb10"></div>
@@ -246,34 +246,34 @@
           <div id="matchesManageList" class="mt6"></div>
         </div>
 
-        <!-- BRACKET ENGINE TAB -->
+        <!-- STREAMLINED SINGLE SEMI-FINAL BRACKET SETUP TAB -->
         <div id="tabBracket" class="tab-content">
           <h3>🏆 PLAYOFF BRACKET SETUP</h3>
           <div class="inset mb10">
-            <h4 class="gold mb6">Set Knockout Matches</h4>
-            <div class="grid2 mb10">
-              <div class="inset2">
-                <strong class="teal small">Semi-Final 1</strong>
-                <select id="admSf1Team1" class="mt6"></select>
-                <select id="admSf1Team2" class="mt6"></select>
-                <select id="admSf1Winner" class="mt6"></select>
+            <h4 class="gold mb6">Configure Single Semi-Final & Grand Final</h4>
+            
+            <!-- Table Style Admin Bracket Grid -->
+            <div class="admin-bracket-grid mt10">
+              <div class="admin-bracket-row">
+                <strong class="teal small">SEMI-FINAL</strong>
+                <div class="grid3 mt6">
+                  <select id="admSfTeam1" aria-label="SF Team 1"></select>
+                  <select id="admSfTeam2" aria-label="SF Team 2"></select>
+                  <select id="admSfWinner" aria-label="SF Winner"></select>
+                </div>
               </div>
-              <div class="inset2">
-                <strong class="teal small">Semi-Final 2</strong>
-                <select id="admSf2Team1" class="mt6"></select>
-                <select id="admSf2Team2" class="mt6"></select>
-                <select id="admSf2Winner" class="mt6"></select>
+
+              <div class="admin-bracket-row mt12">
+                <strong class="gold small">🏆 GRAND FINAL</strong>
+                <div class="grid3 mt6">
+                  <select id="admFinalTeam1" aria-label="Final Team 1"></select>
+                  <select id="admFinalTeam2" aria-label="Final Team 2"></select>
+                  <select id="admFinalWinner" aria-label="Champion"></select>
+                </div>
               </div>
             </div>
-            <div class="inset2 mb10">
-              <strong class="gold small">🏆 GRAND FINAL</strong>
-              <div class="grid2 mt6">
-                <select id="admFinalTeam1"></select>
-                <select id="admFinalTeam2"></select>
-              </div>
-              <select id="admFinalWinner" class="mt6"></select>
-            </div>
-            <button class="btn primary full" onclick="saveBracket()">💾 Save Bracket Setup</button>
+
+            <button class="btn primary full mt16" onclick="saveBracket()">💾 Save Bracket Setup</button>
           </div>
         </div>
 
@@ -295,7 +295,6 @@
           <hr>
           <div class="mb16">
             <h4>Players (Roster & Base Stats)</h4>
-            <p class="sub">Add or adjust base career numbers for players.</p>
             <div class="grid2 mt6">
               <input type="text" id="manualPlayerName" placeholder="Player name" maxlength="40">
               <select id="manualPlayerTeam"></select>
