@@ -1,174 +1,1325 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNT League | Local Manager</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNT League | Local Manager</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #090e1b;
+  --sidebar: #0d1424;
+  --panel: #121c2e;
+  --panel2: #18253a;
+  --border: #28364e;
+  --text: #f1f5f9;
+  --muted: #91a0b7;
+  --blue: #8ba8ff;
+  --green: #4ade80;
+  --red: #fb7185;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.6 "Segoe UI", Arial, sans-serif;
+}
+
+button, input, select { font: inherit; }
+button, .button { cursor: pointer; }
+
+.app {
+  display: grid;
+  grid-template-columns: 235px minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  padding: 26px 16px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 8px;
+}
+
+.brand-icon { font-size: 30px; }
+
+.brand h2 {
+  font-size: 19px;
+  margin: 0;
+  letter-spacing: -.5px;
+}
+
+.brand small {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+
+.nav-label {
+  margin: 0 10px 8px;
+  color: #6f8099;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+}
+
+nav { display: grid; gap: 5px; }
+
+nav a {
+  color: #aebbd0;
+  text-decoration: none;
+  padding: 11px 13px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+nav a:hover, nav a.active {
+  color: white;
+  background: #1c2b45;
+}
+
+nav a.active { box-shadow: inset 3px 0 var(--blue); }
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 13px;
+  background: #121e30;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 7px;
+}
+
+.sidebar-bottom small { color: var(--muted); }
+
+main {
+  width: 100%;
+  max-width: 1600px;
+  min-width: 0;
+  padding: 32px;
+  margin: 0 auto;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 27px;
+}
+
+.eyebrow {
+  color: var(--blue);
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  font-weight: 800;
+  margin: 0 0 5px;
+}
+
+h1 {
+  font-size: clamp(25px, 3vw, 34px);
+  letter-spacing: -1px;
+  margin: 0;
+  line-height: 1.25;
+}
+
+h2, h3, p { margin-top: 0; }
+
+.subtitle {
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+
+.badge {
+  white-space: nowrap;
+  background: #102b25;
+  color: var(--green);
+  border: 1px solid #245b46;
+  padding: 6px 11px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.section { scroll-margin-top: 20px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.stat, .panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+}
+
+.stat { padding: 19px; }
+
+.stat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-label { color: var(--muted); font-size: 12px; }
+
+.stat-icon {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
+  background: #22314b;
+  font-size: 17px;
+}
+
+.stat h2 {
+  font-size: 29px;
+  margin: 13px 0 0;
+  letter-spacing: -1px;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.panel {
+  padding: 22px;
+  margin-bottom: 20px;
+  min-width: 0;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.panel-heading h2 { font-size: 17px; margin: 0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+
+form { display: grid; gap: 13px; }
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: #b7c4d8;
+  font-size: 12px;
+}
+
+input, select {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  color: var(--text);
+  background: #0b1322;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px #8ba8ff20;
+}
+
+button, .button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 10px 14px;
+  background: var(--blue);
+  color: #10182b;
+  font-weight: 750;
+  font-size: 12px;
+  transition: filter .15s, transform .15s;
+}
+
+button:hover, .button:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+button:focus-visible, a:focus-visible, .button:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+
+button:disabled { opacity: .4; cursor: not-allowed; }
+
+button.secondary, .button.secondary {
+  background: var(--panel2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+button.danger {
+  background: #3b202d;
+  border-color: #633044;
+  color: #fda4af;
+}
+
+.team-list, .match-list { display: grid; gap: 10px; }
+
+.team-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+  background: #0e1727;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+}
+
+.team-name { overflow-wrap: anywhere; font-weight: 650; }
+
+.team-actions, .button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.team-actions button { padding: 7px 10px; }
+
+.match-card {
+  padding: 15px;
+  border: 1px solid var(--border);
+  background: #0e1727;
+  border-radius: 10px;
+}
+
+.match-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.match-top strong { font-size: 13px; }
+
+.match-status {
+  font-size: 10px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+.match-status.completed { color: var(--green); }
+
+.match-score {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  padding: 11px 0 5px;
+  letter-spacing: .5px;
+}
+
+.match-result {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  margin-bottom: 12px;
+}
+
+.match-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.table-wrap { overflow-x: auto; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  white-space: nowrap;
+  text-align: left;
+}
+
+th, td {
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 650;
+  font-size: 11px;
+}
+
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr:hover { background: #ffffff06; }
+
+.rank {
+  display: inline-grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  background: #23324c;
+  border-radius: 7px;
+  font-weight: 800;
+}
+
+.points { color: var(--green); font-weight: 800; }
+
+.empty {
+  padding: 24px 12px;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.empty span { display: block; font-size: 25px; margin-bottom: 6px; }
+
+.message {
+  padding: 11px 13px;
+  border-radius: 8px;
+  background: #123024;
+  border: 1px solid #28583f;
+  color: #a7f3c0;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+.message.error {
+  background: #351a26;
+  border-color: #633044;
+  color: #fda4af;
+}
+
+[hidden] { display: none !important; }
+
+footer {
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  padding: 18px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+@media (max-width: 1050px) {
+  main { padding: 23px; }
+  .content-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 760px) {
+  .app { display: block; }
+  .sidebar {
+    position: static;
+    height: auto;
+    padding: 17px;
+    gap: 15px;
+  }
+  .sidebar-bottom { display: none; }
+  nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 5px;
+  }
+  nav a { flex-shrink: 0; padding: 9px 11px; }
+  .nav-label { display: none; }
+  main { padding: 20px 14px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .stat { padding: 14px; }
+  .stat h2 { font-size: 25px; }
+  .panel { padding: 16px; }
+}
+
+@media (max-width: 420px) {
+  header { align-items: flex-start; flex-direction: column; }
+  .form-row { grid-template-columns: 1fr; }
+  .stat-icon { width: 29px; height: 29px; }
+}
+</style>
 </head>
+
 <body>
+<div class="app">
+
   <aside class="sidebar">
-    <h2>🏏 CNT League</h2>
-    <p class="muted">LOCAL TOURNAMENT MANAGER</p>
+    <div class="brand">
+      <span class="brand-icon">🏏</span>
+      <div>
+        <h2>CNT League</h2>
+        <small>TOURNAMENT MANAGER</small>
+      </div>
+    </div>
 
-    <nav>
-      <a href="#dashboard">Dashboard</a>
-      <a href="#matches">Matches</a>
-      <a href="#standings">Points Table</a>
-      <a href="#teams">Teams</a>
-      <a href="#backup">Data Backup</a>
-    </nav>
+    <div>
+      <p class="nav-label">WORKSPACE</p>
+      <nav>
+        <a class="active" href="#dashboard">▦ Dashboard</a>
+        <a href="#teams">♟ Teams</a>
+        <a href="#matches">▤ Matches</a>
+        <a href="#standings">🏆 Points Table</a>
+        <a href="#backup">⚙ Data & Backup</a>
+      </nav>
+    </div>
 
-    <div class="local-status">
-      <span class="status-dot"></span>
-      Running locally
+    <div class="sidebar-bottom">
+      <div><span class="dot"></span><strong>Local mode</strong></div>
+      <small>Your data is saved in this browser.</small>
     </div>
   </aside>
 
   <main>
-    <header class="topbar">
+    <header id="dashboard" class="section">
       <div>
-        <p class="eyebrow">TOURNAMENT CONTROL</p>
+        <p class="eyebrow">TOURNAMENT CONTROL CENTER</p>
         <h1>CNT League Dashboard</h1>
-        <p class="muted">Manage your league from one place.</p>
+        <p class="subtitle">Your league, your stats, your control.</p>
       </div>
-      <span class="pill">LOCAL MODE</span>
+      <span class="badge">● LOCAL MODE</span>
     </header>
 
-    <section id="dashboard">
-      <div class="stats-grid">
-        <article class="stat-card">
-          <p>Total Teams</p>
-          <h2 id="teamCount">0</h2>
-        </article>
-        <article class="stat-card">
-          <p>Total Matches</p>
-          <h2 id="matchCount">0</h2>
-        </article>
-        <article class="stat-card">
-          <p>Completed</p>
-          <h2 id="completedCount">0</h2>
-        </article>
-        <article class="stat-card">
-          <p>Remaining</p>
-          <h2 id="remainingCount">0</h2>
-        </article>
-      </div>
-    </section>
+    <div id="message" class="message" role="status" hidden></div>
 
-    <section id="teams" class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">LEAGUE SETUP</p>
-          <h2>Teams</h2>
+    <section class="stats">
+      <article class="stat">
+        <div class="stat-top">
+          <span class="stat-label">Total Teams</span>
+          <span class="stat-icon">♟</span>
         </div>
-      </div>
+        <h2 id="teamCount">0</h2>
+      </article>
 
-      <form id="teamForm" class="inline-form">
-        <input id="teamName" placeholder="Enter team name" maxlength="50" required>
-        <button type="submit">+ Add Team</button>
-      </form>
-
-      <div id="teamList" class="team-list"></div>
-    </section>
-
-    <section id="matches" class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">FIXTURES & RESULTS</p>
-          <h2>Matches</h2>
+      <article class="stat">
+        <div class="stat-top">
+          <span class="stat-label">Total Matches</span>
+          <span class="stat-icon">🏏</span>
         </div>
-      </div>
+        <h2 id="matchCount">0</h2>
+      </article>
 
-      <form id="matchForm" class="form-grid">
-        <label>
-          Team A
-          <select id="teamA" required></select>
-        </label>
-
-        <label>
-          Team B
-          <select id="teamB" required></select>
-        </label>
-
-        <label>
-          Team A runs
-          <input id="runsA" type="number" min="0" max="999" placeholder="Runs">
-        </label>
-
-        <label>
-          Team B runs
-          <input id="runsB" type="number" min="0" max="999" placeholder="Runs">
-        </label>
-
-        <label>
-          Match status
-          <select id="matchStatus">
-            <option value="upcoming">Upcoming</option>
-            <option value="completed">Completed</option>
-          </select>
-        </label>
-
-        <button type="submit">Save Match</button>
-      </form>
-
-      <p class="muted small">
-        This starter records runs only. Full cricket scorecards,
-        overs, wickets, NRR and tie-break rules come in later iterations.
-      </p>
-
-      <div id="matchList" class="match-list"></div>
-    </section>
-
-    <section id="standings" class="panel">
-      <div class="section-heading">
-        <div>
-          <p class="eyebrow">LEAGUE RANKINGS</p>
-          <h2>Points Table</h2>
+      <article class="stat">
+        <div class="stat-top">
+          <span class="stat-label">Completed</span>
+          <span class="stat-icon">✓</span>
         </div>
-      </div>
+        <h2 id="completedCount">0</h2>
+      </article>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Team</th>
-              <th>Played</th>
-              <th>Won</th>
-              <th>Lost</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody id="standingsBody"></tbody>
-        </table>
-      </div>
-      <p class="muted small">Default scoring: 2 points per win, 0 per loss.</p>
+      <article class="stat">
+        <div class="stat-top">
+          <span class="stat-label">Upcoming</span>
+          <span class="stat-icon">◷</span>
+        </div>
+        <h2 id="upcomingCount">0</h2>
+      </article>
     </section>
 
-    <section id="backup" class="panel">
-      <p class="eyebrow">DATA MANAGEMENT</p>
-      <h2>Backup & Restore</h2>
-      <p class="muted">
-        Export your local data regularly. Restoring a backup replaces
-        the current teams and matches.
-      </p>
+    <div class="content-grid">
+      <div>
+        <section class="panel section" id="teams">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">LEAGUE SETUP</p>
+              <h2>Manage Teams</h2>
+            </div>
+            <span class="badge" id="teamBadge">0 TEAMS</span>
+          </div>
 
-      <div class="button-row">
-        <button id="exportBtn">Export JSON</button>
-        <label class="button secondary" for="importFile">
-          Restore backup
-        </label>
-        <input id="importFile" type="file" accept=".json,application/json" hidden>
+          <form id="teamForm">
+            <label>
+              Team name
+              <input id="teamName" maxlength="50"
+                     placeholder="e.g. Lahore Lions" required>
+            </label>
+            <button type="submit">+ Add Team</button>
+          </form>
+
+          <div style="height:18px"></div>
+          <div class="team-list" id="teamList"></div>
+        </section>
+
+        <section class="panel section" id="matches">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">FIXTURES & RESULTS</p>
+              <h2>Match Center</h2>
+            </div>
+            <span class="badge" id="matchBadge">0 MATCHES</span>
+          </div>
+
+          <form id="matchForm">
+            <div class="form-row">
+              <label>
+                Team A
+                <select id="teamA" required>
+                  <option value="">Select team</option>
+                </select>
+              </label>
+              <label>
+                Team B
+                <select id="teamB" required>
+                  <option value="">Select team</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="form-row">
+              <label>
+                Team A runs
+                <input id="runsA" type="number" min="0" max="999"
+                       placeholder="Runs">
+              </label>
+              <label>
+                Team B runs
+                <input id="runsB" type="number" min="0" max="999"
+                       placeholder="Runs">
+              </label>
+            </div>
+
+            <label>
+              Status
+              <select id="matchStatus">
+                <option value="upcoming">Upcoming fixture</option>
+                <option value="completed">Completed match</option>
+              </select>
+            </label>
+
+            <button type="submit">Save Match</button>
+          </form>
+
+          <p class="muted small">
+            Completed matches update the points table automatically.
+          </p>
+
+          <div style="height:15px"></div>
+          <div class="match-list" id="matchList"></div>
+        </section>
       </div>
 
-      <p id="message" role="status" aria-live="polite"></p>
-    </section>
+      <div>
+        <section class="panel section" id="standings">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">LEAGUE RANKINGS</p>
+              <h2>Points Table</h2>
+            </div>
+            <span>🏆</span>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>POS</th>
+                  <th>TEAM</th>
+                  <th>P</th>
+                  <th>W</th>
+                  <th>L</th>
+                  <th>PTS</th>
+                </tr>
+              </thead>
+              <tbody id="standingsBody"></tbody>
+            </table>
+          </div>
+
+          <p class="muted small">
+            P = Played · W = Won · L = Lost · PTS = Points
+          </p>
+          <p class="muted small">
+            Basic scoring: 2 points for a win. Ties earn 1 point each.
+          </p>
+        </section>
+
+        <section class="panel section" id="backup">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">DATA MANAGEMENT</p>
+              <h2>Backup & Restore</h2>
+            </div>
+            <span>💾</span>
+          </div>
+
+          <p class="muted small">
+            Export your teams and matches as JSON. You can restore
+            that file later on this browser.
+          </p>
+
+          <div class="button-row">
+            <button id="exportBtn" type="button">Export backup</button>
+            <label for="importFile" class="button secondary">
+              Restore backup
+            </label>
+            <input id="importFile" type="file"
+                   accept=".json,application/json" hidden>
+          </div>
+
+          <div style="height:20px"></div>
+          <button id="resetBtn" class="danger" type="button">
+            Reset all data
+          </button>
+          <p class="muted small">
+            Reset permanently deletes saved data in this browser.
+            Export a backup first.
+          </p>
+        </section>
+      </div>
+    </div>
 
     <footer>
-      CNT League · Local edition · Your data stays in this browser
+      CNT League · Local Tournament Manager · No account required
     </footer>
   </main>
+</div>
+
+<script>
+"use strict";
+
+const KEY = "cnt-league-local-v2";
+const $ = id => document.getElementById(id);
+
+const ui = {
+  teamForm: $("teamForm"),
+  teamName: $("teamName"),
+  teamList: $("teamList"),
+  matchForm: $("matchForm"),
+  teamA: $("teamA"),
+  teamB: $("teamB"),
+  runsA: $("runsA"),
+  runsB: $("runsB"),
+  matchStatus: $("matchStatus"),
+  matchList: $("matchList"),
+  standingsBody: $("standingsBody"),
+  message: $("message")
+};
+
+function emptyState() {
+  return { version: 2, teams: [], matches: [] };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return emptyState();
+
+    const data = JSON.parse(raw);
+    validateState(data);
+    return data;
+  } catch (error) {
+    console.error(error);
+    alert("Saved data could not be loaded. It has not been overwritten.");
+    return emptyState();
+  }
+}
+
+let state = loadState();
+let messageTimer;
+
+function validateState(data) {
+  if (
+    !data ||
+    data.version !== 2 ||
+    !Array.isArray(data.teams) ||
+    !Array.isArray(data.matches)
+  ) {
+    throw new Error("Invalid backup format.");
+  }
+
+  const ids = new Set();
+
+  for (const team of data.teams) {
+    if (
+      typeof team.id !== "string" ||
+      typeof team.name !== "string" ||
+      !team.name.trim() ||
+      ids.has(team.id)
+    ) {
+      throw new Error("Invalid or duplicate team.");
+    }
+    ids.add(team.id);
+  }
+
+  const matchIds = new Set();
+
+  for (const match of data.matches) {
+    if (
+      typeof match.id !== "string" ||
+      matchIds.has(match.id) ||
+      !ids.has(match.teamA) ||
+      !ids.has(match.teamB) ||
+      match.teamA === match.teamB ||
+      !["upcoming", "completed"].includes(match.status)
+    ) {
+      throw new Error("Invalid match.");
+    }
+
+    if (match.status === "completed") {
+      for (const score of [match.runsA, match.runsB]) {
+        if (
+          !Number.isSafeInteger(score) ||
+          score < 0 ||
+          score > 999
+        ) throw new Error("Invalid match score.");
+      }
+    }
+
+    matchIds.add(match.id);
+  }
+}
+
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    return true;
+  } catch (error) {
+    console.error(error);
+    notify("Could not save data. Export a backup and check storage.", true);
+    return false;
+  }
+}
+
+function id() {
+  return crypto.randomUUID
+    ? crypto.randomUUID()
+    : Date.now() + "-" + Math.random().toString(36).slice(2);
+}
+
+function safe(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function notify(text, error = false) {
+  clearTimeout(messageTimer);
+  ui.message.textContent = text;
+  ui.message.classList.toggle("error", error);
+  ui.message.hidden = false;
+
+  messageTimer = setTimeout(() => {
+    ui.message.hidden = true;
+  }, 4500);
+}
+
+function team(teamId) {
+  return state.teams.find(t => t.id === teamId);
+}
+
+function renderTeamOptions() {
+  const oldA = ui.teamA.value;
+  const oldB = ui.teamB.value;
+
+  const options = state.teams.map(t =>
+    `<option value="${safe(t.id)}">${safe(t.name)}</option>`
+  ).join("");
+
+  ui.teamA.innerHTML = '<option value="">Select team</option>' + options;
+  ui.teamB.innerHTML = '<option value="">Select team</option>' + options;
+
+  if (team(oldA)) ui.teamA.value = oldA;
+  if (team(oldB)) ui.teamB.value = oldB;
+}
+
+function renderTeams() {
+  $("teamBadge").textContent = `${state.teams.length} TEAMS`;
+
+  if (!state.teams.length) {
+    ui.teamList.innerHTML =
+      '<div class="empty"><span>♟</span>No teams yet. Add your first team.</div>';
+    return;
+  }
+
+  ui.teamList.innerHTML = state.teams.map(t => `
+    <div class="team-item">
+      <span class="team-name">🏏 ${safe(t.name)}</span>
+      <div class="team-actions">
+        <button class="secondary" data-rename="${safe(t.id)}">Rename</button>
+        <button class="danger" data-delete-team="${safe(t.id)}">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function winner(match) {
+  if (match.status !== "completed") return null;
+  if (match.runsA > match.runsB) return match.teamA;
+  if (match.runsB > match.runsA) return match.teamB;
+  return null;
+}
+
+function renderMatches() {
+  $("matchBadge").textContent = `${state.matches.length} MATCHES`;
+
+  if (!state.matches.length) {
+    ui.matchList.innerHTML =
+      '<div class="empty"><span>🏏</span>No matches yet. Create your first fixture.</div>';
+    return;
+  }
+
+  ui.matchList.innerHTML = [...state.matches].reverse().map(m => {
+    const a = team(m.teamA);
+    const b = team(m.teamB);
+    if (!a || !b) return "";
+
+    const completed = m.status === "completed";
+    const result = winner(m);
+    const resultText = result
+      ? `${team(result).name} won`
+      : completed ? "Match tied" : "Awaiting result";
+
+    return `
+      <article class="match-card">
+        <div class="match-top">
+          <strong>${safe(a.name)} vs ${safe(b.name)}</strong>
+          <span class="match-status ${completed ? "completed" : ""}">
+            ${completed ? "COMPLETED" : "UPCOMING"}
+          </span>
+        </div>
+
+        <div class="match-score">
+          ${completed ? `${m.runsA} - ${m.runsB}` : "VS"}
+        </div>
+        <div class="match-result">${safe(resultText)}</div>
+
+        <div class="match-actions">
+          ${!completed ? `
+            <button data-result="${safe(m.id)}">Enter result</button>
+          ` : `
+            <button class="secondary" data-result="${safe(m.id)}">Edit result</button>
+          `}
+          <button class="danger" data-delete-match="${safe(m.id)}">Delete</button>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
+
+function calculateStandings() {
+  const rows = state.teams.map(t => ({
+    id: t.id,
+    name: t.name,
+    played: 0,
+    won: 0,
+    lost: 0,
+    tied: 0,
+    points: 0,
+    runsFor: 0,
+    runsAgainst: 0
+  }));
+
+  const lookup = new Map(rows.map(r => [r.id, r]));
+
+  for (const m of state.matches) {
+    if (m.status !== "completed") continue;
+
+    const a = lookup.get(m.teamA);
+    const b = lookup.get(m.teamB);
+    if (!a || !b) continue;
+
+    a.played++;
+    b.played++;
+
+    a.runsFor += m.runsA;
+    a.runsAgainst += m.runsB;
+    b.runsFor += m.runsB;
+    b.runsAgainst += m.runsA;
+
+    if (m.runsA > m.runsB) {
+      a.won++;
+      b.lost++;
+      a.points += 2;
+    } else if (m.runsB > m.runsA) {
+      b.won++;
+      a.lost++;
+      b.points += 2;
+    } else {
+      a.tied++;
+      b.tied++;
+      a.points++;
+      b.points++;
+    }
+  }
+
+  return rows.sort((a, b) =>
+    b.points - a.points ||
+    b.won - a.won ||
+    (b.runsFor - b.runsAgainst) -
+      (a.runsFor - a.runsAgainst) ||
+    a.name.localeCompare(b.name)
+  );
+}
+
+function renderStandings() {
+  const rows = calculateStandings();
+
+  if (!rows.length) {
+    ui.standingsBody.innerHTML =
+      '<tr><td colspan="6" class="muted">Add teams to see standings.</td></tr>';
+    return;
+  }
+
+  ui.standingsBody.innerHTML = rows.map((r, i) => `
+    <tr>
+      <td><span class="rank">${i + 1}</span></td>
+      <td><strong>${safe(r.name)}</strong></td>
+      <td>${r.played}</td>
+      <td>${r.won}</td>
+      <td>${r.lost}</td>
+      <td class="points">${r.points}</td>
+    </tr>
+  `).join("");
+}
+
+function renderDashboard() {
+  const completed = state.matches.filter(m => m.status === "completed").length;
+
+  $("teamCount").textContent = state.teams.length;
+  $("matchCount").textContent = state.matches.length;
+  $("completedCount").textContent = completed;
+  $("upcomingCount").textContent = state.matches.length - completed;
+}
+
+function render() {
+  renderTeamOptions();
+  renderTeams();
+  renderMatches();
+  renderStandings();
+  renderDashboard();
+}
+
+// Add a team
+ui.teamForm.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const name = ui.teamName.value.trim();
+  if (!name) return;
+
+  if (state.teams.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+    notify("A team with this name already exists.", true);
+    return;
+  }
+
+  const item = { id: id(), name };
+  state.teams.push(item);
+
+  if (!save()) {
+    state.teams.pop();
+    return;
+  }
+
+  ui.teamForm.reset();
+  render();
+  notify("Team added successfully.");
+});
+
+// Rename or delete a team
+ui.teamList.addEventListener("click", event => {
+  const renameButton = event.target.closest("[data-rename]");
+  const deleteButton = event.target.closest("[data-delete-team]");
+
+  if (renameButton) {
+    const t = team(renameButton.dataset.rename);
+    if (!t) return;
+
+    const newName = prompt("Enter the new team name:", t.name);
+    if (newName === null) return;
+
+    const name = newName.trim();
+    if (!name) {
+      notify("Team name cannot be empty.", true);
+      return;
+    }
+
+    if (state.teams.some(other =>
+      other.id !== t.id && other.name.toLowerCase() === name.toLowerCase()
+    )) {
+      notify("Another team already uses that name.", true);
+      return;
+    }
+
+    const oldName = t.name;
+    t.name = name;
+
+    if (!save()) {
+      t.name = oldName;
+      return;
+    }
+
+    render();
+    notify("Team renamed.");
+  }
+
+  if (deleteButton) {
+    const teamId = deleteButton.dataset.deleteTeam;
+
+    if (state.matches.some(m => m.teamA === teamId || m.teamB === teamId)) {
+      notify("Delete this team's matches before deleting the team.", true);
+      return;
+    }
+
+    if (!confirm("Delete this team permanently?")) return;
+
+    const old = state.teams;
+    state.teams = old.filter(t => t.id !== teamId);
+
+    if (!save()) {
+      state.teams = old;
+      return;
+    }
+
+    render();
+    notify("Team deleted.");
+  }
+});
+
+// Create a fixture or a completed match
+ui.matchForm.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const teamA = ui.teamA.value;
+  const teamB = ui.teamB.value;
+  const status = ui.matchStatus.value;
+
+  if (!teamA || !teamB || teamA === teamB) {
+    notify("Choose two different teams.", true);
+    return;
+  }
+
+  if (!team(teamA) || !team(teamB)) {
+    notify("Select valid teams.", true);
+    return;
+  }
+
+  const completed = status === "completed";
+  let runsA = null;
+  let runsB = null;
+
+  if (completed) {
+    if (ui.runsA.value === "" || ui.runsB.value === "") {
+      notify("Enter both teams' scores.", true);
+      return;
+    }
+
+    runsA = Number(ui.runsA.value);
+    runsB = Number(ui.runsB.value);
+
+    if (![runsA, runsB].every(n =>
+      Number.isSafeInteger(n) && n >= 0 && n <= 999
+    )) {
+      notify("Scores must be whole numbers from 0 to 999.", true);
+      return;
+    }
+  }
+
+  const match = {
+    id: id(),
+    teamA,
+    teamB,
+    status,
+    runsA,
+    runsB,
+    createdAt: new Date().toISOString()
+  };
+
+  state.matches.push(match);
+
+  if (!save()) {
+    state.matches.pop();
+    return;
+  }
+
+  ui.matchForm.reset();
+  render();
+  notify("Match saved. Standings updated.");
+});
+
+// Enter or edit a match result; delete a match
+ui.matchList.addEventListener("click", event => {
+  const resultButton = event.target.closest("[data-result]");
+  const deleteButton = event.target.closest("[data-delete-match]");
+
+  if (resultButton) {
+    const m = state.matches.find(x => x.id === resultButton.dataset.result);
+    if (!m) return;
+
+    const a = prompt(`Runs scored by ${team(m.teamA).name}:`,
+      m.status === "completed" ? m.runsA : "");
+    if (a === null) return;
+
+    const b = prompt(`Runs scored by ${team(m.teamB).name}:`,
+      m.status === "completed" ? m.runsB : "");
+    if (b === null) return;
+
+    if (a.trim() === "" || b.trim() === "") {
+      notify("Both scores are required.", true);
+      return;
+    }
+
+    const runsA = Number(a);
+    const runsB = Number(b);
+
+    if (![runsA, runsB].every(n =>
+      Number.isSafeInteger(n) && n >= 0 && n <= 999
+    )) {
+      notify("Scores must be whole numbers from 0 to 999.", true);
+      return;
+    }
+
+    const previous = { ...m };
+    Object.assign(m, { runsA, runsB, status: "completed" });
+
+    if (!save()) {
+      Object.assign(m, previous);
+      return;
+    }
+
+    render();
+    notify("Result saved.");
+  }
+
+  if (deleteButton) {
+    if (!confirm("Delete this match and update the standings?")) return;
+
+    const old = state.matches;
+    state.matches = old.filter(m => m.id !== deleteButton.dataset.deleteMatch);
+
+    if (!save()) {
+      state.matches = old;
+      return;
+    }
+
+    render();
+    notify("Match deleted.");
+  }
+});
+
+// Export backup
+$("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {
+    type: "application/json"
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "cnt-league-backup.json";
+  link.click();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  notify("Backup exported.");
+});
+
+// Restore backup
+$("importFile").addEventListener("change", async event => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  try {
+    const data = JSON.parse(await file.text());
+    validateState(data);
+
+    if (!confirm("Restore this backup? Current data will be replaced.")) return;
+
+    const previous = state;
+    state = {
+      version: 2,
+      teams: data.teams,
+      matches: data.matches
+    };
+
+    if (!save()) {
+      state = previous;
+      return;
+    }
+
+    render();
+    notify("Backup restored successfully.");
+  } catch (error) {
+    console.error(error);
+    notify("Restore failed: " + error.message, true);
+  } finally {
+    event.target.value = "";
+  }
+});
+
+// Reset data
+$("resetBtn").addEventListener("click", () => {
+  if (!confirm("Delete ALL teams and matches permanently? Export a backup first if needed.")) {
+    return;
+  }
+
+  const previous = state;
+  state = emptyState();
+
+  if (!save()) {
+    state = previous;
+    return;
+  }
+
+  render();
+  notify("All local tournament data has been reset.");
+});
+
+// Highlight the current navigation section
+document.querySelectorAll("nav a").forEach(link => {
+  link.addEventListener("click", () => {
+    document.querySelectorAll("nav a").forEach(a => a.classList.remove("active"));
+    link.classList.add("active");
+  });
+});
+
+// Start the application
+render();
+</script>
 </body>
 </html>
