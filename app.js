@@ -1,5 +1,5 @@
 /* CNT-League Tournament Engine
- * Single Semi-Final Bracket + Metallic Tier Row Highlighting + AI Match Parser
+ * Single Semi-Final Bracket + Floating Card Table + Tier Controls (Premier, Gold, Silver, Normal, Eliminated Red)
  */
 const SUPABASE_URL = "https://slgsxvwzcmogulsrzgqm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_sQmZXNu5XfQ0m5hQ6v-Cog_HS9sLraa";
@@ -10,7 +10,7 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const clean = (s, n = 80) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
 const generateId = () => (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-// Single Semi-Final and Grand Final mapping
+const TIERS = { Premier: "👑 Premier (Cyan)", Gold: "🥇 Golden", Silver: "🥈 Silver", Normal: "Normal", Red: "🔴 Eliminated (Red Barrier)" };
 const BR = [["sf", "admSf"], ["final", "admFinal"]];
 const DEFAULT_TEAMS = ["Team A", "Team B", "Team C", "Team D"];
 
@@ -21,6 +21,7 @@ const freshState = () => ({
   seasons: [1, 2, 3, 4],
   fixtures: [],
   players: [],
+  positions: { "Team A": "Premier", "Team B": "Gold", "Team C": "Silver", "Team D": "Red" },
   bracket: {
     sf: { team1: "Team B", team2: "Team C", winner: "" },
     final: { team1: "Team A", team2: "", winner: "" }
@@ -184,7 +185,7 @@ async function confirmSaveAiMatch() {
   }
 }
 
-/* ---------- UI Modals & Helpers ---------- */
+/* ---------- UI Helpers & Modals ---------- */
 function toast(msg, bad = false) {
   const t = document.createElement("div");
   t.className = "toast" + (bad ? " bad" : ""); t.textContent = msg;
@@ -245,8 +246,10 @@ function migrate(raw) {
   const d = freshState(), s = { ...d, ...raw };
   s.siteConfig = { ...d.siteConfig, ...raw.siteConfig };
   s.bracket = { ...d.bracket, ...raw.bracket };
+  s.positions = { ...raw.positions };
   if (!Array.isArray(s.seasons)) s.seasons = [1, 2, 3, 4];
   s.teams = Array.isArray(raw.teams) && raw.teams.length ? raw.teams : [...DEFAULT_TEAMS];
+  s.teams.forEach(t => { if (!s.positions[t]) s.positions[t] = "Normal"; });
   s.fixtures = (raw.fixtures || []).map(f => ({ season: 1, status: "Completed", oversLimit: 20, ...f }));
   s.players = (raw.players || []).map(p => p.base ? p : {
     ...p,
@@ -393,12 +396,14 @@ function renderPublic() {
   $("standingsTitle").textContent = `Points Table — Season ${viewSeason}`;
   const rows = computeTable(viewSeason);
   
-  // Assign metallic shiny row classes based on rank position
+  // Render exact image-style floating rows with assigned Tiers
   $("pointsBody").innerHTML = rows.length ? rows.map((t, i) => {
+    const userTier = state.positions[t.name] || (i === 0 ? "Premier" : i === 1 ? "Gold" : i === 2 ? "Silver" : "Normal");
     let rowClass = "row-normal";
-    if (i === 0) rowClass = "row-premier";      // 1st place: Premier Radiant Cyan
-    else if (i === 1) rowClass = "row-gold";    // 2nd place: Gold Metallic Shine
-    else if (i === 2) rowClass = "row-silver";  // 3rd place: Silver Chrome Sheen
+    if (userTier === "Premier") rowClass = "row-premier";
+    else if (userTier === "Gold") rowClass = "row-gold";
+    else if (userTier === "Silver") rowClass = "row-silver";
+    else if (userTier === "Red") rowClass = "row-red"; // Full Red Barrier Tier
 
     return `
     <tr class="${rowClass}">
@@ -545,6 +550,15 @@ function renderAdmin() {
   fillSelect("manualPlayerTeam", teamPairs);
   renderBracketAdmin();
 
+  // Tier Assignment Dropdowns for Teams
+  $("adminPositionsContainer").innerHTML = state.teams.map(t => `
+    <div class="list-item mt6 row-between">
+      <strong>${esc(t)}</strong>
+      <select onchange="setTier('${esc(t)}', this.value)" aria-label="Tier for ${esc(t)}" style="max-width:220px;">
+        ${Object.entries(TIERS).map(([k, l]) => `<option value="${k}" ${(state.positions[t] || "Normal") === k ? "selected" : ""}>${l}</option>`).join("")}
+      </select>
+    </div>`).join("");
+
   $("teamsListContainer").innerHTML = state.teams.map(t => `<span class="chip">${esc(t)}
     <button data-act="renameTeam" data-name="${esc(t)}">✏️</button>
     <button data-act="deleteTeam" data-name="${esc(t)}">➖</button></span>`).join("");
@@ -606,14 +620,14 @@ function addTeam() {
   if (!n) return showError("Team name cannot be empty.");
   if (dup(n)) return showError(`Team '${n}' already exists.`);
   $("newTeamName").value = "";
-  commit(() => state.teams.push(n), "Team added");
+  commit(() => { state.teams.push(n); state.positions[n] = "Normal"; }, "Team added");
 }
 
 async function deleteTeam(name) {
   if (state.fixtures.some(f => f.team1 === name || f.team2 === name)) return showError(`'${name}' has saved matches.`);
   if (!await askDialog({ title: "Delete team", message: `Delete ${name}?`, okText: "Delete" })) return;
   commit(() => {
-    state.teams = state.teams.filter(t => t !== name);
+    state.teams = state.teams.filter(t => t !== name); delete state.positions[name];
     Object.values(state.bracket).forEach(m => ["team1", "team2", "winner"].forEach(k => { if (m[k] === name) m[k] = ""; }));
   }, "Team deleted");
 }
@@ -624,11 +638,13 @@ async function renameTeam(old) {
   if (!n || n === old || dup(n)) return;
   commit(() => {
     state.teams[state.teams.indexOf(old)] = n;
+    state.positions[n] = state.positions[old]; delete state.positions[old];
     state.players.forEach(p => { if (p.team === old) p.team = n; });
     state.fixtures.forEach(f => ["team1", "team2", "winner"].forEach(k => { if (f[k] === old) f[k] = n; }));
   }, `Renamed to ${n}`);
 }
 
+const setTier = (team, tier) => commit(() => state.positions[team] = tier, "Tier updated");
 const addSeason = () => commit(() => state.seasons.push(Math.max(...state.seasons) + 1), "Season added");
 const saveSiteText = () => { const v = clean($("editEyebrow").value, 60); if (v) commit(() => state.siteConfig.eyebrow = v, "Tagline saved"); };
 
@@ -662,7 +678,7 @@ async function resetDefaultData() {
   if (v === "RESET") { await commit(() => state = freshState()); undoStack = []; redoStack = []; }
 }
 
-/* Centralized Event Routing */
+/* Event Routing */
 document.addEventListener("click", e => {
   const btn = e.target.closest("[data-act]");
   if (!btn) return;
