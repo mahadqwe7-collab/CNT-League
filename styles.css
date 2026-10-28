@@ -99,43 +99,85 @@ h4 { font-size: 13px; }
 .season-card { font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
 .season-card:hover, .season-card.active { border-color: rgba(245, 185, 66, .45); }
 
-/* Tables */
-table { border-collapse: collapse; width: 100%; min-width: 600px; position: relative; }
-th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--panel-border); font-size: 12px; white-space: nowrap; }
-th { background: rgba(10, 20, 34, 0.95); color: var(--text-muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; position: sticky; top: 0; z-index: 2; }
-.sticky-col { position: sticky; left: 0; background: #0d1928; z-index: 3; }
-.sticky-col-2 { position: sticky; left: 45px; background: #0d1928; z-index: 3; }
+/* Tables & Metallic Glowing Tier Effects */
+table { border-collapse: separate; border-spacing: 0 6px; width: 100%; min-width: 600px; position: relative; }
+th, td { text-align: left; padding: 12px 16px; font-size: 12px; white-space: nowrap; }
+th { background: rgba(10, 20, 34, 0.95); color: var(--text-muted); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; position: sticky; top: 0; z-index: 2; border-bottom: 1px solid var(--panel-border); }
+td { border-top: 1px solid var(--panel-border); border-bottom: 1px solid var(--panel-border); }
+td:first-child { border-left: 1px solid var(--panel-border); border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+td:last-child { border-right: 1px solid var(--panel-border); border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+/* PREMIER TIER ROW (1st Rank - Ultra Radiant Cyan/Gold Glow) */
+tr.row-premier td {
+  background: linear-gradient(90deg, rgba(39, 211, 176, 0.18) 0%, rgba(16, 42, 69, 0.95) 100%);
+  border-color: rgba(39, 211, 176, 0.5);
+  box-shadow: 0 0 18px rgba(39, 211, 176, 0.35);
+}
+tr.row-premier .sticky-col, tr.row-premier .sticky-col-2 {
+  background: #092735 !important;
+  color: var(--teal);
+}
+
+/* GOLDEN TIER ROW (2nd Rank - Bright Metallic Gold Shine) */
+tr.row-gold td {
+  background: linear-gradient(90deg, rgba(245, 185, 66, 0.18) 0%, rgba(20, 36, 59, 0.95) 100%);
+  border-color: rgba(245, 185, 66, 0.45);
+  box-shadow: 0 0 14px rgba(245, 185, 66, 0.25);
+}
+tr.row-gold .sticky-col, tr.row-gold .sticky-col-2 {
+  background: #252011 !important;
+  color: var(--gold);
+}
+
+/* SILVER TIER ROW (3rd Rank - Subtle Chrome Silver Sheen) */
+tr.row-silver td {
+  background: linear-gradient(90deg, rgba(224, 224, 224, 0.12) 0%, rgba(15, 28, 46, 0.95) 100%);
+  border-color: rgba(224, 224, 224, 0.3);
+  box-shadow: 0 0 8px rgba(224, 224, 224, 0.15);
+}
+tr.row-silver .sticky-col, tr.row-silver .sticky-col-2 {
+  background: #182230 !important;
+  color: var(--silver);
+}
+
+/* NORMAL TIER ROW (4th Rank & Below) */
+tr.row-normal td {
+  background: rgba(10, 20, 34, 0.75);
+}
+
+.sticky-col { position: sticky; left: 0; z-index: 3; }
+.sticky-col-2 { position: sticky; left: 45px; z-index: 3; }
 .nrr { color: var(--teal); font-weight: 700; }
 .pts { color: var(--gold); font-weight: 800; }
 
-/* Premier Visual Knockout Bracket Engine */
+/* Visual Knockout Playoff Bracket */
 .bracket-tree-container { display: flex; gap: 20px; overflow-x: auto; padding: 10px 0; }
-.bracket-round { flex: 1; min-width: 240px; display: flex; flex-direction: column; justify-content: space-around; gap: 15px; }
+.bracket-round { flex: 1; min-width: 260px; display: flex; flex-direction: column; justify-content: center; gap: 15px; }
 .bracket-title { font-size: 11px; font-weight: 800; color: var(--teal); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; text-align: center; }
-.bracket-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 12px; box-shadow: var(--shadow-glow); position: relative; }
-.bracket-team { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 6px; background: var(--inset); border: 1px solid var(--panel-border); margin-top: 6px; font-size: 13px; font-weight: 700; }
-.bracket-team.win { border-color: var(--gold); color: var(--gold); background: rgba(245, 185, 66, 0.08); }
+.bracket-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-glow); }
+.bracket-team { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 6px; background: var(--inset); border: 1px solid var(--panel-border); margin-top: 6px; font-size: 13px; font-weight: 700; }
+.bracket-team.win { border-color: var(--gold); color: var(--gold); background: rgba(245, 185, 66, 0.1); }
 .champion { text-align: center; padding: 14px; margin-bottom: 14px; border-radius: var(--radius-lg); border: 1px solid var(--gold); background: rgba(245, 185, 66, .08); font-weight: 900; font-size: 18px; color: var(--gold); }
 
-/* PvP Comparison & Animated Graphs */
+/* PvP Comparison & Graphs */
 .pvp-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: 20px; }
 .pvp-selectors { display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; margin-bottom: 20px; }
 .vs { text-align: center; font-weight: 900; color: var(--gold); align-self: end; padding-bottom: 10px; }
 .pvp-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, .05); font-size: 13px; }
 
-/* Visual Stat Bar Graphs */
 .graph-row { margin-bottom: 16px; }
 .graph-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 6px; }
 .graph-bar-container { display: flex; height: 16px; background: var(--inset); border-radius: 8px; overflow: hidden; border: 1px solid var(--panel-border); }
 .graph-bar-left { background: linear-gradient(90deg, var(--gold), var(--orange)); transition: width 0.4s ease; }
 .graph-bar-right { background: linear-gradient(90deg, var(--teal), var(--blue)); transition: width 0.4s ease; margin-left: auto; }
 
+/* Admin Bracket Row Layout */
+.admin-bracket-row { background: var(--inset); border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 12px; }
+
 /* Player Cards */
 .player-card .name { font-weight: 800; font-size: 15px; }
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 10px; font-size: 11px; }
 .stat-cell { background: var(--inset); padding: 6px; border-radius: 6px; }
-.badge-cap { padding: 3px 8px; border-radius: 12px; font-size: 9px; font-weight: 800; margin-left: 6px; text-transform: uppercase; color: #fff; }
-.cap-orange { background: var(--orange); } .cap-purple { background: #7b5fd6; }
 .badge-count { background: var(--red); color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 9px; margin-left: 4px; }
 
 /* Forms & Modals */
