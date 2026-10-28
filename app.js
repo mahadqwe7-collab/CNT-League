@@ -1,5 +1,5 @@
 /* CNT-League Tournament Engine
- * Complete Natural Language AI Match Engine + Visual Playoff Bracket + Multi-Season & Graph View
+ * Single Semi-Final Bracket + Metallic Tier Row Highlighting + AI Match Parser
  */
 const SUPABASE_URL = "https://slgsxvwzcmogulsrzgqm.supabase.co";
 const SUPABASE_KEY = "sb_publishable_sQmZXNu5XfQ0m5hQ6v-Cog_HS9sLraa";
@@ -10,7 +10,8 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": 
 const clean = (s, n = 80) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
 const generateId = () => (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
-const BR = [["sf1", "admSf1"], ["sf2", "admSf2"], ["final", "admFinal"]];
+// Single Semi-Final and Grand Final mapping
+const BR = [["sf", "admSf"], ["final", "admFinal"]];
 const DEFAULT_TEAMS = ["Team A", "Team B", "Team C", "Team D"];
 
 const freshState = () => ({
@@ -21,19 +22,18 @@ const freshState = () => ({
   fixtures: [],
   players: [],
   bracket: {
-    sf1: { team1: "Team A", team2: "Team D", winner: "" },
-    sf2: { team1: "Team B", team2: "Team C", winner: "" },
-    final: { team1: "", team2: "", winner: "" }
+    sf: { team1: "Team B", team2: "Team C", winner: "" },
+    final: { team1: "Team A", team2: "", winner: "" }
   }
 });
 
 let state = freshState();
 let viewSeason = 1, loaded = false, serverRev = 0, isAdmin = false, adminEmail = "";
 let undoStack = [], redoStack = [], feedback = [], S = {};
-let pvpViewMode = 'table'; // 'table' or 'graph'
+let pvpViewMode = 'table';
 let pendingAiMatch = null;
 
-/* ---------- Cricket Calculations & NRR ---------- */
+/* ---------- Cricket Calculations & Points Table ---------- */
 const validOvers = v => /^\d+(\.[0-5])?$/.test(String(v).trim());
 
 function oversToBalls(v) {
@@ -64,7 +64,6 @@ function computeTable(season) {
     .sort((x, y) => y.pts - x.pts || y.nrr - x.nrr || x.name.localeCompare(y.name));
 }
 
-/* Season-specific vs Overall stats engine */
 function playerStats(p, seasonScope = 'overall') {
   const b = (seasonScope === 'overall' ? p.base : {}) || {};
   const s = { matches: b.matches || 0, runs: b.runs || 0, wickets: b.wickets || 0, hs: b.hs || 0, hsNo: !!b.hsNo, bw: b.bw || 0, bc: b.bc ?? null };
@@ -83,24 +82,21 @@ function playerStats(p, seasonScope = 'overall') {
   return s;
 }
 
-/* ---------- AI Natural Language Match Parser ---------- */
+/* ---------- AI Natural Match Parser ---------- */
 function parseNaturalMatchSummary(text) {
   const raw = text.trim();
   if (!raw) return null;
 
-  // Extract Season (e.g., S1, S2, Season 3)
   const seasonMatch = raw.match(/s(?:eason)?\s*(\d+)/i);
   const season = seasonMatch ? parseInt(seasonMatch[1]) : viewSeason;
 
-  // Extract Teams
   const matchedTeams = state.teams.filter(t => new RegExp(`\\b${t.toLowerCase()}\\b`, "i").test(raw));
   if (matchedTeams.length < 2) {
-    throw new Error(`Could not identify 2 teams from text. Available teams: ${state.teams.join(", ")}`);
+    throw new Error(`Could not identify 2 teams. Available: ${state.teams.join(", ")}`);
   }
   const team1 = matchedTeams[0];
   const team2 = matchedTeams[1];
 
-  // Extract Scores e.g., 180/5 or 180-5 or 180/5 (20 ov)
   const scoreRegex = /(\d{1,3})[\/-](\d{1,2})(?:\s*\(([\d\.]+)\s*(?:ov|overs)?\))?/gi;
   const scores = [...raw.matchAll(scoreRegex)];
 
@@ -118,7 +114,6 @@ function parseNaturalMatchSummary(text) {
     if (scores[1][3]) team2Overs = scores[1][3];
   }
 
-  // Determine Winner
   let winner = "";
   let result = "Completed Match";
   if (team1Runs > team2Runs) {
@@ -131,25 +126,18 @@ function parseNaturalMatchSummary(text) {
     result = "Match Tied";
   }
 
-  // Parse Player Individual Stats (e.g. Ali 65, Rahul 80, Hamza 3/25)
   const perfs = [];
   state.players.forEach(p => {
     const nameRegex = new RegExp(`\\b${p.name.toLowerCase()}\\b[\\s:-]*(\\d+)?\\*?\\s*(?:\\(?([0-9\\/]+)?\\)?)?`, "i");
-    const m = raw.toLowerCase().match(nameRegex);
-    if (m) {
+    if (raw.toLowerCase().match(nameRegex)) {
       let runs = 0, wkts = 0, conc = 0, notOut = false;
-      if (raw.match(new RegExp(`${p.name}\\s*(\\d+)\\*?`, "i"))) {
-        const rMatch = raw.match(new RegExp(`${p.name}\\s*(\\d+)(\\*)?`, "i"));
-        if (rMatch) { runs = parseInt(rMatch[1]) || 0; notOut = !!rMatch[2]; }
-      }
+      const rMatch = raw.match(new RegExp(`${p.name}\\s*(\\d+)(\\*)?`, "i"));
+      if (rMatch) { runs = parseInt(rMatch[1]) || 0; notOut = !!rMatch[2]; }
+      
       const wMatch = raw.match(new RegExp(`${p.name}\\s*(\\d+)[\\/-](\\d+)`, "i"));
-      if (wMatch) {
-        wkts = parseInt(wMatch[1]) || 0;
-        conc = parseInt(wMatch[2]) || 0;
-      }
-      if (runs > 0 || wkts > 0) {
-        perfs.push({ pid: p.id, name: p.name, runs, notOut, wkts, conc });
-      }
+      if (wMatch) { wkts = parseInt(wMatch[1]) || 0; conc = parseInt(wMatch[2]) || 0; }
+      
+      if (runs > 0 || wkts > 0) perfs.push({ pid: p.id, name: p.name, runs, notOut, wkts, conc });
     }
   });
 
@@ -252,7 +240,7 @@ function switchTab(btn, id) {
   btn.classList.add("active"); $(id).classList.add("active");
 }
 
-/* ---------- Persistence & Supabase Sync ---------- */
+/* ---------- Persistence & Database Sync ---------- */
 function migrate(raw) {
   const d = freshState(), s = { ...d, ...raw };
   s.siteConfig = { ...d.siteConfig, ...raw.siteConfig };
@@ -327,7 +315,7 @@ const undoAction = () => stepHistory(undoStack, redoStack);
 const redoAction = () => stepHistory(redoStack, undoStack);
 function updateHistoryButtons() { $("btnUndo").disabled = !undoStack.length; $("btnRedo").disabled = !redoStack.length; }
 
-/* ---------- Authentication ---------- */
+/* ---------- Auth ---------- */
 function setAdmin(session) {
   isAdmin = !!session; adminEmail = session?.user?.email || "";
   $("adminNavBtn").textContent = isAdmin ? "ADMIN PANEL" : "ADMIN LOG-IN";
@@ -369,7 +357,7 @@ async function loadFeedback() {
 async function markRead(id) { await db.from("cnt_feedback").update({ read: true }).eq("id", id); loadFeedback(); }
 async function deleteFeedback(id) { await db.from("cnt_feedback").delete().eq("id", id); loadFeedback(); }
 
-/* ---------- UI Rendering ---------- */
+/* ---------- Public Rendering ---------- */
 function renderAll() { renderPublic(); if (adminOpen()) renderAdmin(); }
 
 function fillSelect(id, pairs) {
@@ -383,8 +371,7 @@ function renderPublic() {
   const scope = $("statScopeSelect") ? $("statScopeSelect").value : "overall";
   S = Object.fromEntries(state.players.map(p => [p.id, playerStats(p, scope)]));
   $("siteEyebrow").textContent = state.siteConfig.eyebrow;
-  
-  // Populate Season Scope Options
+
   if ($("statScopeSelect")) {
     const prevScope = $("statScopeSelect").value;
     $("statScopeSelect").innerHTML = `<option value="overall">All Seasons (Overall)</option>` +
@@ -405,20 +392,29 @@ function renderPublic() {
 
   $("standingsTitle").textContent = `Points Table — Season ${viewSeason}`;
   const rows = computeTable(viewSeason);
-  $("pointsBody").innerHTML = rows.length ? rows.map((t, i) => `
-    <tr>
+  
+  // Assign metallic shiny row classes based on rank position
+  $("pointsBody").innerHTML = rows.length ? rows.map((t, i) => {
+    let rowClass = "row-normal";
+    if (i === 0) rowClass = "row-premier";      // 1st place: Premier Radiant Cyan
+    else if (i === 1) rowClass = "row-gold";    // 2nd place: Gold Metallic Shine
+    else if (i === 2) rowClass = "row-silver";  // 3rd place: Silver Chrome Sheen
+
+    return `
+    <tr class="${rowClass}">
       <td class="sticky-col"><strong>${i + 1}</strong></td>
       <td class="sticky-col-2"><strong>${esc(t.name)}</strong></td>
       <td>${t.p}</td><td>${t.w}</td><td>${t.l}</td><td>${t.t}</td>
       <td class="nrr">${(t.nrr > 0 ? "+" : "") + t.nrr.toFixed(3)}</td><td class="pts">${t.pts}</td>
-    </tr>`).join("")
-    : `<tr><td colspan="8" class="empty">No teams added yet.</td></tr>`;
+    </tr>`;
+  }).join("")
+  : `<tr><td colspan="8" class="empty">No teams added yet.</td></tr>`;
 
   renderBracketPublic(); renderFixtures(); renderPvP(); renderPlayers();
   fillSelect("teamFilter", [["All", "All Teams"], ...state.teams.map(t => [t, t])]);
 }
 
-/* Premier Broadcast Quality Visual Playoff Bracket */
+/* Single Semi-Final Visual Playoff Bracket */
 function renderBracketPublic() {
   const b = state.bracket;
   const card = (t, m) => `
@@ -433,8 +429,7 @@ function renderBracketPublic() {
 
   $("bracketGrid").innerHTML = `
     <div class="bracket-round">
-      ${card("Semi-Final 1", b.sf1)}
-      ${card("Semi-Final 2", b.sf2)}
+      ${card("Semi-Final", b.sf)}
     </div>
     <div class="bracket-round">
       ${card("Grand Final", b.final)}
@@ -468,7 +463,6 @@ function showMatchDetails(id) {
   openModal("matchDetailModal");
 }
 
-/* PvP Comparison & Graph Rendering */
 function togglePvpView(mode) {
   pvpViewMode = mode;
   $("btnPvpTable").classList.toggle("active", mode === "table");
@@ -578,13 +572,13 @@ function renderNotifications() {
       <div class="row-between mt6"><span></span><span>
         ${n.read ? '<span class="sub">✓ Read</span>' : `<button class="btn secondary mini" data-act="readNotif" data-id="${n.id}">Mark read</button>`}
         <button class="btn danger mini" data-act="delNotif" data-id="${n.id}">Delete</button></span></div>
-    </div>`).join("") : '<div class="sub">No feedback received.</div>';
+    </div>`).join("") : '<div class="sub">No feedback.</div>';
 }
 
 function renderBracketAdmin() {
   const opts = cur => `<option value="">— TBD —</option>` + state.teams.map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
   BR.forEach(([k, p]) => {
-    const m = state.bracket[k];
+    const m = state.bracket[k] || {};
     $(p + "Team1").innerHTML = opts(m.team1); $(p + "Team2").innerHTML = opts(m.team2);
     fillWinner(p, m.winner);
   });
@@ -596,10 +590,11 @@ function fillWinner(p, cur) {
 }
 
 function saveBracket() {
-  const nb = {};
-  BR.forEach(([k, p]) => nb[k] = { team1: $(p + "Team1").value, team2: $(p + "Team2").value, winner: $(p + "Winner").value });
-  if (nb.sf1.winner) nb.final.team1 = nb.sf1.winner;
-  if (nb.sf2.winner) nb.final.team2 = nb.sf2.winner;
+  const nb = {
+    sf: { team1: $("admSfTeam1").value, team2: $("admSfTeam2").value, winner: $("admSfWinner").value },
+    final: { team1: $("admFinalTeam1").value, team2: $("admFinalTeam2").value, winner: $("admFinalWinner").value }
+  };
+  if (nb.sf.winner && !nb.final.team2) nb.final.team2 = nb.sf.winner;
   commit(() => state.bracket = nb, "🏆 Bracket updated");
 }
 
@@ -667,7 +662,7 @@ async function resetDefaultData() {
   if (v === "RESET") { await commit(() => state = freshState()); undoStack = []; redoStack = []; }
 }
 
-/* Event Routing */
+/* Centralized Event Routing */
 document.addEventListener("click", e => {
   const btn = e.target.closest("[data-act]");
   if (!btn) return;
