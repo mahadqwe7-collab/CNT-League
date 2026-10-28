@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Google Analytics Tag -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-CXDE05HGT7"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -13,15 +12,13 @@
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CNT-League | Official Cricket Tournament Engine</title>
-  <meta name="description" content="CNT-League official tournament dashboard: points table, playoff brackets, fixtures, match log, and player career statistics.">
+  <title>CNT-League | Premier Cricket Tournament Engine</title>
+  <meta name="description" content="CNT-League official tournament dashboard: points table, playoff bracket, fixtures, and player career statistics.">
   
-  <!-- Open Graph Meta Tags for Link Previews -->
-  <meta property="og:title" content="CNT-League | Official Cricket Tournament Engine">
-  <meta property="og:description" content="Live standings, NRR calculations, match scorecards, and player career records.">
+  <meta property="og:title" content="CNT-League | Premier Cricket Engine">
+  <meta property="og:description" content="Live standings, NRR calculations, playoff brackets, scorecards, and player stats.">
   <meta property="og:type" content="website">
 
-  <!-- Speed Optimization -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -49,10 +46,9 @@
   </nav>
 </header>
 
-<!-- Live Ticker Bar -->
 <div class="ticker-wrap">
-  <div class="wrap ticker-content" id="tickerBar">
-    <span class="ticker-badge">⚡ LIVE UPDATE</span>
+  <div class="wrap ticker-content">
+    <span class="ticker-badge">⚡ LIVE TICKER</span>
     <span id="tickerText">CNT-League Season Active — Check Match Log for detailed scorecards.</span>
   </div>
 </div>
@@ -89,15 +85,15 @@
     </div>
   </section>
 
+  <!-- Premier Visual Playoff Bracket -->
   <section id="bracket">
-    <div class="section-head"><div class="kicker">Knockouts</div><h2>Playoff Bracket & Team Tiers</h2></div>
+    <div class="section-head"><div class="kicker">Knockouts</div><h2>Playoff Bracket</h2></div>
     <div id="championBanner"></div>
-    <div class="bracket-grid" id="bracketGrid"></div>
-    <div class="tier-list" id="tierList"></div>
+    <div class="bracket-tree-container" id="bracketGrid"></div>
   </section>
 
   <section id="fixtures">
-    <div class="section-head"><div class="kicker">Match Centre</div><h2>Fixtures & Detailed Scorecards</h2></div>
+    <div class="section-head"><div class="kicker">Match Centre</div><h2>Fixtures & Scorecards</h2></div>
     <div class="panel">
       <table>
         <caption class="sr-only">Match log</caption>
@@ -115,8 +111,15 @@
     </div>
   </section>
 
+  <!-- Player vs Player with Visual Graph Toggle -->
   <section id="pvp">
-    <div class="section-head"><div class="kicker">Head to Head</div><h2>Player vs Player Career Comparison</h2></div>
+    <div class="section-head row-between">
+      <div><div class="kicker">Head to Head</div><h2>Player Comparison</h2></div>
+      <div class="toggle-group">
+        <button class="btn mini secondary active" id="btnPvpTable" onclick="togglePvpView('table')">📋 Stats</button>
+        <button class="btn mini secondary" id="btnPvpGraph" onclick="togglePvpView('graph')">📊 Visual Graph</button>
+      </div>
+    </div>
     <div class="pvp-card">
       <div class="pvp-selectors">
         <div><label class="sub" for="pvpPlayer1Select">Select Player 1</label><select id="pvpPlayer1Select" onchange="updatePvP()"></select></div>
@@ -127,8 +130,16 @@
     </div>
   </section>
 
+  <!-- Roster with Season vs Overall Stats Toggle -->
   <section id="players">
-    <div class="section-head"><div class="kicker">Full Roster</div><h2>Individual Career Records & Caps</h2></div>
+    <div class="section-head row-between">
+      <div><div class="kicker">Full Roster</div><h2>Player Stats & Records</h2></div>
+      <div class="toggle-group">
+        <select id="statScopeSelect" onchange="renderPlayers()" style="max-width:180px; height:34px;">
+          <option value="overall">All Seasons (Overall)</option>
+        </select>
+      </div>
+    </div>
     <div class="toolbar">
       <input id="playerSearch" type="search" placeholder="Search player or team..." aria-label="Search players" oninput="renderPlayers()" style="max-width:240px">
       <select id="teamFilter" aria-label="Filter by team" onchange="renderPlayers()" style="max-width:180px"><option value="All">All Teams</option></select>
@@ -143,13 +154,13 @@
   </section>
 
   <section id="feedback">
-    <div class="section-head"><div class="kicker">Support & Feedback</div><h2>Submit Complaint or Message</h2></div>
+    <div class="section-head"><div class="kicker">Support & Feedback</div><h2>Submit Message</h2></div>
     <div class="panel pad" style="max-width:650px;margin:auto">
       <form onsubmit="submitFeedback(event)">
         <label class="sr-only" for="feedbackName">Your name</label>
         <input type="text" id="feedbackName" placeholder="Your Name" maxlength="60" required class="mb10">
         <label class="sr-only" for="feedbackMessage">Message</label>
-        <textarea id="feedbackMessage" rows="4" placeholder="Write your complaint or message here..." maxlength="1000" required class="mb10"></textarea>
+        <textarea id="feedbackMessage" rows="4" placeholder="Write your message here..." maxlength="1000" required class="mb10"></textarea>
         <button type="submit" class="btn primary full">📨 Send Message to Admin</button>
       </form>
     </div>
@@ -190,7 +201,7 @@
 <div id="adminModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
   <div class="modal admin-large-panel">
     <div class="admin-top-bar">
-      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">Tournament, matches, careers & feedback</span></div>
+      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">AI Engine, Tournament Brackets & Server Data</span></div>
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" disabled>↪️ Redo</button>
@@ -202,107 +213,76 @@
 
     <div class="admin-workspace">
       <aside class="admin-sidebar">
-        <button class="tab-btn active" onclick="switchTab(this,'tabMatch')">🏏 MATCH ENTRY</button>
-        <button class="tab-btn" onclick="switchTab(this,'tabQuick')">⚡ QUICK RESULT</button>
-        <button class="tab-btn" onclick="switchTab(this,'tabPositions')">🏅 BRACKET & TIERS</button>
-        <button class="tab-btn" onclick="switchTab(this,'tabManual')">🛠️ MANAGE</button>
+        <button class="tab-btn active" onclick="switchTab(this,'tabAi')">🤖 AI MATCH ENGINE</button>
+        <button class="tab-btn" onclick="switchTab(this,'tabBracket')">🏆 BRACKET ENGINE</button>
+        <button class="tab-btn" onclick="switchTab(this,'tabManual')">🛠️ MANAGE DATA</button>
         <button class="tab-btn" onclick="switchTab(this,'tabNotifications')">🔔 INBOX <span id="notifBadge" class="badge-count">0</span></button>
         <button class="tab-btn" onclick="switchTab(this,'tabServer')">🌐 SERVER</button>
       </aside>
 
       <div class="admin-main-content">
-        <!-- MATCH ENTRY TAB -->
-        <div id="tabMatch" class="tab-content active">
-          <h3>STRUCTURED MATCH ENTRY</h3>
-          <p class="sub mb10">Points, NRR, and player careers are dynamically derived from saved matches.</p>
+        <!-- AI MATCH PARSER ENGINE TAB -->
+        <div id="tabAi" class="tab-content active">
+          <h3>🤖 AI NATURAL MATCH ENGINE</h3>
+          <p class="sub mb10">Type or paste match summary in plain / tooti-pooti English. AI automatically extracts scores, overs, winner, NRR, and player stats!</p>
+          
           <div class="form-panel">
-            <h4>Match details</h4>
-            <div class="grid2">
-              <label>Match title<input id="matchTitle" type="text" placeholder="e.g. Match 1 — League Stage" maxlength="80"></label>
-              <label>Season<select id="matchSeason"></select></label>
-              <label>Team 1 (batted first)<select id="matchTeam1"></select></label>
-              <label>Team 2 (chased)<select id="matchTeam2"></select></label>
-              <label>Status<select id="matchStatus"><option>Completed</option><option>No Result</option><option>Abandoned</option></select></label>
-              <label>Overs limit<input id="matchOversLimit" type="number" min="1" max="100" value="20"></label>
-            </div>
+            <label class="gold">Enter Match Summary (Natural Text)</label>
+            <textarea id="aiMatchInput" rows="4" placeholder="e.g. S1 Match 3: Team A 180/5 (20 ov) vs Team B 182/3 (19.2 ov). Ali scored 65, Rahul 80, Hamza took 3/25. Team B won by 7 wickets." class="mt6 mb10"></textarea>
+            <button class="btn primary full" onclick="processAiMatchInput()">⚡ Analyze & Extract Match Data</button>
+          </div>
 
-            <h4 class="subhead">Team 1 score</h4>
-            <div class="grid3">
-              <label>Runs<input id="matchTeam1Runs" type="number" min="0" max="1000" value="0"></label>
-              <label>Wickets lost<input id="matchTeam1Wickets" type="number" min="0" max="10" value="0"></label>
-              <label>Overs faced<input id="matchTeam1Overs" type="text" inputmode="decimal" value="20.0"></label>
-            </div>
-
-            <h4 class="subhead">Team 2 score</h4>
-            <div class="grid3">
-              <label>Runs<input id="matchTeam2Runs" type="number" min="0" max="1000" value="0"></label>
-              <label>Wickets lost<input id="matchTeam2Wickets" type="number" min="0" max="10" value="0"></label>
-              <label>Overs faced<input id="matchTeam2Overs" type="text" inputmode="decimal" value="20.0"></label>
-            </div>
-            <div class="note">Overs format: <strong>19.3 = 19 overs and 3 balls</strong>. An all-out team counts as facing the full overs quota.</div>
-
-            <h4 class="subhead">Player performances (optional)</h4>
-            <div id="matchPerformanceRows"></div>
-            <div class="form-actions mt12">
-              <button type="button" class="btn secondary" onclick="addPerfRow()">＋ Add Player Performance</button>
-              <button type="button" class="btn primary" onclick="saveMatch()">Save Match</button>
-              <button type="button" class="btn secondary" onclick="resetMatchForm()">Clear Form</button>
+          <!-- Parsed Extracted Preview Box -->
+          <div id="aiPreviewBox" class="inset mt12" style="display:none;">
+            <h4 class="gold">Match Data Extracted:</h4>
+            <div id="aiPreviewContent" class="detail-text mt6 mb10"></div>
+            <div class="row-gap">
+              <button class="btn primary grow" onclick="confirmSaveAiMatch()">✅ Approve & Store Match</button>
+              <button class="btn secondary" onclick="$('aiPreviewBox').style.display='none'">Discard</button>
             </div>
           </div>
-          <h4 class="mt16">Saved matches</h4>
+
+          <h4 class="mt16">Saved Matches</h4>
           <div id="matchesManageList" class="mt6"></div>
         </div>
 
-        <!-- QUICK RESULT TAB -->
-        <div id="tabQuick" class="tab-content">
-          <h3>QUICK RESULT (no detailed scorecard)</h3>
-          <p class="sub mb10">State an outcome for the viewing season, e.g. <i>"Team A beat Team B"</i> or <i>"Team C tied with Team D"</i>.</p>
-          <div class="chat-box" id="pointsAiChatBox" aria-live="polite"><div class="chat-msg chat-ai">Ready. State a match outcome below.</div></div>
-          <div class="row-gap">
-            <input type="text" id="pointsAiUserPrompt" placeholder="e.g. Team A beat Team B" aria-label="Quick result">
-            <button class="btn primary" onclick="quickResult()">Add Result</button>
-          </div>
-        </div>
-
-        <!-- BRACKET & TIERS TAB -->
-        <div id="tabPositions" class="tab-content">
-          <h3>🏅 BRACKET & TIERS</h3>
+        <!-- BRACKET ENGINE TAB -->
+        <div id="tabBracket" class="tab-content">
+          <h3>🏆 PLAYOFF BRACKET SETUP</h3>
           <div class="inset mb10">
-            <h4 class="gold mb6">🏆 Knockout Bracket</h4>
+            <h4 class="gold mb6">Set Knockout Matches</h4>
             <div class="grid2 mb10">
               <div class="inset2">
                 <strong class="teal small">Semi-Final 1</strong>
-                <select id="admSf1Team1" class="mt6" aria-label="SF1 team 1"></select>
-                <select id="admSf1Team2" class="mt6" aria-label="SF1 team 2"></select>
-                <select id="admSf1Winner" class="mt6" aria-label="SF1 winner"></select>
+                <select id="admSf1Team1" class="mt6"></select>
+                <select id="admSf1Team2" class="mt6"></select>
+                <select id="admSf1Winner" class="mt6"></select>
               </div>
               <div class="inset2">
                 <strong class="teal small">Semi-Final 2</strong>
-                <select id="admSf2Team1" class="mt6" aria-label="SF2 team 1"></select>
-                <select id="admSf2Team2" class="mt6" aria-label="SF2 team 2"></select>
-                <select id="admSf2Winner" class="mt6" aria-label="SF2 winner"></select>
+                <select id="admSf2Team1" class="mt6"></select>
+                <select id="admSf2Team2" class="mt6"></select>
+                <select id="admSf2Winner" class="mt6"></select>
               </div>
             </div>
             <div class="inset2 mb10">
               <strong class="gold small">🏆 GRAND FINAL</strong>
               <div class="grid2 mt6">
-                <select id="admFinalTeam1" aria-label="Final team 1"></select>
-                <select id="admFinalTeam2" aria-label="Final team 2"></select>
+                <select id="admFinalTeam1"></select>
+                <select id="admFinalTeam2"></select>
               </div>
-              <select id="admFinalWinner" class="mt6" aria-label="Champion"></select>
+              <select id="admFinalWinner" class="mt6"></select>
             </div>
-            <button class="btn primary full" onclick="saveBracket()">💾 Save Bracket</button>
+            <button class="btn primary full" onclick="saveBracket()">💾 Save Bracket Setup</button>
           </div>
-          <h4>Team Tiers</h4>
-          <div id="adminPositionsContainer" class="mt6"></div>
         </div>
 
-        <!-- MANAGE TAB -->
+        <!-- MANAGE DATA TAB -->
         <div id="tabManual" class="tab-content">
           <div class="mb16">
             <h4>Teams</h4>
             <div class="row-gap mt6">
-              <input type="text" id="newTeamName" placeholder="New team name" maxlength="40" aria-label="New team name">
+              <input type="text" id="newTeamName" placeholder="New team name" maxlength="40">
               <button class="btn primary" onclick="addTeam()">➕ Add Team</button>
             </div>
             <div id="teamsListContainer" class="chips mt10"></div>
@@ -314,15 +294,15 @@
           </div>
           <hr>
           <div class="mb16">
-            <h4>Players (Career Adjustments)</h4>
-            <p class="sub">Adjust base stats for players. Match scorecards will add on top of these base stats.</p>
+            <h4>Players (Roster & Base Stats)</h4>
+            <p class="sub">Add or adjust base career numbers for players.</p>
             <div class="grid2 mt6">
-              <input type="text" id="manualPlayerName" placeholder="Player name" maxlength="40" aria-label="Player name">
-              <select id="manualPlayerTeam" aria-label="Team"></select>
-              <select id="manualPlayerRole" aria-label="Role"><option>Batter</option><option>Bowler</option><option>All-Rounder</option></select>
-              <input type="number" min="0" id="manualPlayerMatches" placeholder="Matches" aria-label="Matches">
-              <input type="number" min="0" id="manualPlayerRuns" placeholder="Runs" aria-label="Runs">
-              <input type="number" min="0" id="manualPlayerWickets" placeholder="Wickets" aria-label="Wickets">
+              <input type="text" id="manualPlayerName" placeholder="Player name" maxlength="40">
+              <select id="manualPlayerTeam"></select>
+              <select id="manualPlayerRole"><option>Batter</option><option>Bowler</option><option>All-Rounder</option></select>
+              <input type="number" min="0" id="manualPlayerMatches" placeholder="Matches">
+              <input type="number" min="0" id="manualPlayerRuns" placeholder="Runs">
+              <input type="number" min="0" id="manualPlayerWickets" placeholder="Wickets">
               <button class="btn primary span2" onclick="addPlayer()">Save Player</button>
             </div>
             <div id="playersListContainer" class="chips mt10"></div>
@@ -330,7 +310,7 @@
           <hr>
           <div>
             <h4>Tagline</h4>
-            <input type="text" id="editEyebrow" maxlength="60" class="mt6 mb10" aria-label="Tagline">
+            <input type="text" id="editEyebrow" maxlength="60" class="mt6 mb10">
             <button class="btn primary" onclick="saveSiteText()">Update Tagline</button>
           </div>
         </div>
@@ -338,32 +318,25 @@
         <!-- INBOX TAB -->
         <div id="tabNotifications" class="tab-content">
           <h3>🔔 Feedback Inbox</h3>
-          <p class="sub mb10">Messages submitted by fans & site visitors.</p>
           <div id="adminNotificationsList"></div>
         </div>
 
         <!-- SERVER TAB -->
         <div id="tabServer" class="tab-content">
-          <h3>🌐 Cloud Status</h3>
+          <h3>🌐 Cloud Server Status</h3>
           <div class="grid3 mb10 mt6">
             <div class="inset"><span class="sub">Connection</span><br><strong id="serverStatus">…</strong></div>
             <div class="inset"><span class="sub">Signed in as</span><br><strong id="serverAdmin" class="small"></strong></div>
             <div class="inset"><span class="sub">Last sync</span><br><strong id="serverLastSync" class="small">—</strong></div>
           </div>
-          <div class="grid3 mb10">
-            <div class="inset"><span class="sub">Teams</span><br><strong id="serverTeamsCount">0</strong></div>
-            <div class="inset"><span class="sub">Matches</span><br><strong id="serverMatchesCount">0</strong></div>
-            <div class="inset"><span class="sub">Players</span><br><strong id="serverPlayersCount">0</strong></div>
-          </div>
-          <h4>Raw JSON State</h4>
-          <textarea id="serverRawJson" rows="6" readonly class="mono mt6" aria-label="Raw state JSON"></textarea>
+          <textarea id="serverRawJson" rows="6" readonly class="mono mt6"></textarea>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- CONFIRM / PROMPT DIALOG -->
+<!-- DIALOG MODAL -->
 <div id="dialogModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
   <div class="modal narrow">
     <h3 id="dlgTitle">Confirm</h3>
@@ -373,7 +346,7 @@
   </div>
 </div>
 
-<!-- ERROR / ALERT MODAL -->
+<!-- ALERT MODAL -->
 <div id="errorModal" class="modal-overlay" role="alertdialog" aria-modal="true" aria-labelledby="errTitle">
   <div class="modal narrow err">
     <h3 id="errTitle" class="red">⚠️ Alert</h3>
@@ -384,17 +357,8 @@
 
 <div id="toasts" role="status" aria-live="polite"></div>
 
-<!-- CONSENT BAR -->
-<div id="consentBar" class="consent" hidden>
-  <span>We use Google Analytics to count visits. Allow analytics cookies?</span>
-  <div>
-    <button class="btn secondary mini" onclick="setConsent('denied')">Decline</button>
-    <button class="btn primary mini" onclick="setConsent('granted')">Accept</button>
-  </div>
-</div>
-
 <footer>
-  <div class="wrap">CNT-LEAGUE ENGINE · REAL-TIME TOURNAMENT DASHBOARD</div>
+  <div class="wrap">CNT-LEAGUE ENGINE · PREMIER CRICKET DASHBOARD</div>
 </footer>
 
 </body>
