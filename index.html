@@ -68,17 +68,17 @@
     <div class="season-grid" id="seasonsGrid"></div>
   </section>
 
-  <!-- Points Table with Shiny Metallic Rows -->
+  <!-- Exact Card Table Design from Image -->
   <section id="standings">
     <div class="section-head"><div class="kicker">Live Overview</div><h2 id="standingsTitle">Points Table</h2></div>
-    <div class="panel">
-      <table class="shiny-table">
+    <div class="panel transparent-panel">
+      <table class="card-table">
         <caption class="sr-only">Points table</caption>
         <thead>
           <tr>
-            <th class="sticky-col">Pos</th>
-            <th class="sticky-col-2">Team</th>
-            <th>P</th><th>W</th><th>L</th><th>T/NR</th><th>NRR</th><th>Pts</th>
+            <th class="sticky-col">POS</th>
+            <th class="sticky-col-2">TEAM</th>
+            <th>P</th><th>W</th><th>L</th><th>T/NR</th><th>NRR</th><th>PTS</th>
           </tr>
         </thead>
         <tbody id="pointsBody"></tbody>
@@ -112,7 +112,6 @@
     </div>
   </section>
 
-  <!-- Player vs Player with Visual Graph Toggle -->
   <section id="pvp">
     <div class="section-head row-between">
       <div><div class="kicker">Head to Head</div><h2>Player Comparison</h2></div>
@@ -131,7 +130,6 @@
     </div>
   </section>
 
-  <!-- Roster with Season vs Overall Stats Filter -->
   <section id="players">
     <div class="section-head row-between">
       <div><div class="kicker">Full Roster</div><h2>Player Stats & Records</h2></div>
@@ -202,7 +200,7 @@
 <div id="adminModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
   <div class="modal admin-large-panel">
     <div class="admin-top-bar">
-      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">AI Engine, Single SF Playoff Bracket & Database Controls</span></div>
+      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">AI Engine, Single SF Bracket, Tier Styling & Database</span></div>
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" disabled>↪️ Redo</button>
@@ -215,7 +213,7 @@
     <div class="admin-workspace">
       <aside class="admin-sidebar">
         <button class="tab-btn active" onclick="switchTab(this,'tabAi')">🤖 AI MATCH ENGINE</button>
-        <button class="tab-btn" onclick="switchTab(this,'tabBracket')">🏆 BRACKET ENGINE</button>
+        <button class="tab-btn" onclick="switchTab(this,'tabBracket')">🏆 BRACKET & TIERS</button>
         <button class="tab-btn" onclick="switchTab(this,'tabManual')">🛠️ MANAGE DATA</button>
         <button class="tab-btn" onclick="switchTab(this,'tabNotifications')">🔔 INBOX <span id="notifBadge" class="badge-count">0</span></button>
         <button class="tab-btn" onclick="switchTab(this,'tabServer')">🌐 SERVER</button>
@@ -225,7 +223,7 @@
         <!-- AI MATCH ENGINE TAB -->
         <div id="tabAi" class="tab-content active">
           <h3>🤖 AI NATURAL MATCH ENGINE</h3>
-          <p class="sub mb10">Type or paste match summary in plain / tooti-pooti English. AI automatically extracts scores, overs, winner, NRR, and player stats!</p>
+          <p class="sub mb10">Type or paste match summary in plain / tooti-pooti English.</p>
           
           <div class="form-panel">
             <label class="gold">Enter Match Summary (Natural Text)</label>
@@ -246,13 +244,11 @@
           <div id="matchesManageList" class="mt6"></div>
         </div>
 
-        <!-- STREAMLINED SINGLE SEMI-FINAL BRACKET SETUP TAB -->
+        <!-- BRACKET & TIER CONTROL TAB -->
         <div id="tabBracket" class="tab-content">
-          <h3>🏆 PLAYOFF BRACKET SETUP</h3>
+          <h3>🏆 BRACKET & TEAM TIER CONTROLS</h3>
           <div class="inset mb10">
             <h4 class="gold mb6">Configure Single Semi-Final & Grand Final</h4>
-            
-            <!-- Table Style Admin Bracket Grid -->
             <div class="admin-bracket-grid mt10">
               <div class="admin-bracket-row">
                 <strong class="teal small">SEMI-FINAL</strong>
@@ -274,6 +270,13 @@
             </div>
 
             <button class="btn primary full mt16" onclick="saveBracket()">💾 Save Bracket Setup</button>
+          </div>
+
+          <!-- Team Tier Assignment in Admin -->
+          <div class="inset mt12">
+            <h4 class="gold mb6">Team Tier Visual Styling</h4>
+            <p class="sub mb10">Set tiers to apply custom neon borders, glowing colors, or Full Red Barrier (Eliminated).</p>
+            <div id="adminPositionsContainer" class="mt6"></div>
           </div>
         </div>
 
@@ -335,7 +338,6 @@
   </div>
 </div>
 
-<!-- DIALOG MODAL -->
 <div id="dialogModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
   <div class="modal narrow">
     <h3 id="dlgTitle">Confirm</h3>
@@ -345,7 +347,6 @@
   </div>
 </div>
 
-<!-- ALERT MODAL -->
 <div id="errorModal" class="modal-overlay" role="alertdialog" aria-modal="true" aria-labelledby="errTitle">
   <div class="modal narrow err">
     <h3 id="errTitle" class="red">⚠️ Alert</h3>
