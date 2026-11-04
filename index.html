@@ -16,12 +16,12 @@
   <title>CNT-League | Premier Cricket Engine</title>
   <meta name="description" content="CNT-League official tournament engine: points table, single semi-final playoff bracket, fixtures, and player career statistics.">
   
-  <!-- Open Graph Meta Tags for Link Previews -->
+  <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="CNT-League | Premier Cricket Engine">
   <meta property="og:description" content="Live standings, NRR calculations, playoff brackets, scorecards, and player stats.">
   <meta property="og:type" content="website">
 
-  <!-- Speed Optimization & CDN Scripts -->
+  <!-- Speed Optimization & Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -73,7 +73,7 @@
     .mb6 { margin-bottom: 6px; } .mb10 { margin-bottom: 10px; } .mb16 { margin-bottom: 16px; }
     .full { width: 100%; } .grow { flex: 1; } .span2 { grid-column: span 2; }
     .gold { color: var(--gold); } .teal { color: var(--teal); } .red { color: var(--red); } .small { font-size: 12px; }
-    .mono { font-family: monospace; font-size: 11px; color: var(--teal); background: #030810; padding: 8px; border-radius: var(--radius-sm); }
+    .mono { font-family: monospace; font-size: 11px; color: var(--teal); background: #030810; padding: 8px; border-radius: var(--radius-sm); word-break: break-all; }
     .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .row-gap { display: flex; gap: 8px; }
     .chips { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -87,7 +87,7 @@
     /* Header & Ticker */
     .ticker-wrap { background: rgba(8, 16, 28, 0.95); border-bottom: 1px solid var(--panel-border); font-size: 12px; padding: 6px 0; }
     .ticker-content { display: flex; align-items: center; gap: 12px; }
-    .ticker-badge { background: var(--gold); color: #050b14; font-weight: 900; font-size: 10px; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
+    .ticker-badge { background: var(--gold); color: #050b14; font-weight: 900; font-size: 10px; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; flex-shrink: 0; }
 
     header { position: sticky; top: 0; z-index: 100; background: rgba(5, 11, 20, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--panel-border); }
     nav { min-height: 68px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
@@ -126,9 +126,13 @@
 
     .season-grid, .player-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 30vw, 300px), 1fr)); gap: 14px; }
     .season-card, .player-card, .panel { background: var(--panel-bg); backdrop-filter: blur(8px); border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(14px, 3vw, 20px); box-shadow: var(--shadow-glow); }
-    .transparent-panel { background: rgba(8, 16, 28, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.05); }
+    .season-card { cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
+    .season-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+    .season-card.active { border-color: var(--teal); background: rgba(39, 211, 176, 0.08); }
+    .transparent-panel { background: rgba(8, 16, 28, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.05); overflow-x: auto; }
 
-    /* Floating Card Table Design */
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; }
     .card-table {
       border-collapse: separate;
       border-spacing: 0 10px;
@@ -164,7 +168,7 @@
       border-bottom-right-radius: 10px;
     }
 
-    /* 1. PREMIER ROW (Cyan Neon Border Glow) */
+    /* Table Tiers */
     tr.row-premier td {
       background: rgba(10, 32, 45, 0.85) !important;
       border-color: rgba(39, 211, 176, 0.6) !important;
@@ -172,7 +176,6 @@
       box-shadow: inset 0 0 12px rgba(39, 211, 176, 0.15);
     }
 
-    /* 2. GOLD ROW (Gold Neon Border Glow) */
     tr.row-gold td {
       background: rgba(35, 28, 14, 0.85) !important;
       border-color: rgba(245, 185, 66, 0.6) !important;
@@ -180,24 +183,34 @@
       box-shadow: inset 0 0 12px rgba(245, 185, 66, 0.15);
     }
 
-    /* 3. SILVER ROW (Silver Border Sheen) */
     tr.row-silver td {
       background: rgba(20, 30, 44, 0.85) !important;
       border-color: rgba(224, 224, 224, 0.35) !important;
       color: var(--silver);
     }
 
-    /* 4. NORMAL ROW */
     tr.row-normal td {
       background: rgba(10, 20, 32, 0.7) !important;
     }
 
-    /* 5. ELIMINATED / RED BARRIER ROW (Full Red Barrier Glow) */
     tr.row-red td {
       background: rgba(45, 12, 16, 0.9) !important;
       border-color: rgba(255, 85, 85, 0.85) !important;
       color: var(--red) !important;
       box-shadow: inset 0 0 16px rgba(255, 85, 85, 0.4), 0 0 15px rgba(255, 85, 85, 0.25) !important;
+    }
+
+    #fixtures table th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--panel-border);
+    }
+    #fixtures table td {
+      padding: 12px 14px;
+      font-size: 13px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
     .sticky-col { position: sticky; left: 0; z-index: 3; }
@@ -226,15 +239,6 @@
     .graph-bar-left { background: linear-gradient(90deg, var(--gold), var(--orange)); transition: width 0.4s ease; }
     .graph-bar-right { background: linear-gradient(90deg, var(--teal), var(--blue)); transition: width 0.4s ease; margin-left: auto; }
 
-    /* Admin Bracket Row Layout */
-    .admin-bracket-row { background: var(--inset); border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 12px; }
-
-    /* Player Cards */
-    .player-card .name { font-weight: 800; font-size: 15px; }
-    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 10px; font-size: 11px; }
-    .stat-cell { background: var(--inset); padding: 6px; border-radius: 6px; }
-    .badge-count { background: var(--red); color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 9px; margin-left: 4px; }
-
     /* Forms & Modals */
     .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
     input, select, textarea { background: rgba(5, 11, 20, .9); color: #fff; border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 10px 14px; font: inherit; font-size: 12px; width: 100%; transition: border-color .2s; }
@@ -243,6 +247,7 @@
     .detail-text { font-size: 12px; margin-top: 4px; white-space: pre-line; }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .88); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(6px); }
+    .modal-overlay.active { display: flex; }
     .modal { background: #0f1c2e; border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(16px, 4vw, 24px); width: min(750px, 94%); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .8); }
     .modal.narrow { max-width: 400px; }
     .admin-large-panel { width: min(980px, 95%); }
@@ -316,7 +321,7 @@
     <div class="season-grid" id="seasonsGrid"></div>
   </section>
 
-  <!-- Card Table Points Table -->
+  <!-- Points Table -->
   <section id="standings">
     <div class="section-head"><div class="kicker">Live Overview</div><h2 id="standingsTitle">Points Table</h2></div>
     <div class="panel transparent-panel">
@@ -334,7 +339,7 @@
     </div>
   </section>
 
-  <!-- Single Semi-Final Visual Playoff Bracket -->
+  <!-- Playoff Bracket -->
   <section id="bracket">
     <div class="section-head"><div class="kicker">Knockouts</div><h2>Playoff Bracket</h2></div>
     <div id="championBanner"></div>
@@ -343,7 +348,7 @@
 
   <section id="fixtures">
     <div class="section-head"><div class="kicker">Match Centre</div><h2>Fixtures & Scorecards</h2></div>
-    <div class="panel">
+    <div class="panel transparent-panel">
       <table>
         <caption class="sr-only">Match log</caption>
         <thead>
@@ -471,7 +476,7 @@
         <!-- AI MATCH ENGINE TAB -->
         <div id="tabAi" class="tab-content active">
           <h3>🤖 AI NATURAL MATCH ENGINE</h3>
-          <p class="sub mb10">Type or paste match summary in plain / tooti-pooti English.</p>
+          <p class="sub mb10">Type or paste match summary in plain text.</p>
           
           <div class="form-panel">
             <label class="gold">Enter Match Summary (Natural Text)</label>
@@ -548,8 +553,8 @@
             <h4>Players (Roster & Base Stats)</h4>
             <div class="grid2 mt6">
               <input type="text" id="manualPlayerName" placeholder="Player name" maxlength="40">
-              <select id="manualPlayerTeam"></select>
-              <select id="manualPlayerRole"><option>Batter</option><option>Bowler</option><option>All-Rounder</option></select>
+              <select id="manualPlayerTeam" aria-label="Player Team"></select>
+              <select id="manualPlayerRole" aria-label="Player Role"><option>Batter</option><option>Bowler</option><option>All-Rounder</option></select>
               <input type="number" min="0" id="manualPlayerMatches" placeholder="Matches">
               <input type="number" min="0" id="manualPlayerRuns" placeholder="Runs">
               <input type="number" min="0" id="manualPlayerWickets" placeholder="Wickets">
@@ -575,9 +580,9 @@
         <div id="tabServer" class="tab-content">
           <h3>🌐 Cloud Server Status</h3>
           <div class="grid3 mb10 mt6">
-            <div class="inset"><span class="sub">Connection</span><br><strong id="serverStatus">…</strong></div>
-            <div class="inset"><span class="sub">Signed in as</span><br><strong id="serverAdmin" class="small"></strong></div>
-            <div class="inset"><span class="sub">Last sync</span><br><strong id="serverLastSync" class="small">—</strong></div>
+            <div class="inset"><span class="sub">Connection</span><br><strong id="serverStatus">Local Storage Mode</strong></div>
+            <div class="inset"><span class="sub">Signed in as</span><br><strong id="serverAdmin" class="small">Offline Admin</strong></div>
+            <div class="inset"><span class="sub">Last sync</span><br><strong id="serverLastSync" class="small">Just now</strong></div>
           </div>
           <textarea id="serverRawJson" rows="6" readonly class="mono mt6"></textarea>
         </div>
@@ -586,730 +591,790 @@
   </div>
 </div>
 
-<div id="dialogModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+<!-- DIALOG MODAL -->
+<div id="dialogModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
   <div class="modal narrow">
-    <h3 id="dlgTitle">Confirm</h3>
-    <p id="dlgMsg" class="dlg-msg"></p>
-    <input type="text" id="dlgInput" hidden aria-label="Value" class="mb10">
-    <div class="row-gap"><button class="btn secondary grow" id="dlgCancel">Cancel</button><button class="btn primary grow" id="dlgOk">OK</button></div>
+    <h3 id="dialogTitle">Confirmation</h3>
+    <p class="detail-text mt6 mb16" id="dialogMessage"></p>
+    <div class="row-gap">
+      <button class="btn primary grow" id="dialogConfirmBtn">Confirm</button>
+      <button class="btn secondary" onclick="closeModal('dialogModal')">Cancel</button>
+    </div>
   </div>
 </div>
 
-<div id="errorModal" class="modal-overlay" role="alertdialog" aria-modal="true" aria-labelledby="errTitle">
-  <div class="modal narrow err">
-    <h3 id="errTitle" class="red">⚠️ Alert</h3>
-    <p id="errorMessageText" class="dlg-msg"></p>
-    <button class="btn danger full" onclick="closeModal('errorModal')">Got it</button>
-  </div>
-</div>
-
-<div id="toasts" role="status" aria-live="polite"></div>
+<div id="toasts"></div>
 
 <footer>
-  <div class="wrap">CNT-LEAGUE ENGINE · PREMIER CRICKET DASHBOARD</div>
+  <div class="wrap">
+    <p>CNT-LEAGUE OFFICIAL TOURNAMENT ENGINE &copy; 2026</p>
+  </div>
 </footer>
 
-<!-- JavaScript Logic -->
 <script>
-  const SUPABASE_URL = "https://slgsxvwzcmogulsrzgqm.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_sQmZXNu5XfQ0m5hQ6v-Cog_HS9sLraa";
-  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+  // Global Application State
   const $ = id => document.getElementById(id);
-  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const clean = (s, n = 80) => String(s || "").replace(/\s+/g, " ").trim().slice(0, n);
-  const generateId = () => (typeof crypto !== "undefined" && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
-  const TIERS = { Premier: "👑 Premier (Cyan)", Gold: "🥇 Golden", Silver: "🥈 Silver", Normal: "Normal", Red: "🔴 Eliminated (Red Barrier)" };
-  const BR = [["sf", "admSf"], ["final", "admFinal"]];
-  const DEFAULT_TEAMS = ["Team A", "Team B", "Team C", "Team D"];
-
-  const freshState = () => ({
-    rev: 0,
-    siteConfig: { eyebrow: "TOURNAMENT DASHBOARD" },
-    teams: [...DEFAULT_TEAMS],
-    seasons: [1, 2, 3, 4],
-    fixtures: [],
-    players: [],
-    positions: { "Team A": "Premier", "Team B": "Gold", "Team C": "Silver", "Team D": "Red" },
+  
+  let state = {
+    currentSeason: 'S1',
+    activePvpMode: 'table',
+    isAdminLoggedIn: false,
+    history: [],
+    historyIndex: -1,
+    siteEyebrow: 'TOURNAMENT DASHBOARD',
+    teams: ['Strikers', 'Falcons', 'Titans', 'Warriors'],
+    seasons: ['S1'],
+    teamTiers: {
+      'Strikers': 'row-premier',
+      'Falcons': 'row-gold',
+      'Titans': 'row-silver',
+      'Warriors': 'row-red'
+    },
+    players: [
+      { id: 'p1', name: 'Ali', team: 'Strikers', role: 'Batter', matches: 5, runs: 245, wickets: 2 },
+      { id: 'p2', name: 'Rahul', team: 'Falcons', role: 'Batter', matches: 5, runs: 210, wickets: 0 },
+      { id: 'p3', name: 'Hamza', team: 'Titans', role: 'Bowler', matches: 5, runs: 45, wickets: 12 },
+      { id: 'p4', name: 'Usman', team: 'Warriors', role: 'All-Rounder', matches: 5, runs: 130, wickets: 6 }
+    ],
+    matches: [
+      {
+        id: 'm1',
+        season: 'S1',
+        num: 1,
+        team1: 'Strikers',
+        team2: 'Falcons',
+        runs1: 180, wickets1: 5, overs1: 20,
+        runs2: 175, wickets2: 8, overs2: 20,
+        winner: 'Strikers',
+        summary: 'Strikers won by 5 runs',
+        perfs: 'Ali: 75(45), Hamza: 3/20'
+      }
+    ],
     bracket: {
-      sf: { team1: "Team B", team2: "Team C", winner: "" },
-      final: { team1: "Team A", team2: "", winner: "" }
-    }
-  });
+      sf: { team1: 'Falcons', team2: 'Titans', winner: 'Falcons' },
+      final: { team1: 'Strikers', team2: 'Falcons', winner: 'Strikers' }
+    },
+    feedback: []
+  };
 
-  let state = freshState();
-  let viewSeason = 1, loaded = false, serverRev = 0, isAdmin = false, adminEmail = "";
-  let undoStack = [], redoStack = [], feedback = [], S = {};
-  let pvpViewMode = 'table';
   let pendingAiMatch = null;
 
-  /* ---------- Cricket Calculations & Points Table ---------- */
-  const validOvers = v => /^\d+(\.[0-5])?$/.test(String(v).trim());
+  window.addEventListener('DOMContentLoaded', () => {
+    loadLocalData();
+    saveStateToHistory();
+    renderAll();
+  });
 
-  function oversToBalls(v) {
-    const n = parseFloat(v) || 0, o = Math.floor(n);
-    return o * 6 + Math.round((n - o) * 10);
-  }
-
-  function computeTable(season) {
-    const rows = Object.fromEntries(state.teams.map(n => [n, { name: n, p: 0, w: 0, l: 0, t: 0, rs: 0, bf: 0, rc: 0, bb: 0, pts: 0 }]));
-    state.fixtures.filter(f => f.season === season).forEach(f => {
-      const a = rows[f.team1], b = rows[f.team2];
-      if (!a || !b) return;
-      a.p++; b.p++;
-      if (f.status !== "Completed") { a.pts++; b.pts++; a.t++; b.t++; return; }
-      if (f.winner === f.team1) { a.w++; a.pts += 2; b.l++; }
-      else if (f.winner === f.team2) { b.w++; b.pts += 2; a.l++; }
-      else { a.t++; b.t++; a.pts++; b.pts++; }
-      if (!f.noScore) {
-        const lim = (f.oversLimit || 20) * 6;
-        const b1 = f.team1Wickets >= 10 ? lim : oversToBalls(f.team1Overs);
-        const b2 = f.team2Wickets >= 10 ? lim : oversToBalls(f.team2Overs);
-        a.rs += f.team1Runs; a.bf += b1; a.rc += f.team2Runs; a.bb += b2;
-        b.rs += f.team2Runs; b.bf += b2; b.rc += f.team1Runs; b.bb += b1;
-      }
-    });
-    return Object.values(rows)
-      .map(r => ({ ...r, nrr: r.bf && r.bb ? (r.rs / (r.bf / 6)) - (r.rc / (r.bb / 6)) : 0 }))
-      .sort((x, y) => y.pts - x.pts || y.nrr - x.nrr || x.name.localeCompare(y.name));
-  }
-
-  function playerStats(p, seasonScope = 'overall') {
-    const b = (seasonScope === 'overall' ? p.base : {}) || {};
-    const s = { matches: b.matches || 0, runs: b.runs || 0, wickets: b.wickets || 0, hs: b.hs || 0, hsNo: !!b.hsNo, bw: b.bw || 0, bc: b.bc ?? null };
-    
-    state.fixtures.forEach(f => {
-      if (seasonScope !== 'overall' && f.season !== parseInt(seasonScope)) return;
-      (f.perfs || []).forEach(x => {
-        if (x.pid !== p.id) return;
-        s.matches++; s.runs += x.runs; s.wickets += x.wkts;
-        if (x.runs > s.hs || (x.runs === s.hs && x.notOut && !s.hsNo)) { s.hs = x.runs; s.hsNo = x.notOut; }
-        if (x.wkts > s.bw || (x.wkts === s.bw && x.wkts > 0 && (s.bc === null || x.conc < s.bc))) { s.bw = x.wkts; s.bc = x.conc; }
-      });
-    });
-    s.hsText = s.hs + (s.hsNo ? "*" : "");
-    s.bb = s.bw > 0 ? `${s.bw}/${s.bc ?? "?"}` : "–";
-    return s;
-  }
-
-  /* ---------- AI Natural Match Parser ---------- */
-  function parseNaturalMatchSummary(text) {
-    const raw = text.trim();
-    if (!raw) return null;
-
-    const seasonMatch = raw.match(/s(?:eason)?\s*(\d+)/i);
-    const season = seasonMatch ? parseInt(seasonMatch[1]) : viewSeason;
-
-    const matchedTeams = state.teams.filter(t => new RegExp(`\\b${t.toLowerCase()}\\b`, "i").test(raw));
-    if (matchedTeams.length < 2) {
-      throw new Error(`Could not identify 2 teams. Available: ${state.teams.join(", ")}`);
-    }
-    const team1 = matchedTeams[0];
-    const team2 = matchedTeams[1];
-
-    const scoreRegex = /(\d{1,3})[\/-](\d{1,2})(?:\s*\(([\d\.]+)\s*(?:ov|overs)?\))?/gi;
-    const scores = [...raw.matchAll(scoreRegex)];
-
-    let team1Runs = 0, team1Wickets = 0, team1Overs = "20.0";
-    let team2Runs = 0, team2Wickets = 0, team2Overs = "20.0";
-
-    if (scores.length >= 1) {
-      team1Runs = parseInt(scores[0][1]);
-      team1Wickets = parseInt(scores[0][2]);
-      if (scores[0][3]) team1Overs = scores[0][3];
-    }
-    if (scores.length >= 2) {
-      team2Runs = parseInt(scores[1][1]);
-      team2Wickets = parseInt(scores[1][2]);
-      if (scores[1][3]) team2Overs = scores[1][3];
-    }
-
-    let winner = "";
-    let result = "Completed Match";
-    if (team1Runs > team2Runs) {
-      winner = team1;
-      result = `${team1} won by ${team1Runs - team2Runs} runs`;
-    } else if (team2Runs > team1Runs) {
-      winner = team2;
-      result = `${team2} won by ${10 - team2Wickets} wickets`;
-    } else if (team1Runs > 0 && team1Runs === team2Runs) {
-      result = "Match Tied";
-    }
-
-    const perfs = [];
-    state.players.forEach(p => {
-      const nameRegex = new RegExp(`\\b${p.name.toLowerCase()}\\b[\\s:-]*(\\d+)?\\*?\\s*(?:\\(?([0-9\\/]+)?\\)?)?`, "i");
-      if (raw.toLowerCase().match(nameRegex)) {
-        let runs = 0, wkts = 0, conc = 0, notOut = false;
-        const rMatch = raw.match(new RegExp(`${p.name}\\s*(\\d+)(\\*)?`, "i"));
-        if (rMatch) { runs = parseInt(rMatch[1]) || 0; notOut = !!rMatch[2]; }
-        
-        const wMatch = raw.match(new RegExp(`${p.name}\\s*(\\d+)[\\/-](\\d+)`, "i"));
-        if (wMatch) { wkts = parseInt(wMatch[1]) || 0; conc = parseInt(wMatch[2]) || 0; }
-        
-        if (runs > 0 || wkts > 0) perfs.push({ pid: p.id, name: p.name, runs, notOut, wkts, conc });
-      }
-    });
-
-    return {
-      id: generateId(),
-      season,
-      title: `Match ${state.fixtures.length + 1}: ${team1} vs ${team2}`,
-      team1, team2,
-      status: "Completed",
-      oversLimit: 20,
-      team1Runs, team1Wickets, team1Overs,
-      team2Runs, team2Wickets, team2Overs,
-      winner, result, perfs,
-      noScore: false
-    };
-  }
-
-  function processAiMatchInput() {
-    const text = $("aiMatchInput").value;
+  function saveLocalData() {
     try {
-      const parsed = parseNaturalMatchSummary(text);
-      if (!parsed) return showError("Please enter match details.");
-      pendingAiMatch = parsed;
+      localStorage.setItem('cnt_league_state', JSON.stringify(state));
+    } catch(e) { console.error('Local Storage save failed', e); }
+  }
 
-      $("aiPreviewContent").innerHTML = `
-        <strong>Season:</strong> S${parsed.season}<br>
-        <strong>Teams:</strong> ${parsed.team1} (${parsed.team1Runs}/${parsed.team1Wickets}, ${parsed.team1Overs} ov) vs ${parsed.team2} (${parsed.team2Runs}/${parsed.team2Wickets}, ${parsed.team2Overs} ov)<br>
-        <strong>Winner / Outcome:</strong> ${parsed.result}<br>
-        <strong>Extracted Player Perfs:</strong> ${parsed.perfs.length ? parsed.perfs.map(x => `${x.name} (${x.runs} runs, ${x.wkts}/${x.conc})`).join(", ") : "None detected"}
-      `;
-      $("aiPreviewBox").style.display = "block";
-    } catch (err) {
-      showError("AI Parser Note: " + err.message);
+  function loadLocalData() {
+    try {
+      const saved = localStorage.getItem('cnt_league_state');
+      if(saved) {
+        state = { ...state, ...JSON.parse(saved) };
+      }
+    } catch(e) { console.error('Local Storage load failed', e); }
+  }
+
+  function saveStateToHistory() {
+    if (state.historyIndex < state.history.length - 1) {
+      state.history = state.history.slice(0, state.historyIndex + 1);
+    }
+    const copy = JSON.parse(JSON.stringify({
+      teams: state.teams,
+      seasons: state.seasons,
+      teamTiers: state.teamTiers,
+      players: state.players,
+      matches: state.matches,
+      bracket: state.bracket,
+      siteEyebrow: state.siteEyebrow
+    }));
+    state.history.push(copy);
+    state.historyIndex++;
+    updateUndoRedoBtns();
+    saveLocalData();
+  }
+
+  function undoAction() {
+    if (state.historyIndex > 0) {
+      state.historyIndex--;
+      applyHistoryState(state.history[state.historyIndex]);
+      showToast("Action undone");
     }
   }
 
-  async function confirmSaveAiMatch() {
-    if (!pendingAiMatch) return;
-    const ok = await commit(() => state.fixtures.push(pendingAiMatch), "🏏 AI Match successfully saved!");
-    if (ok) {
-      $("aiPreviewBox").style.display = "none";
-      $("aiMatchInput").value = "";
-      pendingAiMatch = null;
+  function redoAction() {
+    if (state.historyIndex < state.history.length - 1) {
+      state.historyIndex++;
+      applyHistoryState(state.history[state.historyIndex]);
+      showToast("Action redone");
     }
   }
 
-  /* ---------- UI Helpers & Modals ---------- */
-  function toast(msg, bad = false) {
-    const t = document.createElement("div");
-    t.className = "toast" + (bad ? " bad" : ""); t.textContent = msg;
-    $("toasts").appendChild(t); setTimeout(() => t.remove(), 3200);
+  function applyHistoryState(hState) {
+    state.teams = JSON.parse(JSON.stringify(hState.teams));
+    state.seasons = JSON.parse(JSON.stringify(hState.seasons));
+    state.teamTiers = JSON.parse(JSON.stringify(hState.teamTiers));
+    state.players = JSON.parse(JSON.stringify(hState.players));
+    state.matches = JSON.parse(JSON.stringify(hState.matches));
+    state.bracket = JSON.parse(JSON.stringify(hState.bracket));
+    state.siteEyebrow = hState.siteEyebrow;
+    updateUndoRedoBtns();
+    saveLocalData();
+    renderAll();
   }
 
-  function showError(msg) { $("errorMessageText").textContent = msg; openModal("errorModal"); return false; }
-
-  let lastFocus = null;
-  function openModal(id) {
-    lastFocus = document.activeElement;
-    const m = $(id); m.style.display = "flex";
-    (m.querySelector("input:not([hidden]),button,select") || m).focus();
+  function updateUndoRedoBtns() {
+    const btnUndo = $('btnUndo');
+    const btnRedo = $('btnRedo');
+    if (btnUndo) btnUndo.disabled = state.historyIndex <= 0;
+    if (btnRedo) btnRedo.disabled = state.historyIndex >= state.history.length - 1;
   }
 
-  function closeModal(id) { $(id).style.display = "none"; lastFocus?.focus?.(); }
-  const adminOpen = () => $("adminModal").style.display === "flex";
-
-  function askDialog({ title = "Confirm", message = "", input = null, okText = "OK" }) {
-    return new Promise(res => {
-      $("dlgTitle").textContent = title; $("dlgMsg").textContent = message;
-      const i = $("dlgInput"); i.hidden = input === null; i.value = input ?? "";
-      $("dlgOk").textContent = okText;
-      const done = v => { closeModal("dialogModal"); $("dlgOk").onclick = $("dlgCancel").onclick = null; res(v); };
-      $("dlgOk").onclick = () => done(input === null ? true : i.value);
-      $("dlgCancel").onclick = () => done(input === null ? false : null);
-      openModal("dialogModal"); (input === null ? $("dlgOk") : i).focus();
-    });
+  function renderAll() {
+    $('siteEyebrow').innerText = state.siteEyebrow || 'TOURNAMENT DASHBOARD';
+    renderSeasons();
+    renderStandings();
+    renderBracket();
+    renderFixtures();
+    renderPvPSelectors();
+    renderPlayers();
+    renderAdminControls();
+    updateServerRaw();
   }
 
-  function setSync(status, isErr = false) {
-    const el = $("serverLastSync"), st = $("serverStatus");
-    if (el) el.textContent = `${status} (${new Date().toLocaleTimeString()})`;
-    if (st) { st.textContent = isErr ? "🔴 Problem" : "🟢 Connected"; st.style.color = isErr ? "var(--red)" : "var(--teal)"; }
+  function showToast(msg, isBad = false) {
+    const container = $('toasts');
+    const toast = document.createElement('div');
+    toast.className = `toast ${isBad ? 'bad' : ''}`;
+    toast.innerText = msg;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
   }
 
   function toggleMobileMenu() {
-    const links = $("navLinks");
-    const toggle = $("mobileMenuToggle");
-    const isOpen = links.classList.toggle("mobile-open");
-    if (toggle) toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    const links = $('navLinks');
+    const btn = $('mobileMenuToggle');
+    const isExpanded = links.classList.toggle('mobile-open');
+    btn.setAttribute('aria-expanded', isExpanded);
   }
 
   function closeMobileMenu() {
-    $("navLinks").classList.remove("mobile-open");
-    const toggle = $("mobileMenuToggle");
-    if (toggle) toggle.setAttribute("aria-expanded", "false");
+    $('navLinks').classList.remove('mobile-open');
+    $('mobileMenuToggle').setAttribute('aria-expanded', false);
   }
 
-  function switchTab(btn, id) {
-    document.querySelectorAll(".admin-sidebar .tab-btn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
-    btn.classList.add("active"); $(id).classList.add("active");
+  function openModal(id) { $(id).classList.add('active'); }
+  function closeModal(id) { $(id).classList.remove('active'); }
+
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.admin-sidebar .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.admin-main-content .tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    $(tabId).classList.add('active');
   }
 
-  /* ---------- Persistence & Database Sync ---------- */
-  function migrate(raw) {
-    const d = freshState(), s = { ...d, ...raw };
-    s.siteConfig = { ...d.siteConfig, ...raw.siteConfig };
-    s.bracket = { ...d.bracket, ...raw.bracket };
-    s.positions = { ...raw.positions };
-    if (!Array.isArray(s.seasons)) s.seasons = [1, 2, 3, 4];
-    s.teams = Array.isArray(raw.teams) && raw.teams.length ? raw.teams : [...DEFAULT_TEAMS];
-    s.teams.forEach(t => { if (!s.positions[t]) s.positions[t] = "Normal"; });
-    s.fixtures = (raw.fixtures || []).map(f => ({ season: 1, status: "Completed", oversLimit: 20, ...f }));
-    s.players = (raw.players || []).map(p => p.base ? p : {
-      ...p,
-      base: { matches: p.matches || 0, runs: p.runs || 0, wickets: p.wickets || 0, hs: p.highestScore || 0, hsNo: false, bw: p.bestWickets || 0, bc: null }
+  function adminNavClick() {
+    if (state.isAdminLoggedIn) {
+      openModal('adminModal');
+    } else {
+      openModal('loginModal');
+    }
+  }
+
+  function login(e) {
+    e.preventDefault();
+    state.isAdminLoggedIn = true;
+    $('adminNavBtn').innerText = "ADMIN WORKSPACE";
+    closeModal('loginModal');
+    openModal('adminModal');
+    showToast("Logged in as Admin");
+  }
+
+  function logout() {
+    state.isAdminLoggedIn = false;
+    $('adminNavBtn').innerText = "ADMIN LOG-IN";
+    closeModal('adminModal');
+    showToast("Logged out successfully");
+  }
+
+  function renderSeasons() {
+    const grid = $('seasonsGrid');
+    grid.innerHTML = '';
+    state.seasons.forEach(s => {
+      const card = document.createElement('div');
+      card.className = `season-card ${s === state.currentSeason ? 'active' : ''}`;
+      card.onclick = () => {
+        state.currentSeason = s;
+        renderSeasons();
+        renderStandings();
+        renderFixtures();
+      };
+      card.innerHTML = `
+        <span class="kicker">TOURNAMENT</span>
+        <h3>Season ${s}</h3>
+        <p class="sub mt6">${state.matches.filter(m => m.season === s).length} Matches Recorded</p>
+      `;
+      grid.appendChild(card);
     });
-    return s;
   }
 
-  async function loadState() {
-    setSync("Fetching…");
-    try {
-      const { data, error } = await db.from("cnt_league").select("state").eq("id", 1).maybeSingle();
-      if (error) throw error;
-      state = migrate(data?.state || {}); serverRev = Number(state.rev || 0); loaded = true;
-      setSync("Synced");
-    } catch (e) {
-      console.error("Cloud load error:", e); setSync("Load failed", true);
-      toast("Could not load cloud data.", true);
-    }
-    if (!state.seasons.includes(viewSeason)) viewSeason = state.seasons[0];
-    renderAll();
-  }
+  function renderStandings() {
+    $('standingsTitle').innerText = `Points Table (${state.currentSeason})`;
+    const body = $('pointsBody');
+    body.innerHTML = '';
 
-  async function saveState() {
-    if (!loaded) return showError("Data has not loaded from cloud yet.");
-    if (!isAdmin) return showError("Please log in as admin to save.");
-    setSync("Saving…");
-    try {
-      const { data: r, error: e1 } = await db.from("cnt_league").select("rev:state->>rev").eq("id", 1).maybeSingle();
-      if (e1) throw e1;
-      if (r && Number(r.rev || 0) !== serverRev) {
-        showError("Conflict detected: Reloading latest server version.");
-        await loadState(); return "conflict";
+    const stats = {};
+    state.teams.forEach(t => {
+      stats[t] = { team: t, p: 0, w: 0, l: 0, t: 0, pts: 0, runsFor: 0, oversFor: 0, runsAgainst: 0, oversAgainst: 0 };
+    });
+
+    state.matches.filter(m => m.season === state.currentSeason).forEach(m => {
+      if (!stats[m.team1] || !stats[m.team2]) return;
+      stats[m.team1].p++;
+      stats[m.team2].p++;
+
+      stats[m.team1].runsFor += m.runs1;
+      stats[m.team1].oversFor += m.overs1;
+      stats[m.team1].runsAgainst += m.runs2;
+      stats[m.team1].oversAgainst += m.overs2;
+
+      stats[m.team2].runsFor += m.runs2;
+      stats[m.team2].oversFor += m.overs2;
+      stats[m.team2].runsAgainst += m.runs1;
+      stats[m.team2].oversAgainst += m.overs1;
+
+      if (m.winner === m.team1) {
+        stats[m.team1].w++;
+        stats[m.team1].pts += 2;
+        stats[m.team2].l++;
+      } else if (m.winner === m.team2) {
+        stats[m.team2].w++;
+        stats[m.team2].pts += 2;
+        stats[m.team1].l++;
+      } else {
+        stats[m.team1].t++;
+        stats[m.team1].pts += 1;
+        stats[m.team2].t++;
+        stats[m.team2].pts += 1;
       }
-      state.rev = serverRev + 1;
-      const { error } = await db.from("cnt_league").upsert({ id: 1, state });
-      if (error) throw error;
-      serverRev = state.rev; setSync("Saved"); return true;
-    } catch (e) {
-      console.error("Cloud save error:", e); setSync("Save failed", true);
-      showError("Failed to save changes."); return false;
-    }
+    });
+
+    const sorted = Object.values(stats).map(s => {
+      const nrrFor = s.oversFor ? (s.runsFor / s.oversFor) : 0;
+      const nrrAgainst = s.oversAgainst ? (s.runsAgainst / s.oversAgainst) : 0;
+      s.nrr = (nrrFor - nrrAgainst).toFixed(3);
+      return s;
+    }).sort((a, b) => b.pts - a.pts || parseFloat(b.nrr) - parseFloat(a.nrr));
+
+    sorted.forEach((st, idx) => {
+      const tierClass = state.teamTiers[st.team] || 'row-normal';
+      const tr = document.createElement('tr');
+      tr.className = tierClass;
+      tr.innerHTML = `
+        <td class="sticky-col">#${idx + 1}</td>
+        <td class="sticky-col-2"><strong>${st.team}</strong></td>
+        <td>${st.p}</td>
+        <td>${st.w}</td>
+        <td>${st.l}</td>
+        <td>${st.t}</td>
+        <td class="nrr">${st.nrr > 0 ? '+' + st.nrr : st.nrr}</td>
+        <td class="pts">${st.pts}</td>
+      `;
+      body.appendChild(tr);
+    });
   }
 
-  async function commit(fn, okMsg) {
-    if (!isAdmin) return showError("Please log in as admin.");
-    const snap = JSON.stringify(state);
-    fn();
-    undoStack.push(snap); if (undoStack.length > 25) undoStack.shift(); redoStack = [];
-    renderAll();
-    const ok = await saveState();
-    if (ok === false) { state = JSON.parse(snap); undoStack.pop(); renderAll(); }
-    else if (ok === true && okMsg) toast(okMsg);
-    updateHistoryButtons();
-    return ok === true;
-  }
-
-  async function stepHistory(from, to) {
-    if (!from.length || !isAdmin) return;
-    const cur = JSON.stringify(state), snap = from.pop();
-    to.push(cur); state = JSON.parse(snap); renderAll();
-    if ((await saveState()) === false) { state = JSON.parse(cur); to.pop(); from.push(snap); renderAll(); }
-    updateHistoryButtons();
-  }
-  const undoAction = () => stepHistory(undoStack, redoStack);
-  const redoAction = () => stepHistory(redoStack, undoStack);
-  function updateHistoryButtons() { $("btnUndo").disabled = !undoStack.length; $("btnRedo").disabled = !redoStack.length; }
-
-  /* ---------- Auth ---------- */
-  function setAdmin(session) {
-    isAdmin = !!session; adminEmail = session?.user?.email || "";
-    $("adminNavBtn").textContent = isAdmin ? "ADMIN PANEL" : "ADMIN LOG-IN";
-    if (!isAdmin) closeModal("adminModal"); else setTimeout(loadFeedback, 0);
-  }
-
-  async function initAuth() {
-    const { data } = await db.auth.getSession(); setAdmin(data.session);
-    db.auth.onAuthStateChange((_e, s) => setAdmin(s));
-  }
-
-  const adminNavClick = () => isAdmin ? openAdmin() : openModal("loginModal");
-  function openAdmin() { openModal("adminModal"); $("editEyebrow").value = state.siteConfig.eyebrow; renderAdmin(); loadFeedback(); }
-
-  async function login(e) {
-    e.preventDefault();
-    const { error } = await db.auth.signInWithPassword({ email: $("adminEmail").value.trim(), password: $("adminPassword").value });
-    $("adminPassword").value = "";
-    if (error) return showError("Login failed: " + error.message);
-    closeModal("loginModal"); openAdmin();
-  }
-  async function logout() { await db.auth.signOut(); toast("Signed out"); }
-
-  /* ---------- Public Feedback ---------- */
-  async function submitFeedback(e) {
-    e.preventDefault();
-    const name = clean($("feedbackName").value, 60), message = String($("feedbackMessage").value).trim().slice(0, 1000);
-    if (!name || !message) return showError("Please fill in name and message.");
-    const { error } = await db.from("cnt_feedback").insert({ name, message });
-    if (error) return showError("Could not send feedback.");
-    $("feedbackName").value = ""; $("feedbackMessage").value = ""; toast("📨 Message sent to admin");
-  }
-
-  async function loadFeedback() {
-    if (!isAdmin) return;
-    const { data } = await db.from("cnt_feedback").select("*").order("created_at", { ascending: false }).limit(200);
-    feedback = data || []; renderNotifications();
-  }
-  async function markRead(id) { await db.from("cnt_feedback").update({ read: true }).eq("id", id); loadFeedback(); }
-  async function deleteFeedback(id) { await db.from("cnt_feedback").delete().eq("id", id); loadFeedback(); }
-
-  /* ---------- Public Rendering ---------- */
-  function renderAll() { renderPublic(); if (adminOpen()) renderAdmin(); }
-
-  function fillSelect(id, pairs) {
-    const el = $(id); if (!el) return;
-    const prev = el.value;
-    el.innerHTML = pairs.map(([v, l]) => `<option value="${esc(v)}">${esc(l)}</option>`).join("");
-    if (pairs.some(([v]) => String(v) === prev)) el.value = prev;
-  }
-
-  function renderPublic() {
-    const scope = $("statScopeSelect") ? $("statScopeSelect").value : "overall";
-    S = Object.fromEntries(state.players.map(p => [p.id, playerStats(p, scope)]));
-    $("siteEyebrow").textContent = state.siteConfig.eyebrow;
-
-    if ($("statScopeSelect")) {
-      const prevScope = $("statScopeSelect").value;
-      $("statScopeSelect").innerHTML = `<option value="overall">All Seasons (Overall)</option>` +
-        state.seasons.map(s => `<option value="${s}">Season ${s} Only</option>`).join("");
-      if (prevScope) $("statScopeSelect").value = prevScope;
-    }
-
-    const recentMatch = state.fixtures[state.fixtures.length - 1];
-    if (recentMatch) {
-      $("tickerText").textContent = `LATEST RESULT: ${recentMatch.title} — ${recentMatch.result}`;
-    }
-
-    $("seasonsGrid").innerHTML = state.seasons.map(i => `
-      <button class="season-card ${viewSeason === i ? "active" : ""}" data-act="season" data-id="${i}" aria-pressed="${viewSeason === i}">
-        <div class="kicker">SEASON 0${i}</div><h3>Season ${i}</h3>
-        <span class="status">${viewSeason === i ? "● ACTIVE VIEW" : "◷ SELECT"}</span>
-      </button>`).join("");
-
-    $("standingsTitle").textContent = `Points Table — Season ${viewSeason}`;
-    const rows = computeTable(viewSeason);
-    
-    // Render exact image-style floating rows with assigned Tiers
-    $("pointsBody").innerHTML = rows.length ? rows.map((t, i) => {
-      const userTier = state.positions[t.name] || (i === 0 ? "Premier" : i === 1 ? "Gold" : i === 2 ? "Silver" : "Normal");
-      let rowClass = "row-normal";
-      if (userTier === "Premier") rowClass = "row-premier";
-      else if (userTier === "Gold") rowClass = "row-gold";
-      else if (userTier === "Silver") rowClass = "row-silver";
-      else if (userTier === "Red") rowClass = "row-red";
-
-      return `
-      <tr class="${rowClass}">
-        <td class="sticky-col"><strong>${i + 1}</strong></td>
-        <td class="sticky-col-2"><strong>${esc(t.name)}</strong></td>
-        <td>${t.p}</td><td>${t.w}</td><td>${t.l}</td><td>${t.t}</td>
-        <td class="nrr">${(t.nrr > 0 ? "+" : "") + t.nrr.toFixed(3)}</td><td class="pts">${t.pts}</td>
-      </tr>`;
-    }).join("")
-    : `<tr><td colspan="8" class="empty">No teams added yet.</td></tr>`;
-
-    renderBracketPublic(); renderFixtures(); renderPvP(); renderPlayers();
-    fillSelect("teamFilter", [["All", "All Teams"], ...state.teams.map(t => [t, t])]);
-  }
-
-  /* Single Semi-Final Visual Playoff Bracket */
-  function renderBracketPublic() {
+  function renderBracket() {
+    const container = $('bracketGrid');
+    const banner = $('championBanner');
     const b = state.bracket;
-    const card = (t, m) => `
-      <div class="bracket-card">
-        <div class="bracket-title">${t}</div>
-        ${[m.team1, m.team2].map(x => `
-          <div class="bracket-team ${m.winner && m.winner === x ? "win" : ""}">
-            <span>${esc(x || "TBD")}</span>
-            <span>${m.winner && m.winner === x ? "🏆 WINNER" : ""}</span>
-          </div>`).join("")}
-      </div>`;
 
-    $("bracketGrid").innerHTML = `
+    if (b.final && b.final.winner) {
+      banner.innerHTML = `<div class="champion">🏆 SEASON CHAMPION: ${b.final.winner} 🏆</div>`;
+    } else {
+      banner.innerHTML = '';
+    }
+
+    container.innerHTML = `
       <div class="bracket-round">
-        ${card("Semi-Final", b.sf)}
+        <div class="bracket-title">SEMI-FINAL</div>
+        <div class="bracket-card">
+          <div class="bracket-team ${b.sf.winner === b.sf.team1 ? 'win' : ''}">
+            <span>${b.sf.team1 || 'TBD'}</span>
+            ${b.sf.winner === b.sf.team1 ? '<span>✓</span>' : ''}
+          </div>
+          <div class="bracket-team ${b.sf.winner === b.sf.team2 ? 'win' : ''}">
+            <span>${b.sf.team2 || 'TBD'}</span>
+            ${b.sf.winner === b.sf.team2 ? '<span>✓</span>' : ''}
+          </div>
+        </div>
       </div>
       <div class="bracket-round">
-        ${card("Grand Final", b.final)}
-      </div>`;
-    $("championBanner").innerHTML = b.final.winner ? `<div class="champion">🏆 CHAMPIONS: ${esc(b.final.winner)}</div>` : "";
+        <div class="bracket-title">GRAND FINAL</div>
+        <div class="bracket-card">
+          <div class="bracket-team ${b.final.winner === b.final.team1 ? 'win' : ''}">
+            <span>${b.final.team1 || 'TBD'}</span>
+            ${b.final.winner === b.final.team1 ? '<span>🏆</span>' : ''}
+          </div>
+          <div class="bracket-team ${b.final.winner === b.final.team2 ? 'win' : ''}">
+            <span>${b.final.team2 || 'TBD'}</span>
+            ${b.final.winner === b.final.team2 ? '<span>🏆</span>' : ''}
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   function renderFixtures() {
-    const list = [...state.fixtures].reverse();
-    $("fixturesBody").innerHTML = list.length ? list.map(f => `
-      <tr><td>${esc(f.title)}</td><td>S${f.season}</td>
-      <td><strong>${esc(f.team1)}</strong> vs <strong>${esc(f.team2)}</strong></td><td>${esc(f.result)}</td>
-      <td><button class="btn secondary mini" data-act="match" data-id="${f.id}">🔍 Details</button></td></tr>`).join("")
-      : `<tr><td colspan="5" class="empty">No match records logged.</td></tr>`;
+    const body = $('fixturesBody');
+    body.innerHTML = '';
+    state.matches.filter(m => m.season === state.currentSeason).forEach(m => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>Match ${m.num}</strong></td>
+        <td><span class="chip">${m.season}</span></td>
+        <td>${m.team1} vs ${m.team2}</td>
+        <td><span class="gold">${m.summary}</span></td>
+        <td><button class="btn mini secondary" onclick="viewScorecard('${m.id}')">View</button></td>
+      `;
+      body.appendChild(tr);
+    });
   }
 
-  function showMatchDetails(id) {
-    const m = state.fixtures.find(x => x.id === id); if (!m) return;
-    $("detailMatchTitle").textContent = `${m.title}: ${m.team1} vs ${m.team2}`;
-    $("detailMatchStatus").textContent = `Season ${m.season} · ${m.status}`;
-    $("detailTeam1Name").textContent = m.team1; $("detailTeam2Name").textContent = m.team2;
-    const sc = n => m.noScore ? "Score not recorded" : `${m[`team${n}Runs`]}/${m[`team${n}Wickets`]} (${m[`team${n}Overs`]} ov)`;
-    $("detailTeam1Score").textContent = sc(1); $("detailTeam2Score").textContent = sc(2);
-    $("detailMatchSummaryText").textContent = m.result;
-    const perfs = m.perfs || [];
-    $("detailPerfBox").hidden = !perfs.length;
-    $("detailPerfs").innerHTML = perfs.map(x => {
-      const p = state.players.find(q => q.id === x.pid);
-      return `<div>${esc(p ? p.name : "Unknown")}: ${x.runs}${x.notOut ? "*" : ""} runs · ${x.wkts}/${x.conc} bowling</div>`;
-    }).join("");
-    openModal("matchDetailModal");
+  function viewScorecard(matchId) {
+    const m = state.matches.find(x => x.id === matchId);
+    if (!m) return;
+    $('detailMatchTitle').innerText = `Match ${m.num} (${m.season})`;
+    $('detailMatchStatus').innerText = `Overs: ${m.overs1} / ${m.overs2}`;
+    $('detailTeam1Name').innerText = m.team1;
+    $('detailTeam1Score').innerText = `${m.runs1}/${m.wickets1}`;
+    $('detailTeam2Name').innerText = m.team2;
+    $('detailTeam2Score').innerText = `${m.runs2}/${m.wickets2}`;
+    $('detailMatchSummaryText').innerText = m.summary;
+    $('detailPerfs').innerText = m.perfs || 'No detailed stats recorded.';
+    openModal('matchDetailModal');
   }
 
   function togglePvpView(mode) {
-    pvpViewMode = mode;
-    $("btnPvpTable").classList.toggle("active", mode === "table");
-    $("btnPvpGraph").classList.toggle("active", mode === "graph");
+    state.activePvpMode = mode;
+    $('btnPvpTable').classList.toggle('active', mode === 'table');
+    $('btnPvpGraph').classList.toggle('active', mode === 'graph');
     updatePvP();
   }
 
-  function renderPvP() {
-    const p1 = $("pvpPlayer1Select"), p2 = $("pvpPlayer2Select");
-    if (!state.players.length) return;
-    const opts = state.players.map(p => `<option value="${p.id}">${esc(p.name)} (${esc(p.team)})</option>`).join("");
-    p1.innerHTML = p2.innerHTML = opts;
-    if (state.players.length > 1) p2.selectedIndex = 1;
+  function renderPvPSelectors() {
+    const s1 = $('pvpPlayer1Select');
+    const s2 = $('pvpPlayer2Select');
+    s1.innerHTML = '';
+    s2.innerHTML = '';
+
+    state.players.forEach((p) => {
+      const opt1 = new Option(`${p.name} (${p.team})`, p.id);
+      const opt2 = new Option(`${p.name} (${p.team})`, p.id);
+      s1.add(opt1);
+      s2.add(opt2);
+    });
+
+    if (state.players.length > 1) {
+      s2.selectedIndex = 1;
+    }
     updatePvP();
   }
 
   function updatePvP() {
-    const a = state.players.find(p => String(p.id) === $("pvpPlayer1Select").value);
-    const b = state.players.find(p => String(p.id) === $("pvpPlayer2Select").value);
-    const box = $("pvpComparisonBox");
-    if (!a || !b) { box.innerHTML = '<div class="empty">Select 2 players to compare.</div>'; return; }
-    const x = S[a.id] || {}, y = S[b.id] || {};
+    const id1 = $('pvpPlayer1Select').value;
+    const id2 = $('pvpPlayer2Select').value;
+    const p1 = state.players.find(p => p.id === id1);
+    const p2 = state.players.find(p => p.id === id2);
 
-    if (pvpViewMode === 'graph') {
-      const renderGraphBar = (label, valA, valB) => {
-        const total = (valA + valB) || 1;
-        const pctA = Math.round((valA / total) * 100);
-        const pctB = 100 - pctA;
-        return `
-          <div class="graph-row">
-            <div class="graph-label"><span>${valA}</span><span>${label}</span><span>${valB}</span></div>
-            <div class="graph-bar-container">
-              <div class="graph-bar-left" style="width: ${pctA}%"></div>
-              <div class="graph-bar-right" style="width: ${pctB}%"></div>
-            </div>
-          </div>`;
-      };
+    const box = $('pvpComparisonBox');
+    if (!p1 || !p2) {
+      box.innerHTML = '<p class="sub">Select two players to compare.</p>';
+      return;
+    }
+
+    if (state.activePvpMode === 'table') {
       box.innerHTML = `
-        <div class="pvp-stat-row mb10"><strong class="gold">${esc(a.name)}</strong><span class="sub">VS</span><strong class="teal">${esc(b.name)}</strong></div>
-        ${renderGraphBar("MATCHES", x.matches || 0, y.matches || 0)}
-        ${renderGraphBar("RUNS", x.runs || 0, y.runs || 0)}
-        ${renderGraphBar("HIGHEST SCORE", x.hs || 0, y.hs || 0)}
-        ${renderGraphBar("WICKETS", x.wickets || 0, y.wickets || 0)}
+        <div class="pvp-stat-row"><strong>${p1.name}</strong><span class="sub">VS</span><strong>${p2.name}</strong></div>
+        <div class="pvp-stat-row"><span>${p1.team}</span><span class="sub">Team</span><span>${p2.team}</span></div>
+        <div class="pvp-stat-row"><span>${p1.role}</span><span class="sub">Role</span><span>${p2.role}</span></div>
+        <div class="pvp-stat-row"><span class="gold">${p1.matches}</span><span class="sub">Matches</span><span class="gold">${p2.matches}</span></div>
+        <div class="pvp-stat-row"><span class="teal">${p1.runs}</span><span class="sub">Runs</span><span class="teal">${p2.runs}</span></div>
+        <div class="pvp-stat-row"><span class="red">${p1.wickets}</span><span class="sub">Wickets</span><span class="red">${p2.wickets}</span></div>
       `;
     } else {
-      const cmp = (lab, va = 0, vb = 0, color, fa = va, fb = vb) => `<div class="pvp-stat-row">
-        <strong style="color:${va >= vb ? color : "var(--text-main)"}">${esc(fa)}</strong><span class="sub">${lab}</span>
-        <strong style="color:${vb >= va ? color : "var(--text-main)"}">${esc(fb)}</strong></div>`;
+      const maxRuns = Math.max(p1.runs, p2.runs, 1);
+      const maxWkts = Math.max(p1.wickets, p2.wickets, 1);
+      const p1RunsW = (p1.runs / maxRuns) * 100;
+      const p2RunsW = (p2.runs / maxRuns) * 100;
+      const p1WktsW = (p1.wickets / maxWkts) * 100;
+      const p2WktsW = (p2.wickets / maxWkts) * 100;
+
       box.innerHTML = `
-        <div class="pvp-stat-row"><strong class="gold">${esc(a.name)}</strong><span class="sub">NAME</span><strong class="gold">${esc(b.name)}</strong></div>
-        <div class="pvp-stat-row"><span>${esc(a.team)}</span><span class="sub">TEAM</span><span>${esc(b.team)}</span></div>
-        ${cmp("MATCHES", x.matches, y.matches, "var(--teal)")}
-        ${cmp("TOTAL RUNS", x.runs, y.runs, "var(--orange)")}
-        ${cmp("HIGHEST SCORE", x.hs, y.hs, "var(--gold)", x.hsText, y.hsText)}
-        ${cmp("TOTAL WICKETS", x.wickets, y.wickets, "var(--purple)")}
-        ${cmp("BEST BOWLING", x.bw, y.bw, "var(--purple)", x.bb, y.bb)}`;
+        <div class="graph-row">
+          <div class="graph-label"><span>${p1.name} (${p1.runs} Runs)</span><span>${p2.name} (${p2.runs} Runs)</span></div>
+          <div class="graph-bar-container">
+            <div class="graph-bar-left" style="width: ${p1RunsW}%"></div>
+            <div class="graph-bar-right" style="width: ${p2RunsW}%"></div>
+          </div>
+        </div>
+        <div class="graph-row">
+          <div class="graph-label"><span>${p1.name} (${p1.wickets} Wkts)</span><span>${p2.name} (${p2.wickets} Wkts)</span></div>
+          <div class="graph-bar-container">
+            <div class="graph-bar-left" style="width: ${p1WktsW}%"></div>
+            <div class="graph-bar-right" style="width: ${p2WktsW}%"></div>
+          </div>
+        </div>
+      `;
     }
   }
 
   function renderPlayers() {
-    const q = clean($("playerSearch").value).toLowerCase(), team = $("teamFilter").value, role = $("roleFilter").value;
-    const list = state.players.filter(p => (p.name + " " + p.team).toLowerCase().includes(q) && (team === "All" || p.team === team) && (role === "All" || p.role === role));
-    $("playerGrid").innerHTML = list.length ? list.map(p => {
-      const s = S[p.id] || {};
-      return `<article class="player-card">
-        <div class="name">${esc(p.name)}</div>
-        <div class="sub">${esc(p.team)} · ${esc(p.role)}</div>
+    const grid = $('playerGrid');
+    const search = $('playerSearch').value.toLowerCase();
+    const teamF = $('teamFilter').value;
+    const roleF = $('roleFilter').value;
+
+    const filtered = state.players.filter(p => {
+      const mName = p.name.toLowerCase().includes(search) || p.team.toLowerCase().includes(search);
+      const mTeam = teamF === 'All' || p.team === teamF;
+      const mRole = roleF === 'All' || p.role === roleF;
+      return mName && mTeam && mRole;
+    });
+
+    grid.innerHTML = '';
+    filtered.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'player-card';
+      card.innerHTML = `
+        <div class="row-between">
+          <span class="name">${p.name}</span>
+          <span class="chip">${p.role}</span>
+        </div>
+        <div class="sub mt6">${p.team}</div>
         <div class="stat-grid">
-          <div class="stat-cell"><span class="sub">Matches</span><br><strong>${s.matches || 0}</strong></div>
-          <div class="stat-cell"><span class="sub">Runs</span><br><strong style="color:var(--orange)">${s.runs || 0}</strong></div>
-          <div class="stat-cell"><span class="sub">Highest Score</span><br><strong class="gold">${esc(s.hsText || "0")}</strong></div>
-          <div class="stat-cell"><span class="sub">Wickets</span><br><strong style="color:var(--purple)">${s.wickets || 0}</strong></div>
-        </div></article>`;
-    }).join("") : '<div class="sub">No player records found.</div>';
-  }
-
-  /* ---------- Admin Workspace Rendering ---------- */
-  function renderAdmin() {
-    const teamPairs = state.teams.map(t => [t, t]);
-    fillSelect("manualPlayerTeam", teamPairs);
-    renderBracketAdmin();
-
-    $("adminPositionsContainer").innerHTML = state.teams.map(t => `
-      <div class="list-item mt6 row-between">
-        <strong>${esc(t)}</strong>
-        <select onchange="setTier('${esc(t)}', this.value)" aria-label="Tier for ${esc(t)}" style="max-width:220px;">
-          ${Object.entries(TIERS).map(([k, l]) => `<option value="${k}" ${(state.positions[t] || "Normal") === k ? "selected" : ""}>${l}</option>`).join("")}
-        </select>
-      </div>`).join("");
-
-    $("teamsListContainer").innerHTML = state.teams.map(t => `<span class="chip">${esc(t)}
-      <button data-act="renameTeam" data-name="${esc(t)}">✏️</button>
-      <button data-act="deleteTeam" data-name="${esc(t)}">➖</button></span>`).join("");
-
-    $("playersListContainer").innerHTML = state.players.length ? state.players.map(p => `<span class="chip">${esc(p.name)} (${esc(p.team)})
-      <button class="red" data-act="deletePlayer" data-id="${p.id}">×</button></span>`).join("")
-      : '<span class="sub">No players yet.</span>';
-
-    $("matchesManageList").innerHTML = state.fixtures.length ? [...state.fixtures].reverse().map(f => `
-      <div class="list-item mt6"><span>S${f.season} · <strong>${esc(f.title)}</strong> — ${esc(f.result)}</span>
-      <button class="btn danger mini" data-act="deleteMatch" data-id="${f.id}">Delete</button></div>`).join("")
-      : '<div class="sub">No matches saved.</div>';
-
-    $("serverRawJson").value = JSON.stringify(state, null, 2);
-    renderNotifications(); updateHistoryButtons();
-  }
-
-  function renderNotifications() {
-    const unread = feedback.filter(n => !n.read).length;
-    $("notifBadge").textContent = unread;
-    $("adminNotificationsList").innerHTML = feedback.length ? feedback.map(n => `
-      <div class="notif mt10 inset">
-        <div class="row-between"><strong class="gold small">From: ${esc(n.name)}</strong><span class="sub">${esc(new Date(n.created_at).toLocaleString())}</span></div>
-        <p class="mt6">${esc(n.message)}</p>
-        <div class="row-between mt6"><span></span><span>
-          ${n.read ? '<span class="sub">✓ Read</span>' : `<button class="btn secondary mini" data-act="readNotif" data-id="${n.id}">Mark read</button>`}
-          <button class="btn danger mini" data-act="delNotif" data-id="${n.id}">Delete</button></span></div>
-      </div>`).join("") : '<div class="sub">No feedback.</div>';
-  }
-
-  function renderBracketAdmin() {
-    const opts = cur => `<option value="">— TBD —</option>` + state.teams.map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
-    BR.forEach(([k, p]) => {
-      const m = state.bracket[k] || {};
-      $(p + "Team1").innerHTML = opts(m.team1); $(p + "Team2").innerHTML = opts(m.team2);
-      fillWinner(p, m.winner);
+          <div class="stat-cell">Matches: <strong>${p.matches}</strong></div>
+          <div class="stat-cell">Runs: <strong class="teal">${p.runs}</strong></div>
+          <div class="stat-cell">Wickets: <strong class="red">${p.wickets}</strong></div>
+          <div class="stat-cell">Avg: <strong>${p.matches ? (p.runs / p.matches).toFixed(1) : 0}</strong></div>
+        </div>
+      `;
+      grid.appendChild(card);
     });
   }
 
-  function fillWinner(p, cur) {
-    const teams = [...new Set([$(p + "Team1").value, $(p + "Team2").value].filter(Boolean))];
-    $(p + "Winner").innerHTML = `<option value="">No winner yet</option>` + teams.map(t => `<option value="${esc(t)}"${t === cur ? " selected" : ""}>${esc(t)}</option>`).join("");
+  function submitFeedback(e) {
+    e.preventDefault();
+    const name = $('feedbackName').value.trim();
+    const message = $('feedbackMessage').value.trim();
+    if (!name || !message) return;
+
+    state.feedback.push({ id: Date.now(), name, message, date: new Date().toLocaleTimeString() });
+    saveLocalData();
+    showToast("Feedback sent to admin!");
+    $('feedbackName').value = '';
+    $('feedbackMessage').value = '';
+    renderAdminControls();
+  }
+
+  function processAiMatchInput() {
+    const text = $('aiMatchInput').value.trim();
+    if (!text) {
+      showToast("Please enter match text summary", true);
+      return;
+    }
+
+    let season = state.currentSeason;
+    const sMatch = text.match(/s(\d+)/i);
+    if (sMatch) season = 'S' + sMatch[1];
+
+    let matchNum = state.matches.length + 1;
+    const mNumMatch = text.match(/match\s*(\d+)/i);
+    if (mNumMatch) matchNum = parseInt(mNumMatch[1]);
+
+    let team1 = state.teams[0] || 'Team A';
+    let team2 = state.teams[1] || 'Team B';
+
+    const foundTeams = state.teams.filter(t => new RegExp(`\\b${t}\\b`, 'i').test(text));
+    if (foundTeams.length >= 2) {
+      team1 = foundTeams[0];
+      team2 = foundTeams[1];
+    }
+
+    const scores = [...text.matchAll(/(\d+)[\/-](\d+)\s*\(([\d.]+)\s*ov\)/gi)];
+    let runs1 = 150, wickets1 = 5, overs1 = 20;
+    let runs2 = 140, wickets2 = 8, overs2 = 20;
+
+    if (scores.length >= 1) {
+      runs1 = parseInt(scores[0][1]);
+      wickets1 = parseInt(scores[0][2]);
+      overs1 = parseFloat(scores[0][3]);
+    }
+    if (scores.length >= 2) {
+      runs2 = parseInt(scores[1][1]);
+      wickets2 = parseInt(scores[1][2]);
+      overs2 = parseFloat(scores[1][3]);
+    }
+
+    let winner = team1;
+    if (text.toLowerCase().includes(`${team2.toLowerCase()} won`)) {
+      winner = team2;
+    } else if (text.toLowerCase().includes(`${team1.toLowerCase()} won`)) {
+      winner = team1;
+    } else if (runs2 > runs1) {
+      winner = team2;
+    }
+
+    let summary = `${winner} won the match`;
+    const summaryMatch = text.match(/(.*won by.*?\.)/i);
+    if (summaryMatch) summary = summaryMatch[1];
+
+    pendingAiMatch = {
+      id: 'm_' + Date.now(),
+      season,
+      num: matchNum,
+      team1,
+      team2,
+      runs1, wickets1, overs1,
+      runs2, wickets2, overs2,
+      winner,
+      summary,
+      perfs: text
+    };
+
+    $('aiPreviewContent').innerHTML = `
+      <strong>Season:</strong> ${season} | <strong>Match:</strong> ${matchNum}<br>
+      <strong>Teams:</strong> ${team1} (${runs1}/${wickets1}, ${overs1}ov) vs ${team2} (${runs2}/${wickets2}, ${overs2}ov)<br>
+      <strong>Winner:</strong> ${winner}<br>
+      <strong>Summary:</strong> ${summary}
+    `;
+    $('aiPreviewBox').style.display = 'block';
+  }
+
+  function confirmSaveAiMatch() {
+    if (!pendingAiMatch) return;
+    state.matches.push(pendingAiMatch);
+    pendingAiMatch = null;
+    $('aiPreviewBox').style.display = 'none';
+    $('aiMatchInput').value = '';
+    saveStateToHistory();
+    renderAll();
+    showToast("Match stored successfully!");
+  }
+
+  function renderAdminControls() {
+    const selSf1 = $('admSfTeam1');
+    const selSf2 = $('admSfTeam2');
+    const selSfW = $('admSfWinner');
+    const selF1 = $('admFinalTeam1');
+    const selF2 = $('admFinalTeam2');
+    const selFW = $('admFinalWinner');
+
+    [selSf1, selSf2, selSfW, selF1, selF2, selFW].forEach(s => s.innerHTML = '<option value="">None / TBD</option>');
+
+    state.teams.forEach(t => {
+      [selSf1, selSf2, selSfW, selF1, selF2, selFW].forEach(s => {
+        s.add(new Option(t, t));
+      });
+    });
+
+    selSf1.value = state.bracket.sf.team1 || '';
+    selSf2.value = state.bracket.sf.team2 || '';
+    selSfW.value = state.bracket.sf.winner || '';
+    selF1.value = state.bracket.final.team1 || '';
+    selF2.value = state.bracket.final.team2 || '';
+    selFW.value = state.bracket.final.winner || '';
+
+    const posContainer = $('adminPositionsContainer');
+    posContainer.innerHTML = '';
+    state.teams.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'row-between mt6';
+      row.innerHTML = `
+        <span>${t}</span>
+        <select onchange="setTeamTier('${t}', this.value)" style="max-width:180px">
+          <option value="row-premier" ${state.teamTiers[t] === 'row-premier' ? 'selected' : ''}>Cyan Neon (Premier)</option>
+          <option value="row-gold" ${state.teamTiers[t] === 'row-gold' ? 'selected' : ''}>Gold Glow (Top Tier)</option>
+          <option value="row-silver" ${state.teamTiers[t] === 'row-silver' ? 'selected' : ''}>Silver Sheen</option>
+          <option value="row-normal" ${state.teamTiers[t] === 'row-normal' ? 'selected' : ''}>Normal Row</option>
+          <option value="row-red" ${state.teamTiers[t] === 'row-red' ? 'selected' : ''}>Full Red Barrier (Eliminated)</option>
+        </select>
+      `;
+      posContainer.appendChild(row);
+    });
+
+    const pTeamSel = $('manualPlayerTeam');
+    pTeamSel.innerHTML = '';
+    state.teams.forEach(t => pTeamSel.add(new Option(t, t)));
+
+    const teamsList = $('teamsListContainer');
+    teamsList.innerHTML = '';
+    state.teams.forEach(t => {
+      teamsList.innerHTML += `<span class="chip">${t} <button onclick="removeTeam('${t}')" style="background:none;border:none;color:var(--red);cursor:pointer;">✕</button></span>`;
+    });
+
+    const playersList = $('playersListContainer');
+    playersList.innerHTML = '';
+    state.players.forEach(p => {
+      playersList.innerHTML += `<span class="chip">${p.name} (${p.team}) <button onclick="removePlayer('${p.id}')" style="background:none;border:none;color:var(--red);cursor:pointer;">✕</button></span>`;
+    });
+
+    const mList = $('matchesManageList');
+    mList.innerHTML = '';
+    state.matches.forEach(m => {
+      const d = document.createElement('div');
+      d.className = 'row-between inset mt6';
+      d.innerHTML = `
+        <div><strong>M${m.num} (${m.season}):</strong> ${m.team1} vs ${m.team2}</div>
+        <button class="btn mini danger" onclick="deleteMatch('${m.id}')">Delete</button>
+      `;
+      mList.appendChild(d);
+    });
+
+    const nList = $('adminNotificationsList');
+    const badge = $('notifBadge');
+    badge.innerText = state.feedback.length;
+    nList.innerHTML = '';
+    state.feedback.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'inset mb10';
+      card.innerHTML = `
+        <div class="row-between"><strong>${f.name}</strong><span class="sub">${f.date}</span></div>
+        <p class="mt6 detail-text">${f.message}</p>
+      `;
+      nList.appendChild(card);
+    });
+
+    $('editEyebrow').value = state.siteEyebrow;
+  }
+
+  function setTeamTier(team, tierClass) {
+    state.teamTiers[team] = tierClass;
+    saveStateToHistory();
+    renderStandings();
   }
 
   function saveBracket() {
-    const nb = {
-      sf: { team1: $("admSfTeam1").value, team2: $("admSfTeam2").value, winner: $("admSfWinner").value },
-      final: { team1: $("admFinalTeam1").value, team2: $("admFinalTeam2").value, winner: $("admFinalWinner").value }
-    };
-    if (nb.sf.winner && !nb.final.team2) nb.final.team2 = nb.sf.winner;
-    commit(() => state.bracket = nb, "🏆 Bracket updated");
+    state.bracket.sf.team1 = $('admSfTeam1').value;
+    state.bracket.sf.team2 = $('admSfTeam2').value;
+    state.bracket.sf.winner = $('admSfWinner').value;
+    state.bracket.final.team1 = $('admFinalTeam1').value;
+    state.bracket.final.team2 = $('admFinalTeam2').value;
+    state.bracket.final.winner = $('admFinalWinner').value;
+    saveStateToHistory();
+    renderBracket();
+    showToast("Bracket layout updated!");
   }
-
-  /* ---------- Data Management Actions ---------- */
-  const dup = n => state.teams.some(t => t.toLowerCase() === n.toLowerCase());
 
   function addTeam() {
-    const n = clean($("newTeamName").value, 40);
-    if (!n) return showError("Team name cannot be empty.");
-    if (dup(n)) return showError(`Team '${n}' already exists.`);
-    $("newTeamName").value = "";
-    commit(() => { state.teams.push(n); state.positions[n] = "Normal"; }, "Team added");
+    const input = $('newTeamName');
+    const name = input.value.trim();
+    if (!name) return;
+    if (state.teams.includes(name)) {
+      showToast("Team already exists", true);
+      return;
+    }
+    state.teams.push(name);
+    state.teamTiers[name] = 'row-normal';
+    input.value = '';
+    saveStateToHistory();
+    renderAll();
+    showToast(`Team ${name} added`);
   }
 
-  async function deleteTeam(name) {
-    if (state.fixtures.some(f => f.team1 === name || f.team2 === name)) return showError(`'${name}' has saved matches.`);
-    if (!await askDialog({ title: "Delete team", message: `Delete ${name}?`, okText: "Delete" })) return;
-    commit(() => {
-      state.teams = state.teams.filter(t => t !== name); delete state.positions[name];
-      Object.values(state.bracket).forEach(m => ["team1", "team2", "winner"].forEach(k => { if (m[k] === name) m[k] = ""; }));
-    }, "Team deleted");
+  function removeTeam(name) {
+    state.teams = state.teams.filter(t => t !== name);
+    delete state.teamTiers[name];
+    saveStateToHistory();
+    renderAll();
+    showToast(`Team ${name} removed`);
   }
 
-  async function renameTeam(old) {
-    const v = await askDialog({ title: "Rename team", message: `New name for '${old}':`, input: old, okText: "Rename" });
-    const n = clean(v, 40);
-    if (!n || n === old || dup(n)) return;
-    commit(() => {
-      state.teams[state.teams.indexOf(old)] = n;
-      state.positions[n] = state.positions[old]; delete state.positions[old];
-      state.players.forEach(p => { if (p.team === old) p.team = n; });
-      state.fixtures.forEach(f => ["team1", "team2", "winner"].forEach(k => { if (f[k] === old) f[k] = n; }));
-    }, `Renamed to ${n}`);
+  function addSeason() {
+    const nextS = 'S' + (state.seasons.length + 1);
+    state.seasons.push(nextS);
+    state.currentSeason = nextS;
+    saveStateToHistory();
+    renderAll();
+    showToast(`Added Season ${nextS}`);
   }
-
-  const setTier = (team, tier) => commit(() => state.positions[team] = tier, "Tier updated");
-  const addSeason = () => commit(() => state.seasons.push(Math.max(...state.seasons) + 1), "Season added");
-  const saveSiteText = () => { const v = clean($("editEyebrow").value, 60); if (v) commit(() => state.siteConfig.eyebrow = v, "Tagline saved"); };
 
   function addPlayer() {
-    const name = clean($("manualPlayerName").value, 40);
-    if (!name) return showError("Enter player name.");
-    const num = id => Math.max(0, parseInt($(id).value) || 0);
-    const team = $("manualPlayerTeam").value, role = $("manualPlayerRole").value;
-    const matches = num("manualPlayerMatches"), runs = num("manualPlayerRuns"), wickets = num("manualPlayerWickets");
+    const name = $('manualPlayerName').value.trim();
+    const team = $('manualPlayerTeam').value;
+    const role = $('manualPlayerRole').value;
+    const matches = parseInt($('manualPlayerMatches').value) || 0;
+    const runs = parseInt($('manualPlayerRuns').value) || 0;
+    const wickets = parseInt($('manualPlayerWickets').value) || 0;
 
-    commit(() => {
-      state.players.push({
-        id: generateId(), name, team, role,
-        base: { matches, runs, wickets, hs: runs, hsNo: false, bw: wickets, bc: null }
-      });
-    }, "Player saved");
-  }
-
-  async function deletePlayer(id) {
-    if (await askDialog({ title: "Remove player", message: "Remove player?", okText: "Remove" }))
-      commit(() => state.players = state.players.filter(p => p.id !== id), "Player removed");
-  }
-
-  async function deleteMatch(id) {
-    if (await askDialog({ title: "Delete match", message: "Delete this match?", okText: "Delete" }))
-      commit(() => state.fixtures = state.fixtures.filter(f => f.id !== id), "Match deleted");
-  }
-
-  async function resetDefaultData() {
-    const v = await askDialog({ title: "Wipe tournament", message: "Type RESET to confirm.", input: "", okText: "Wipe" });
-    if (v === "RESET") { await commit(() => state = freshState()); undoStack = []; redoStack = []; }
-  }
-
-  /* Event Routing */
-  document.addEventListener("click", e => {
-    const btn = e.target.closest("[data-act]");
-    if (!btn) return;
-    const act = btn.dataset.act, id = btn.dataset.id, name = btn.dataset.name;
-
-    switch (act) {
-      case "season": viewSeason = +id; renderAll(); break;
-      case "match": showMatchDetails(id); break;
-      case "deleteMatch": deleteMatch(id); break;
-      case "deleteTeam": deleteTeam(name); break;
-      case "renameTeam": renameTeam(name); break;
-      case "deletePlayer": deletePlayer(id); break;
-      case "readNotif": markRead(id); break;
-      case "delNotif": deleteFeedback(id); break;
+    if (!name) {
+      showToast("Enter player name", true);
+      return;
     }
-  });
 
-  window.addEventListener("DOMContentLoaded", () => {
-    initAuth();
-    loadState();
-  });
+    state.players.push({
+      id: 'p_' + Date.now(),
+      name, team, role, matches, runs, wickets
+    });
+
+    $('manualPlayerName').value = '';
+    $('manualPlayerMatches').value = '';
+    $('manualPlayerRuns').value = '';
+    $('manualPlayerWickets').value = '';
+
+    saveStateToHistory();
+    renderAll();
+    showToast(`Player ${name} saved`);
+  }
+
+  function removePlayer(id) {
+    state.players = state.players.filter(p => p.id !== id);
+    saveStateToHistory();
+    renderAll();
+    showToast("Player removed");
+  }
+
+  function deleteMatch(id) {
+    state.matches = state.matches.filter(m => m.id !== id);
+    saveStateToHistory();
+    renderAll();
+    showToast("Match deleted");
+  }
+
+  function saveSiteText() {
+    state.siteEyebrow = $('editEyebrow').value.trim() || 'TOURNAMENT DASHBOARD';
+    saveStateToHistory();
+    renderAll();
+    showToast("Tagline updated");
+  }
+
+  function resetDefaultData() {
+    $('dialogTitle').innerText = "Reset All Tournament Data?";
+    $('dialogMessage').innerText = "This will restore defaults and clear current progress. Are you sure?";
+    $('dialogConfirmBtn').onclick = () => {
+      localStorage.removeItem('cnt_league_state');
+      location.reload();
+    };
+    openModal('dialogModal');
+  }
+
+  function updateServerRaw() {
+    const raw = $('serverRawJson');
+    if (raw) {
+      raw.value = JSON.stringify({
+        seasons: state.seasons,
+        teams: state.teams,
+        matchesCount: state.matches.length,
+        playersCount: state.players.length,
+        lastUpdated: new Date().toISOString()
+      }, null, 2);
+    }
+  }
 </script>
-
 </body>
 </html>
