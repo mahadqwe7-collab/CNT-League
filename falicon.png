@@ -1,0 +1,23 @@
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Search Engine Title & Description -->
+  <title>CNT-League | Premier Cricket Engine</title>
+  <meta name="description" content="Official CNT-League cricket tournament dashboard: live points table, NRR, player stats, and match scorecards.">
+
+  <!-- Favicon / Website Icon (Google Search me ye icon dikhega) -->
+  <link rel="icon" type="image/png" href="https://cntleague.vercel.app/favicon.png">
+  <link rel="apple-touch-icon" href="https://cntleague.vercel.app/favicon.png">
+
+  <!-- Google Site Name Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "CNT-League",
+    "alternateName": ["CNT League"],
+    "url": "https://cntleague.vercel.app/"
+  }
+  </script>
+</head>
