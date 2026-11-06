@@ -16,12 +16,12 @@
 
   <!-- Search Engine Title & Description -->
   <title>CNT-League | Premier Cricket Engine</title>
-  <meta name="description" content="Official CNT-League cricket tournament dashboard: live points table, free AI match summary parser, duplicate checking, NRR calculations, playoff brackets, scorecards, and player stats.">
+  <meta name="description" content="Official CNT-League cricket tournament dashboard: live points table, free AI match summary parser, duplicate checking, NRR calculations, playoff brackets, scorecards, dynamic HTML injector, and player stats.">
 
   <!-- Open Graph / Social Media Preview Meta Tags -->
   <meta property="og:site_name" content="CNT-League">
   <meta property="og:title" content="CNT-League | Premier Cricket Engine">
-  <meta property="og:description" content="Live standings, free AI match summary parser, duplicate resolution, NRR calculations, playoff brackets, and player stats.">
+  <meta property="og:description" content="Live standings, free AI match summary parser, duplicate resolution, NRR calculations, playoff brackets, high-performance HTML injector, and player stats.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://cntleague.vercel.app">
 
@@ -321,7 +321,7 @@
 <div class="ticker-wrap">
   <div class="wrap ticker-content">
     <span class="ticker-badge">⚡ LIVE TICKER</span>
-    <span id="tickerText">CNT-League Season Active — Real-time Typo Checking & Roman-Urdu Converter Active.</span>
+    <span id="tickerText">CNT-League Season Active — Dynamic HTML Injector & External Bridge Ready.</span>
   </div>
 </div>
 
@@ -334,6 +334,9 @@
       <a class="btn secondary" href="#fixtures">VIEW MATCH LOG</a>
     </div>
   </section>
+
+  <!-- DYNAMIC INJECTOR CONTAINER FOR EXTERNAL OR BATCHED MODULES -->
+  <div id="dynamicModulesContainer"></div>
 
   <section id="seasons">
     <div class="section-head"><div class="kicker">Timeline</div><h2>Explore Seasons</h2></div>
@@ -496,7 +499,7 @@
 <div id="adminModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
   <div class="modal admin-large-panel">
     <div class="admin-top-bar">
-      <div><h2 id="adminTitle">⚡ CNT-League Expanded Admin Studio</h2><span class="sub">AI Engine, Roman-Urdu Converter, Live Typo Checking & Architecture</span></div>
+      <div><h2 id="adminTitle">⚡ CNT-League Expanded Admin Studio</h2><span class="sub">AI Engine, Dynamic HTML Injector & External Bridge</span></div>
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" disabled>↪️ Redo</button>
@@ -509,6 +512,7 @@
     <div class="admin-workspace">
       <aside class="admin-sidebar">
         <button class="tab-btn active" onclick="switchTab(this,'tabAi')">🤖 AI MATCH ENGINE</button>
+        <button class="tab-btn" onclick="switchTab(this,'tabInjector')">💉 500+ LINE INJECTOR</button>
         <button class="tab-btn" onclick="switchTab(this,'tabBracket')">🏆 BRACKET & TIERS</button>
         <button class="tab-btn" onclick="switchTab(this,'tabManual')">🛠️ MANAGE DATA</button>
         <button class="tab-btn" onclick="switchTab(this,'tabAnalytics')">💡 SYSTEM ANALYTICS</button>
@@ -551,6 +555,25 @@
 
           <h4 class="mt16">Saved Matches</h4>
           <div id="matchesManageList" class="mt6"></div>
+        </div>
+
+        <!-- 500+ LINE HTML INJECTOR & BRIDGE TAB -->
+        <div id="tabInjector" class="tab-content">
+          <h3>💉 DYNAMIC HTML & MODULE INJECTOR</h3>
+          <p class="sub mb10">Inject 500+ lines of HTML or load dynamic content directly from another website endpoint.</p>
+
+          <div class="form-panel mb12">
+            <h4 class="gold mb6">1. Direct HTML Code Injector (Batch Fragment API)</h4>
+            <textarea id="rawHtmlInjectorInput" rows="6" placeholder="Paste 500+ lines of raw HTML code here..." class="mt6 mb6"></textarea>
+            <button class="btn primary full" onclick="injectRawHtmlSnippet()">⚡ Inject HTML to Main Dashboard</button>
+          </div>
+
+          <div class="form-panel">
+            <h4 class="teal mb6">2. Connect & Fetch HTML from External Website</h4>
+            <p class="sub mb10">Fetch external HTML templates or API data directly into your dashboard (Requires CORS enablement or server proxy).</p>
+            <input type="url" id="externalSiteUrlInput" placeholder="https://my-external-website.com/module.html" class="mb6">
+            <button class="btn secondary full" onclick="fetchAndInjectExternalSite()">🌐 Fetch & Bridge External Content</button>
+          </div>
         </div>
 
         <!-- BRACKET & TIER CONTROL TAB -->
@@ -817,18 +840,60 @@
     }
   }
 
+  // 500+ LINE HTML INJECTOR ENGINE (Off-DOM DocumentFragment Batching)
+  function injectRawHtmlSnippet() {
+    const htmlString = $('rawHtmlInjectorInput').value.trim();
+    if (!htmlString) { toast("Paste HTML snippet first", true); return; }
+
+    try {
+      const container = $('dynamicModulesContainer');
+      const range = document.createRange();
+      range.selectNode(container);
+      const fragment = range.createContextualFragment(htmlString);
+      
+      container.appendChild(fragment);
+      $('rawHtmlInjectorInput').value = '';
+      toast("500+ line HTML snippet successfully injected!");
+    } catch (e) {
+      console.error(e);
+      toast("Failed to parse HTML snippet", true);
+    }
+  }
+
+  // EXTERNAL WEBSITE BRIDGE (FETCH API)
+  async function fetchAndInjectExternalSite() {
+    const url = $('externalSiteUrlInput').value.trim();
+    if (!url) { toast("Enter valid external URL", true); return; }
+
+    try {
+      toast("Fetching external website content...");
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+      const text = await res.text();
+
+      const container = $('dynamicModulesContainer');
+      const range = document.createRange();
+      range.selectNode(container);
+      const fragment = range.createContextualFragment(text);
+
+      container.appendChild(fragment);
+      toast("External content bridged successfully!");
+    } catch (err) {
+      console.error(err);
+      toast("Connection blocked by CORS or Invalid URL. See setup guide.", true);
+    }
+  }
+
   // Simple Urdu / Roman-Urdu Converter
   function convertSimpleToProfessional() {
     let input = $('simpleUrduInput').value.trim();
     if (!input) { toast("Enter text in simple English or Roman-Urdu first", true); return; }
 
-    // Dictionary replacements for common Roman-Urdu terms
     input = input.replace(/ne\s+/gi, " ");
     input = input.replace(/banaye|banye/gi, "scored");
     input = input.replace(/overs\s+me|ovs\s+me/gi, "overs)");
     input = input.replace(/jeet\s+gaya|jeeta|won\s+the\s+match/gi, "won by");
 
-    // Standardize formatting
     let formatted = input;
     state.teams.forEach(t => {
       const reg = new RegExp(t, 'gi');
