@@ -16,16 +16,16 @@
 
   <!-- Search Engine Title & Description -->
   <title>CNT-League | Premier Cricket Engine</title>
-  <meta name="description" content="Official CNT-League cricket tournament dashboard: live points table, enhanced NRR impact calculations, playoff brackets, scorecards, and player career statistics.">
+  <meta name="description" content="Official CNT-League cricket tournament dashboard: live points table, free AI match summary parser, duplicate checking, NRR calculations, playoff brackets, scorecards, and player stats.">
 
   <!-- Open Graph / Social Media Preview Meta Tags -->
   <meta property="og:site_name" content="CNT-League">
   <meta property="og:title" content="CNT-League | Premier Cricket Engine">
-  <meta property="og:description" content="Live standings, enhanced NRR calculations, playoff brackets, scorecards, and player stats.">
+  <meta property="og:description" content="Live standings, free AI match summary parser, duplicate resolution, NRR calculations, playoff brackets, and player stats.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://cntleague.vercel.app">
 
-  <!-- Structured Data (JSON-LD) for Search Engine Brand Recognition -->
+  <!-- Structured Data (JSON-LD) -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -264,7 +264,7 @@
     .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .88); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(6px); }
     .modal-overlay.active { display: flex; }
     .modal { background: #0f1c2e; border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(16px, 4vw, 24px); width: min(750px, 94%); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .8); }
-    .modal.narrow { max-width: 400px; }
+    .modal.narrow { max-width: 420px; }
     .admin-large-panel { width: min(980px, 95%); }
     .admin-top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--panel-border); flex-wrap: wrap; gap: 10px; }
     .admin-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -317,7 +317,7 @@
 <div class="ticker-wrap">
   <div class="wrap ticker-content">
     <span class="ticker-badge">⚡ LIVE TICKER</span>
-    <span id="tickerText">CNT-League Season Active — Dynamic NRR Impact Engine enabled on Match Scorecards.</span>
+    <span id="tickerText">CNT-League Season Active — Free AI API Match Parser with Dynamic Integrity Validation.</span>
   </div>
 </div>
 
@@ -473,11 +473,28 @@
   </div>
 </div>
 
+<!-- VALIDATION & DUPLICATE CONFLICT MODAL -->
+<div id="validationModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="valModalTitle">
+  <div class="modal narrow" style="border-color: var(--red);">
+    <h3 id="valModalTitle" class="red">⚠️ Match Validation Issue</h3>
+    <p class="sub mt6 mb10" id="valModalSubtitle">Problems were detected in your match summary.</p>
+    
+    <div class="inset mb10" style="background: rgba(255, 85, 85, 0.08); border-color: rgba(255, 85, 85, 0.3);">
+      <span class="kicker red">Detected Issues:</span>
+      <div id="valModalIssues" class="detail-text mt6 red"></div>
+    </div>
+
+    <div id="valModalActions" class="row-gap mt12" style="flex-direction: column;">
+      <!-- Populated dynamically: Discard, Replace, or Force Save -->
+    </div>
+  </div>
+</div>
+
 <!-- ADMIN WORKSPACE MODAL -->
 <div id="adminModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
   <div class="modal admin-large-panel">
     <div class="admin-top-bar">
-      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">AI Engine, NRR Calculations, PvP Visuals & Database</span></div>
+      <div><h2 id="adminTitle">⚡ CNT-League Admin Dashboard</h2><span class="sub">Free AI API, Dynamic Validation, NRR & Database</span></div>
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" disabled>↪️ Redo</button>
@@ -493,19 +510,19 @@
         <button class="tab-btn" onclick="switchTab(this,'tabBracket')">🏆 BRACKET & TIERS</button>
         <button class="tab-btn" onclick="switchTab(this,'tabManual')">🛠️ MANAGE DATA</button>
         <button class="tab-btn" onclick="switchTab(this,'tabNotifications')">🔔 INBOX <span id="notifBadge" class="badge-count">0</span></button>
-        <button class="tab-btn" onclick="switchTab(this,'tabServer')">🌐 SERVER</button>
+        <button class="tab-btn" onclick="switchTab(this,'tabServer')">🌐 SERVER & AI API</button>
       </aside>
 
       <div class="admin-main-content">
         <!-- AI MATCH ENGINE TAB -->
         <div id="tabAi" class="tab-content active">
           <h3>🤖 AI NATURAL MATCH ENGINE</h3>
-          <p class="sub mb10">Type or paste match summary in plain text. Computes NRR impact automatically.</p>
+          <p class="sub mb10">Type commentary text. Uses Cloud AI API (or Local Fallback) to extract & validate matches.</p>
           
           <div class="form-panel">
-            <label class="gold">Enter Match Summary (Natural Text)</label>
-            <textarea id="aiMatchInput" rows="4" placeholder="e.g. S1 Match 3: Team A 180/5 (20 ov) vs Team B 182/3 (19.2 ov). Ali scored 65, Rahul 80, Hamza took 3/25. Team B won by 7 wickets." class="mt6 mb10"></textarea>
-            <button class="btn primary full" onclick="processAiMatchInput()">⚡ Analyze & Extract Match Data</button>
+            <label class="gold">Enter Match Summary / Commentary</label>
+            <textarea id="aiMatchInput" rows="4" placeholder="e.g. Thunderbolts 180/5 (20 ov) vs Strikers 162/8 (20 ov). Ali Khan scored 75, Rahul Sharma took 3/28. Thunderbolts won by 18 runs." class="mt6 mb10"></textarea>
+            <button class="btn primary full" onclick="processAiMatchInput()">⚡ Analyze & Validate Match Data</button>
           </div>
 
           <div id="aiPreviewBox" class="inset mt12" style="display:none;">
@@ -600,15 +617,23 @@
           <div id="adminNotificationsList"></div>
         </div>
 
-        <!-- SERVER TAB -->
+        <!-- SERVER & AI API TAB -->
         <div id="tabServer" class="tab-content">
-          <h3>🌐 Cloud Server Status</h3>
-          <div class="grid3 mb10 mt6">
-            <div class="inset"><span class="sub">Connection</span><br><strong id="serverStatus">Local Storage Mode</strong></div>
-            <div class="inset"><span class="sub">Signed in as</span><br><strong id="adminUserEmail">Local Admin</strong></div>
+          <h3>🌐 Cloud Database & AI API Settings</h3>
+          <div class="grid2 mb10 mt6">
+            <div class="inset"><span class="sub">Cloud DB Connection</span><br><strong id="serverStatus">Local Storage Mode</strong></div>
+            <div class="inset"><span class="sub">Free AI API Status</span><br><strong id="aiApiStatus" class="teal">Ready (Local + Free AI Endpoint)</strong></div>
           </div>
-          <p class="sub mb10">Configure Supabase connection dynamically or operate locally.</p>
+          
+          <div class="form-panel mb12">
+            <h4 class="gold mb6">🤖 Free OpenRouter / Gemini API Key</h4>
+            <p class="sub mb10">Enter your free API key from OpenRouter (e.g. <code>openrouter/free</code>) or Google AI Studio to unlock direct cloud parsing.</p>
+            <input type="password" id="aiApiKeyInput" placeholder="sk-or-v1-..." class="mb6">
+            <button class="btn primary full" onclick="saveAiApiKey()">Save AI Key</button>
+          </div>
+
           <div class="form-panel">
+            <h4 class="gold mb6">⚡ Supabase Database Connection</h4>
             <input type="text" id="supabaseUrlInput" placeholder="Supabase Project URL" class="mb6">
             <input type="text" id="supabaseKeyInput" placeholder="Supabase Anon/Public Key" class="mb10">
             <button class="btn primary full" onclick="saveServerConfig()">Connect Cloud Database</button>
@@ -672,10 +697,12 @@
   };
 
   let state = JSON.parse(localStorage.getItem('cnt_state')) || initialData;
+  let FREE_AI_API_KEY = localStorage.getItem('cnt_ai_api_key') || "";
   let undoStack = [], redoStack = [];
   let currentSeasonId = 1;
   let pvpViewMode = 'table';
   let pendingAiMatch = null;
+  let validationConflictMatchId = null;
 
   function pushState() {
     undoStack.push(JSON.stringify(state));
@@ -686,6 +713,15 @@
 
   function saveState() {
     localStorage.setItem('cnt_state', JSON.stringify(state));
+  }
+
+  function saveAiApiKey() {
+    const key = $('aiApiKeyInput').value.trim();
+    if (!key) { toast("Please enter a valid API key", true); return; }
+    localStorage.setItem('cnt_ai_api_key', key);
+    FREE_AI_API_KEY = key;
+    $('aiApiStatus').innerText = "Active (API Key Stored)";
+    toast("AI API Key saved successfully!");
   }
 
   function undoAction() {
@@ -776,7 +812,7 @@
     $(tabId).classList.add('active');
   }
 
-  // Enhanced NRR Calculation Helper for Matches
+  // NRR Calculation Helper
   function getMatchNrrDetails(m) {
     const overs1 = m.overs1 || 20;
     const overs2 = m.overs2 || 20;
@@ -793,7 +829,7 @@
     };
   }
 
-  // Calculation Engine: Standings & NRR
+  // Standings Engine
   function calculateStandings(seasonId) {
     const seasonMatches = state.matches.filter(m => m.seasonId === seasonId);
     const stats = {};
@@ -838,7 +874,7 @@
     }).sort((a, b) => b.pts - a.pts || parseFloat(b.nrr) - parseFloat(a.nrr));
   }
 
-  // Calculate Aggregated Player Stats (Base Stats + Match Performances)
+  // Player Performance Aggregator
   function getCalculatedPlayerStats() {
     const statsMap = {};
     state.players.forEach(p => {
@@ -851,13 +887,11 @@
       lines.forEach(line => {
         state.players.forEach(p => {
           if (line.toLowerCase().includes(p.name.toLowerCase())) {
-            // Find runs pattern like 75(45) or 75 runs
             const runsMatch = line.match(/(\d+)\s*\(|\b(\d+)\s*runs/i);
             if (runsMatch) {
               const r = parseInt(runsMatch[1] || runsMatch[2]);
               if (!isNaN(r)) statsMap[p.name].calculatedRuns += r;
             }
-            // Find wickets pattern like 3/28 or 3 wkts
             const wktsMatch = line.match(/(\d+)\/\d+|\b(\d+)\s*wk/i);
             if (wktsMatch) {
               const w = parseInt(wktsMatch[1] || wktsMatch[2]);
@@ -871,7 +905,228 @@
     return Object.values(statsMap);
   }
 
-  // Render Functions
+  // Pre-Check Integrity & Duplicate Detector
+  function validateMatchData(extracted, text) {
+    const issues = [];
+    let isDuplicate = false;
+    let duplicateMatchId = null;
+
+    const t1Valid = state.teams.includes(extracted.team1);
+    const t2Valid = state.teams.includes(extracted.team2);
+
+    if (!t1Valid) issues.push(`• Team "${extracted.team1}" is NOT present in the active points table.`);
+    if (!t2Valid) issues.push(`• Team "${extracted.team2}" is NOT present in the active points table.`);
+    if (extracted.team1 === extracted.team2 && t1Valid) issues.push(`• Both teams cannot be identical (${extracted.team1}).`);
+
+    // Check Duplicate Matches
+    const existing = state.matches.find(m => 
+      m.seasonId === currentSeasonId &&
+      ((m.team1 === extracted.team1 && m.team2 === extracted.team2) || (m.team1 === extracted.team2 && m.team2 === extracted.team1)) &&
+      (m.runs1 === extracted.runs1 && m.runs2 === extracted.runs2)
+    );
+
+    if (existing) {
+      isDuplicate = true;
+      duplicateMatchId = existing.id;
+      issues.push(`• REPEATED MATCH DETECTED: A match between ${extracted.team1} and ${extracted.team2} with identical scores (${extracted.runs1} vs ${extracted.runs2}) already exists.`);
+    }
+
+    // Check Player Assignment
+    state.players.forEach(p => {
+      if (text.toLowerCase().includes(p.name.toLowerCase())) {
+        if (p.team !== extracted.team1 && p.team !== extracted.team2) {
+          issues.push(`• Player "${p.name}" belongs to team "${p.team}", but is listed in a match between ${extracted.team1} vs ${extracted.team2}.`);
+        }
+      }
+    });
+
+    return {
+      isValid: issues.length === 0,
+      issues: issues,
+      isDuplicate: isDuplicate,
+      duplicateMatchId: duplicateMatchId
+    };
+  }
+
+  // Master AI Parser with Cloud Free AI API + Local Fallback
+  async function processAiMatchInput() {
+    const text = $('aiMatchInput').value.trim();
+    if (!text) { toast("Please enter match commentary text", true); return; }
+
+    let extractedData = null;
+
+    // Try Free AI API if Key exists
+    if (FREE_AI_API_KEY) {
+      try {
+        toast("⚡ Connecting to Free Cloud AI Model...");
+        const prompt = `
+Analyze this cricket match commentary:
+"${text}"
+
+Available teams: ${JSON.stringify(state.teams)}
+
+Extract into strictly valid JSON format ONLY:
+{
+  "team1": "Exact team name from list",
+  "team2": "Exact team name from list",
+  "score1": "Formatted score e.g. 180/5 (20.0)",
+  "score2": "Formatted score e.g. 162/8 (20.0)",
+  "runs1": 180,
+  "overs1": 20.0,
+  "runs2": 162,
+  "overs2": 20.0,
+  "winner": "Winning team name",
+  "summary": "Short match outcome summary",
+  "performances": "Key player stats extracted"
+}
+`;
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${FREE_AI_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "openrouter/free", // Free Models Router
+            messages: [{ role: "user", content: prompt }]
+          })
+        });
+        const data = await res.json();
+        const jsonStr = data.choices[0].message.content.replace(/```json|```/g, '').trim();
+        extractedData = JSON.parse(jsonStr);
+        toast("Cloud AI Extraction successful!");
+      } catch (e) {
+        console.warn("Cloud AI request failed, dropping back to Local Heuristic Parser.", e);
+        toast("Cloud AI failed, fallback to Local Engine", true);
+      }
+    }
+
+    // Local Regular Expression Fallback Engine
+    if (!extractedData) {
+      let foundTeams = [];
+      state.teams.forEach(t => {
+        if (new RegExp('\\b' + t + '\\b', 'i').test(text)) foundTeams.push(t);
+      });
+
+      let t1 = foundTeams[0] || "Unknown Team 1";
+      let t2 = foundTeams[1] || "Unknown Team 2";
+
+      const scoreMatches = text.match(/(\d+)(?:\/(\d+))?\s*(?:\(([\d.]+)\s*ov(?:ers)?\))?/gi) || [];
+      const s1 = scoreMatches[0] || "150/5 (20.0)";
+      const s2 = scoreMatches[1] || "140/8 (20.0)";
+
+      const parseRuns = (str) => parseInt((str.match(/(\d+)/) || [0, 150])[1]);
+      const parseOvers = (str) => parseFloat((str.match(/\(([\d.]+)/) || [0, 20])[1]);
+
+      const r1 = parseRuns(s1); const r2 = parseRuns(s2);
+      const ov1 = parseOvers(s1); const ov2 = parseOvers(s2);
+
+      let winner = t1;
+      if (text.toLowerCase().includes(t2.toLowerCase() + " won") || r2 > r1) winner = t2;
+
+      extractedData = {
+        team1: t1, team2: t2, score1: s1, score2: s2,
+        runs1: r1, overs1: ov1 || 20.0, runs2: r2, overs2: ov2 || 20.0,
+        winner: winner, summary: `${winner} won match`, performances: text
+      };
+    }
+
+    const candidateMatch = {
+      id: Date.now(),
+      seasonId: currentSeasonId,
+      ...extractedData
+    };
+
+    // Run Pre-Check Integrity Validator
+    const validation = validateMatchData(candidateMatch, text);
+
+    if (!validation.isValid) {
+      pendingAiMatch = candidateMatch;
+      validationConflictMatchId = validation.duplicateMatchId;
+
+      $('valModalIssues').innerHTML = validation.issues.join('<br><br>');
+      const actionsBox = $('valModalActions');
+
+      if (validation.isDuplicate) {
+        actionsBox.innerHTML = `
+          <button class="btn danger full" onclick="resolveMatchConflict('replace')">🔄 Replace Existing Match</button>
+          <button class="btn secondary full" onclick="resolveMatchConflict('discard')">❌ Discard Duplicate</button>
+          <button class="btn primary full" onclick="resolveMatchConflict('force')">⚠️ Force Save Duplicate</button>
+        `;
+      } else {
+        actionsBox.innerHTML = `
+          <button class="btn secondary full" onclick="resolveMatchConflict('discard')">❌ Discard & Edit Summary</button>
+          <button class="btn primary full" onclick="resolveMatchConflict('force')">⚠️ Force Save Anyway</button>
+        `;
+      }
+      openModal('validationModal');
+      return;
+    }
+
+    // Clear Path: Render Preview
+    pendingAiMatch = candidateMatch;
+    const rr1 = (candidateMatch.runs1 / (candidateMatch.overs1 || 20)).toFixed(2);
+    const rr2 = (candidateMatch.runs2 / (candidateMatch.overs2 || 20)).toFixed(2);
+
+    $('aiPreviewContent').innerText = 
+      `Teams: ${candidateMatch.team1} (RR: ${rr1}) vs ${candidateMatch.team2} (RR: ${rr2})\n` +
+      `Scores: ${candidateMatch.score1} vs ${candidateMatch.score2}\n` +
+      `Winner: ${candidateMatch.winner}\n` +
+      `Summary: ${candidateMatch.summary}`;
+
+    $('aiPreviewBox').style.display = 'block';
+    toast("Match auto-checked & validated!");
+  }
+
+  function resolveMatchConflict(action) {
+    closeModal('validationModal');
+
+    if (action === 'discard') {
+      pendingAiMatch = null;
+      validationConflictMatchId = null;
+      toast("Match entry discarded.");
+      return;
+    }
+
+    if (action === 'replace' && validationConflictMatchId) {
+      pushState();
+      state.matches = state.matches.filter(m => m.id !== validationConflictMatchId);
+      state.matches.push(pendingAiMatch);
+      pendingAiMatch = null;
+      validationConflictMatchId = null;
+      $('aiMatchInput').value = '';
+      renderAll();
+      toast("Existing match replaced!");
+      return;
+    }
+
+    if (action === 'force' && pendingAiMatch) {
+      const rr1 = (pendingAiMatch.runs1 / (pendingAiMatch.overs1 || 20)).toFixed(2);
+      const rr2 = (pendingAiMatch.runs2 / (pendingAiMatch.overs2 || 20)).toFixed(2);
+
+      $('aiPreviewContent').innerText = 
+        `Teams: ${pendingAiMatch.team1} (RR: ${rr1}) vs ${pendingAiMatch.team2} (RR: ${rr2})\n` +
+        `Scores: ${pendingAiMatch.score1} vs ${pendingAiMatch.score2}\n` +
+        `Winner: ${pendingAiMatch.winner}\n` +
+        `Summary: ${pendingAiMatch.summary}`;
+
+      $('aiPreviewBox').style.display = 'block';
+      toast("Match override accepted.");
+    }
+  }
+
+  function confirmSaveAiMatch() {
+    if (!pendingAiMatch) return;
+    pushState();
+    state.matches.push(pendingAiMatch);
+    pendingAiMatch = null;
+    $('aiPreviewBox').style.display = 'none';
+    $('aiMatchInput').value = '';
+    renderAll();
+    toast("Match stored in points table & match log!");
+  }
+
+  // Render Core UI
   function renderAll() {
     $('siteEyebrow').innerText = state.eyebrow || "OFFICIAL TOURNAMENT DASHBOARD";
     renderSeasons();
@@ -1081,64 +1336,7 @@
     }
   }
 
-  // AI Match Parser with NRR extraction logic
-  function processAiMatchInput() {
-    const text = $('aiMatchInput').value;
-    if (!text.trim()) { toast("Please enter match text", true); return; }
-
-    let t1 = state.teams[0] || "Team A";
-    let t2 = state.teams[1] || "Team B";
-    
-    state.teams.forEach(t => {
-      if (text.toLowerCase().includes(t.toLowerCase())) {
-        if (t1 !== t) t2 = t;
-      }
-    });
-
-    const scoreMatch = text.match(/(\d+\/\d+)/g) || ["150/5", "140/8"];
-    const s1 = scoreMatch[0] || "150/5 (20)";
-    const s2 = scoreMatch[1] || "140/8 (20)";
-
-    let winner = t1;
-    if (text.toLowerCase().includes(t2.toLowerCase() + " won")) winner = t2;
-
-    const r1 = parseInt(s1.split('/')[0]) || 150;
-    const r2 = parseInt(s2.split('/')[0]) || 140;
-    const rr1 = (r1 / 20).toFixed(2);
-    const rr2 = (r2 / 20).toFixed(2);
-
-    pendingAiMatch = {
-      id: Date.now(),
-      seasonId: currentSeasonId,
-      team1: t1,
-      team2: t2,
-      score1: s1,
-      score2: s2,
-      runs1: r1,
-      overs1: 20.0,
-      runs2: r2,
-      overs2: 20.0,
-      winner: winner,
-      summary: `${winner} won match`,
-      performances: text
-    };
-
-    $('aiPreviewContent').innerText = `Teams: ${t1} (RR: ${rr1}) vs ${t2} (RR: ${rr2})\nScores: ${s1} vs ${s2}\nWinner: ${winner}\nSummary: ${pendingAiMatch.summary}`;
-    $('aiPreviewBox').style.display = 'block';
-  }
-
-  function confirmSaveAiMatch() {
-    if (!pendingAiMatch) return;
-    pushState();
-    state.matches.push(pendingAiMatch);
-    pendingAiMatch = null;
-    $('aiPreviewBox').style.display = 'none';
-    $('aiMatchInput').value = '';
-    renderAll();
-    toast("Match & Player performance stored!");
-  }
-
-  // Admin Configuration
+  // Admin Controls
   function renderAdminOptions() {
     const teamOpts = state.teams.map(t => `<option value="${t}">${t}</option>`).join('');
     $('manualPlayerTeam').innerHTML = teamOpts;
@@ -1183,6 +1381,7 @@
     `).join('');
 
     $('editEyebrow').value = state.eyebrow || '';
+    $('aiApiKeyInput').value = FREE_AI_API_KEY;
   }
 
   function setTeamTier(team, tier) {
@@ -1294,7 +1493,6 @@
     `).join('');
   }
 
-  // Cloud Database Integration Setup
   function saveServerConfig() {
     const url = $('supabaseUrlInput').value.trim();
     const key = $('supabaseKeyInput').value.trim();
@@ -1305,7 +1503,7 @@
     toast("Supabase server details stored!");
   }
 
-  // Initial Boot
+  // Boot Engine
   window.addEventListener('DOMContentLoaded', () => {
     renderAll();
     if (localStorage.getItem('cnt_sb_url')) {
