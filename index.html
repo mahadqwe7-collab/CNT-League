@@ -43,24 +43,25 @@
 
   <style>
     :root {
-      --bg-gradient: radial-gradient(circle at 50% 0%, #0d1b2a 0%, #050b14 75%);
-      --panel-bg: rgba(12, 22, 36, 0.88);
-      --panel-border: rgba(255, 255, 255, 0.08);
-      --text-main: #f3f7fc;
-      --text-muted: #9bb0c6;
+      /* Deep Purple & Black Neon Theme Variables */
+      --bg-gradient: radial-gradient(circle at 50% 0%, #1a092b 0%, #060209 80%);
+      --panel-bg: rgba(15, 8, 25, 0.90);
+      --panel-border: rgba(179, 136, 255, 0.15);
+      --text-main: #f5f0ff;
+      --text-muted: #a392c2;
+      --purple: #b388ff;
+      --purple-glow: #7c4dff;
+      --violet-neon: #d500f9;
       --gold: #f5b942;
-      --silver: #e0e0e0;
-      --teal: #27d3b0;
-      --blue: #2796ff;
-      --purple: #b39aff;
-      --red: #ff5555;
-      --orange: #ff8c00;
-      --inset: #050b14;
-      --inset2: rgba(18, 32, 52, 0.9);
+      --teal: #00e676;
+      --blue: #2979ff;
+      --red: #ff1744;
+      --inset: #09030f;
+      --inset2: rgba(26, 12, 42, 0.9);
       --radius-lg: 16px;
       --radius-md: 10px;
       --radius-sm: 6px;
-      --shadow-glow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+      --shadow-glow: 0 10px 30px -10px rgba(124, 77, 255, 0.35);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -68,7 +69,7 @@
     html { scroll-behavior: smooth; scroll-padding-top: 85px; }
 
     body {
-      background: #050b14 var(--bg-gradient) fixed;
+      background: #060209 var(--bg-gradient) fixed;
       color: var(--text-main);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
       line-height: 1.5;
@@ -78,7 +79,7 @@
 
     a { color: inherit; text-decoration: none; }
     hr { border: 0; border-top: 1px solid var(--panel-border); margin: 15px 0; }
-    :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    :focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .wrap { width: min(1200px, 92%); margin: 0 auto; }
 
@@ -86,8 +87,8 @@
     .mt6 { margin-top: 6px; } .mt10 { margin-top: 10px; } .mt12 { margin-top: 12px; } .mt16 { margin-top: 16px; }
     .mb6 { margin-bottom: 6px; } .mb10 { margin-bottom: 10px; } .mb16 { margin-bottom: 16px; }
     .full { width: 100%; } .grow { flex: 1; } .span2 { grid-column: span 2; }
-    .gold { color: var(--gold); } .teal { color: var(--teal); } .red { color: var(--red); } .small { font-size: 12px; }
-    .mono { font-family: monospace; font-size: 11px; color: var(--teal); background: #030810; padding: 8px; border-radius: var(--radius-sm); word-break: break-all; }
+    .gold { color: var(--gold); } .purple { color: var(--purple); } .teal { color: var(--teal); } .red { color: var(--red); } .small { font-size: 12px; }
+    .mono { font-family: monospace; font-size: 11px; color: var(--purple); background: #040108; padding: 8px; border-radius: var(--radius-sm); word-break: break-all; }
     .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .row-gap { display: flex; gap: 8px; }
     .chips { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -100,41 +101,41 @@
     .badge-count { background: var(--red); color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 800; margin-left: 4px; }
 
     /* Header & Ticker */
-    .ticker-wrap { background: rgba(8, 16, 28, 0.95); border-bottom: 1px solid var(--panel-border); font-size: 12px; padding: 6px 0; }
+    .ticker-wrap { background: rgba(12, 4, 20, 0.95); border-bottom: 1px solid var(--panel-border); font-size: 12px; padding: 6px 0; }
     .ticker-content { display: flex; align-items: center; gap: 12px; }
-    .ticker-badge { background: var(--gold); color: #050b14; font-weight: 900; font-size: 10px; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; flex-shrink: 0; }
+    .ticker-badge { background: linear-gradient(90deg, var(--purple) 50%, var(--violet-neon) 50%); color: #060209; font-weight: 900; font-size: 10px; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; flex-shrink: 0; }
 
-    header { position: sticky; top: 0; z-index: 100; background: rgba(5, 11, 20, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--panel-border); }
+    header { position: sticky; top: 0; z-index: 100; background: rgba(6, 2, 9, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--panel-border); }
     nav { min-height: 68px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
     .brand { font-size: clamp(18px, 4vw, 22px); font-weight: 900; letter-spacing: 1px; }
-    .brand span { color: var(--gold); }
-    .mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--panel-border); color: var(--gold); font-size: 22px; padding: 4px 12px; border-radius: var(--radius-sm); cursor: pointer; }
+    .brand span { color: var(--purple); }
+    .mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--panel-border); color: var(--purple); font-size: 22px; padding: 4px 12px; border-radius: var(--radius-sm); cursor: pointer; }
     .links { display: flex; gap: clamp(8px, 1.8vw, 18px); align-items: center; }
-    .links a { font-size: clamp(11px, 1.4vw, 13px); color: #c3d0df; font-weight: 700; transition: color .2s; }
-    .links a:hover { color: var(--gold); }
-    .admin-nav-btn { background: var(--gold); color: #050b14; border: 0; font: inherit; font-size: 12px; padding: 8px 18px; border-radius: 30px; font-weight: 800; cursor: pointer; }
+    .links a { font-size: clamp(11px, 1.4vw, 13px); color: #d6c6f0; font-weight: 700; transition: color .2s; }
+    .links a:hover { color: var(--purple); }
+    .admin-nav-btn { background: linear-gradient(90deg, var(--purple-glow), var(--violet-neon)); color: #fff; border: 0; font: inherit; font-size: 12px; padding: 8px 18px; border-radius: 30px; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(124, 77, 255, 0.5); }
 
     /* Hero */
     .hero { padding: clamp(30px, 8vw, 60px) 0 clamp(20px, 5vw, 35px); }
     .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .eyebrow { display: inline-block; border: 1px solid rgba(245, 185, 66, .3); background: rgba(245, 185, 66, .08); color: var(--gold); padding: 5px 14px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
+    .eyebrow { display: inline-block; border: 1px solid rgba(179, 136, 255, .3); background: rgba(179, 136, 255, .08); color: var(--purple); padding: 5px 14px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
     h1 { font-size: clamp(32px, 6.5vw, 64px); line-height: 1.05; letter-spacing: -1.5px; margin: 16px 0; font-weight: 900; }
-    .gradient { background: linear-gradient(90deg, var(--gold), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .gradient { background: linear-gradient(90deg, var(--purple), var(--violet-neon)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
     /* Buttons */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: var(--radius-md); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; border: none; min-height: 42px; transition: transform .15s, background .2s; }
     .btn:disabled { opacity: .35; cursor: not-allowed; }
     .btn:active:not(:disabled) { transform: scale(.97); }
-    .primary { background: var(--gold); color: #050b14; }
-    .secondary { background: rgba(18, 32, 52, .8); border: 1px solid var(--panel-border); color: var(--text-main); }
-    .secondary.active { background: var(--gold); color: #050b14; border-color: var(--gold); }
+    .primary { background: linear-gradient(90deg, var(--purple-glow), var(--violet-neon)); color: #fff; box-shadow: 0 4px 15px rgba(213, 0, 249, 0.35); }
+    .secondary { background: rgba(26, 12, 42, .8); border: 1px solid var(--panel-border); color: var(--text-main); }
+    .secondary.active { background: var(--purple); color: #060209; border-color: var(--purple); }
     .danger { background: var(--red); color: #fff; }
     .mini { min-height: 32px; padding: 3px 12px; font-size: 11px; }
 
     /* Sections */
     section { padding: clamp(20px, 4vw, 35px) 0; }
     .section-head { margin-bottom: 16px; }
-    .kicker { color: var(--teal); font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
+    .kicker { color: var(--purple); font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
     h2 { font-size: clamp(20px, 3.5vw, 30px); margin: 4px 0; font-weight: 800; }
     h3, h4 { font-weight: 800; }
     h4 { font-size: 13px; }
@@ -142,9 +143,9 @@
     .season-grid, .player-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(clamp(220px, 30vw, 300px), 1fr)); gap: 14px; }
     .season-card, .player-card, .panel { background: var(--panel-bg); backdrop-filter: blur(8px); border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(14px, 3vw, 20px); box-shadow: var(--shadow-glow); }
     .season-card { cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
-    .season-card:hover { border-color: var(--gold); transform: translateY(-2px); }
-    .season-card.active { border-color: var(--teal); background: rgba(39, 211, 176, 0.08); }
-    .transparent-panel { background: rgba(8, 16, 28, 0.6) !important; border: 1px solid rgba(255, 255, 255, 0.05); overflow-x: auto; }
+    .season-card:hover { border-color: var(--purple); transform: translateY(-2px); }
+    .season-card.active { border-color: var(--violet-neon); background: rgba(213, 0, 249, 0.08); }
+    .transparent-panel { background: rgba(12, 4, 20, 0.6) !important; border: 1px solid rgba(179, 136, 255, 0.08); overflow-x: auto; }
 
     /* Tables */
     table { width: 100%; border-collapse: collapse; }
@@ -168,51 +169,50 @@
       padding: 14px 16px;
       font-size: 13px;
       font-weight: 700;
-      background: rgba(12, 24, 38, 0.85);
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      background: rgba(18, 8, 30, 0.85);
+      border-top: 1px solid rgba(179, 136, 255, 0.08);
+      border-bottom: 1px solid rgba(179, 136, 255, 0.08);
     }
     .card-table td:first-child {
-      border-left: 1px solid rgba(255, 255, 255, 0.06);
+      border-left: 1px solid rgba(179, 136, 255, 0.08);
       border-top-left-radius: 10px;
       border-bottom-left-radius: 10px;
     }
     .card-table td:last-child {
-      border-right: 1px solid rgba(255, 255, 255, 0.06);
+      border-right: 1px solid rgba(179, 136, 255, 0.08);
       border-top-right-radius: 10px;
       border-bottom-right-radius: 10px;
     }
 
-    /* Table Tiers (Hardware Accelerated 50/50 Dual Gradients) */
+    /* Hardware-Accelerated 50/50 Dual LED/RGB Color Gradient Rows */
     tr.row-premier td {
-      background: linear-gradient(90deg, rgba(10, 32, 45, 0.95) 50%, rgba(12, 45, 40, 0.95) 50%) !important;
-      border-color: rgba(39, 211, 176, 0.6) !important;
-      color: var(--teal);
-      box-shadow: inset 0 0 12px rgba(39, 211, 176, 0.15);
+      background: linear-gradient(90deg, rgba(35, 12, 60, 0.95) 50%, rgba(20, 5, 38, 0.95) 50%) !important;
+      border-color: rgba(213, 0, 249, 0.6) !important;
+      color: var(--purple);
+      box-shadow: inset 0 0 15px rgba(213, 0, 249, 0.25);
     }
 
     tr.row-gold td {
-      background: linear-gradient(90deg, rgba(35, 28, 14, 0.95) 50%, rgba(45, 38, 12, 0.95) 50%) !important;
+      background: linear-gradient(90deg, rgba(40, 30, 10, 0.95) 50%, rgba(25, 18, 5, 0.95) 50%) !important;
       border-color: rgba(245, 185, 66, 0.6) !important;
       color: var(--gold);
       box-shadow: inset 0 0 12px rgba(245, 185, 66, 0.15);
     }
 
     tr.row-silver td {
-      background: rgba(20, 30, 44, 0.85) !important;
+      background: rgba(24, 12, 38, 0.85) !important;
       border-color: rgba(224, 224, 224, 0.35) !important;
-      color: var(--silver);
     }
 
     tr.row-normal td {
-      background: rgba(10, 20, 32, 0.7) !important;
+      background: rgba(12, 4, 20, 0.7) !important;
     }
 
     tr.row-red td {
       background: rgba(45, 12, 16, 0.9) !important;
-      border-color: rgba(255, 85, 85, 0.85) !important;
+      border-color: rgba(255, 23, 68, 0.85) !important;
       color: var(--red) !important;
-      box-shadow: inset 0 0 16px rgba(255, 85, 85, 0.4), 0 0 15px rgba(255, 85, 85, 0.25) !important;
+      box-shadow: inset 0 0 16px rgba(255, 23, 68, 0.4);
     }
 
     #fixtures table th {
@@ -225,71 +225,74 @@
     #fixtures table td {
       padding: 12px 14px;
       font-size: 13px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(179, 136, 255, 0.05);
     }
 
     .sticky-col { position: sticky; left: 0; z-index: 3; }
     .sticky-col-2 { position: sticky; left: 45px; z-index: 3; }
-    .nrr { color: var(--teal); font-weight: 700; }
-    .pts { color: var(--gold); font-weight: 800; }
+    .nrr { color: var(--purple); font-weight: 700; }
+    .pts { color: var(--violet-neon); font-weight: 800; }
 
     /* Visual Playoff Bracket */
     .bracket-tree-container { display: flex; gap: 20px; overflow-x: auto; padding: 10px 0; }
     .bracket-round { flex: 1; min-width: 260px; display: flex; flex-direction: column; justify-content: center; gap: 15px; }
-    .bracket-title { font-size: 11px; font-weight: 800; color: var(--teal); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; text-align: center; }
+    .bracket-title { font-size: 11px; font-weight: 800; color: var(--purple); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; text-align: center; }
     .bracket-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--shadow-glow); }
     .bracket-team { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 6px; background: var(--inset); border: 1px solid var(--panel-border); margin-top: 6px; font-size: 13px; font-weight: 700; }
-    .bracket-team.win { border-color: var(--gold); color: var(--gold); background: rgba(245, 185, 66, 0.1); }
-    .champion { text-align: center; padding: 14px; margin-bottom: 14px; border-radius: var(--radius-lg); border: 1px solid var(--gold); background: rgba(245, 185, 66, .08); font-weight: 900; font-size: 18px; color: var(--gold); }
+    .bracket-team.win { border-color: var(--violet-neon); color: var(--violet-neon); background: rgba(213, 0, 249, 0.1); }
+    .champion { text-align: center; padding: 14px; margin-bottom: 14px; border-radius: var(--radius-lg); border: 1px solid var(--purple); background: rgba(179, 136, 255, .08); font-weight: 900; font-size: 18px; color: var(--purple); }
 
     /* PvP Comparison & Graphs */
     .pvp-card { background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: 20px; }
     .pvp-selectors { display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; margin-bottom: 20px; }
-    .vs { text-align: center; font-weight: 900; color: var(--gold); align-self: end; padding-bottom: 10px; }
-    .pvp-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(255, 255, 255, .05); font-size: 13px; }
+    .vs { text-align: center; font-weight: 900; color: var(--purple); align-self: end; padding-bottom: 10px; }
+    .pvp-stat-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid rgba(179, 136, 255, .05); font-size: 13px; }
 
     .graph-row { margin-bottom: 16px; }
     .graph-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 800; margin-bottom: 6px; }
     .graph-bar-container { display: flex; height: 18px; background: var(--inset); border-radius: 8px; overflow: hidden; border: 1px solid var(--panel-border); position: relative; }
-    .graph-bar-left { background: linear-gradient(90deg, var(--gold), var(--orange)); transition: width 0.4s ease; height: 100%; }
-    .graph-bar-right { background: linear-gradient(90deg, var(--teal), var(--blue)); transition: width 0.4s ease; margin-left: auto; height: 100%; }
+    .graph-bar-left { background: linear-gradient(90deg, var(--purple), var(--purple-glow)); transition: width 0.4s ease; height: 100%; }
+    .graph-bar-right { background: linear-gradient(90deg, var(--violet-neon), var(--gold)); transition: width 0.4s ease; margin-left: auto; height: 100%; }
 
     /* Forms & Modals */
     .toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-    input, select, textarea { background: rgba(5, 11, 20, .9); color: #fff; border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 10px 14px; font: inherit; font-size: 12px; width: 100%; transition: border-color .2s; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); }
-    .score { color: var(--gold); font-weight: 800; }
+    input, select, textarea { background: rgba(6, 2, 9, .9); color: #fff; border: 1px solid var(--panel-border); border-radius: var(--radius-md); padding: 10px 14px; font: inherit; font-size: 12px; width: 100%; transition: border-color .2s; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--purple); }
+    .score { color: var(--purple); font-weight: 800; }
     .detail-text { font-size: 12px; margin-top: 4px; white-space: pre-line; }
 
     .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, .88); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(6px); }
     .modal-overlay.active { display: flex; }
     
-    /* ENHANCED EXPANDED ADMIN PANEL STYLING */
-    .modal { background: #0f1c2e; border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(16px, 4vw, 24px); width: min(750px, 94%); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .8); }
+    /* EXPANDED ADMIN PANEL STYLING */
+    .modal { background: #0c0414; border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(16px, 4vw, 24px); width: min(750px, 94%); max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0, 0, 0, .9); }
     .modal.narrow { max-width: 420px; }
     .admin-large-panel { width: min(1200px, 98vw); height: 92vh; max-height: 94vh; display: flex; flex-direction: column; }
     .admin-top-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 14px; margin-bottom: 16px; border-bottom: 1px solid var(--panel-border); flex-wrap: wrap; gap: 10px; flex-shrink: 0; }
     .admin-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .admin-workspace { display: flex; gap: 24px; flex: 1; min-height: 0; }
+    
+    /* Clean Sidebar Title Styling */
     .admin-sidebar { width: 220px; display: flex; flex-direction: column; gap: 6px; border-right: 1px solid var(--panel-border); padding-right: 16px; flex-shrink: 0; }
-    .tab-btn { width: 100%; text-align: left; padding: 12px 14px; border-radius: var(--radius-md); font: inherit; font-size: 11px; font-weight: 700; color: var(--text-muted); background: transparent; border: 1px solid transparent; cursor: pointer; transition: all .2s; }
-    .tab-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, .03); }
-    .tab-btn.active { background: var(--inset2); color: var(--gold); border-color: var(--panel-border); }
+    .tab-btn { width: 100%; text-align: left; padding: 12px 14px; border-radius: var(--radius-md); font: inherit; font-size: 11px; font-weight: 800; color: var(--text-muted); background: transparent; border: 1px solid transparent; cursor: pointer; transition: all .2s; }
+    .tab-btn:hover { color: var(--text-main); background: rgba(179, 136, 255, .05); }
+    .tab-btn.active { background: var(--inset2); color: var(--purple); border-color: var(--panel-border); box-shadow: 0 0 10px rgba(124, 77, 255, 0.2); }
+    
     .admin-main-content { flex: 1; min-width: 0; overflow-y: auto; padding-right: 6px; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    .form-panel { background: rgba(5, 11, 20, .72); border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(14px, 3vw, 20px); }
+    .form-panel { background: rgba(6, 2, 9, .72); border: 1px solid var(--panel-border); border-radius: var(--radius-lg); padding: clamp(14px, 3vw, 20px); }
 
     #toasts { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
-    .toast { background: #0f243a; border: 1px solid var(--teal); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); font-size: 12px; font-weight: 700; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
+    .toast { background: #140624; border: 1px solid var(--purple); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); font-size: 12px; font-weight: 700; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
     .toast.bad { border-color: var(--red); }
 
-    .live-feedback-box { background: rgba(255, 85, 85, 0.1); border: 1px solid var(--red); color: var(--red); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; margin-top: 6px; display: none; }
+    .live-feedback-box { background: rgba(255, 23, 68, 0.1); border: 1px solid var(--red); color: var(--red); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; margin-top: 6px; display: none; }
 
     @media (max-width: 768px) {
       .mobile-menu-btn { display: block; }
-      .links { display: none; position: absolute; top: 68px; left: 0; right: 0; background: #050b14; border-bottom: 1px solid var(--panel-border); flex-direction: column; padding: 15px; gap: 12px; }
+      .links { display: none; position: absolute; top: 68px; left: 0; right: 0; background: #060209; border-bottom: 1px solid var(--panel-border); flex-direction: column; padding: 15px; gap: 12px; }
       .links.mobile-open { display: flex; }
       .pvp-selectors { grid-template-columns: 1fr; }
       .admin-workspace { flex-direction: column; }
@@ -321,7 +324,7 @@
 <div class="ticker-wrap">
   <div class="wrap ticker-content">
     <span class="ticker-badge">⚡ LIVE TICKER</span>
-    <span id="tickerText">CNT-League Season Active — Unified AI Match Parser & Debounced Validation Engine Active.</span>
+    <span id="tickerText">CNT-League Season Active — Neon Purple & Black Engine Ready.</span>
   </div>
 </div>
 
@@ -465,7 +468,7 @@
     </div>
 
     <!-- Enhanced NRR Breakdown Panel -->
-    <div class="inset mb10" style="background: rgba(39, 211, 176, 0.05); border-color: rgba(39, 211, 176, 0.3);">
+    <div class="inset mb10" style="background: rgba(179, 136, 255, 0.05); border-color: rgba(179, 136, 255, 0.3);">
       <span class="kicker">⚡ Net Run Rate (NRR) Match Impact</span>
       <div id="detailNrrImpact" class="detail-text mt6"></div>
     </div>
@@ -483,7 +486,7 @@
     <h3 id="valModalTitle" class="red">⚠️ Match Validation Issue</h3>
     <p class="sub mt6 mb10" id="valModalSubtitle">Problems were detected in your match summary.</p>
     
-    <div class="inset mb10" style="background: rgba(255, 85, 85, 0.08); border-color: rgba(255, 85, 85, 0.3);">
+    <div class="inset mb10" style="background: rgba(255, 23, 68, 0.08); border-color: rgba(255, 23, 68, 0.3);">
       <span class="kicker red">Detected Issues:</span>
       <div id="valModalIssues" class="detail-text mt6 red"></div>
     </div>
@@ -507,6 +510,7 @@
     </div>
 
     <div class="admin-workspace">
+      <!-- Clean Headings Only Sidebar -->
       <aside class="admin-sidebar">
         <button class="tab-btn active" onclick="switchTab(this,'tabAi')">🤖 UNIFIED AI ENGINE</button>
         <button class="tab-btn" onclick="switchTab(this,'tabBracket')">🏆 BRACKET & TIERS</button>
@@ -517,13 +521,12 @@
       </aside>
 
       <div class="admin-main-content">
-        <!-- UNIFIED AI ENGINE TAB (PARSER + CONVERTER COMBINED) -->
+        <!-- UNIFIED AI ENGINE TAB -->
         <div id="tabAi" class="tab-content active">
-          <h3>🤖 UNIFIED AI ENGINE (Parsing + Tutti-Putti Language Converter)</h3>
-          <p class="sub mb10">Type standard English, broken English, Urdu, or Roman-Urdu commentary. AI automatically standardizes and extracts data in 1 click!</p>
+          <h3 class="purple">🤖 UNIFIED AI ENGINE</h3>
           
-          <div class="form-panel">
-            <label class="gold">Match Summary / Raw Commentary (Any Language or Format)</label>
+          <div class="form-panel mt10">
+            <label class="purple">Match Summary / Raw Commentary (Any Language or Format)</label>
             <textarea id="aiMatchInput" rows="5" placeholder="e.g. Thunderbolts ne 180 runs banaye 20 overs me vs Strikers 160/8. Ali Khan 75 runs banye or Rahul 3/28 le gaye. Thunderbolts 20 runs se jeet gaye." class="mt6" oninput="debouncedLiveCheck(this.value)"></textarea>
             
             <!-- Real-time Live Error Alert Box -->
@@ -533,7 +536,7 @@
           </div>
 
           <div id="aiPreviewBox" class="inset mt12" style="display:none;">
-            <h4 class="gold">Standardized Match Data Extracted:</h4>
+            <h4 class="purple">Standardized Match Data Extracted:</h4>
             <div id="aiPreviewContent" class="detail-text mt6 mb10"></div>
             <div class="row-gap">
               <button class="btn primary grow" onclick="confirmSaveAiMatch()">✅ Approve & Store Match</button>
@@ -547,12 +550,12 @@
 
         <!-- BRACKET & TIER CONTROL TAB -->
         <div id="tabBracket" class="tab-content">
-          <h3>🏆 BRACKET & TEAM TIER CONTROLS</h3>
-          <div class="inset mb10">
-            <h4 class="gold mb6">Configure Single Semi-Final & Grand Final</h4>
+          <h3 class="purple">🏆 BRACKET & TIERS</h3>
+          <div class="inset mb10 mt10">
+            <h4 class="purple mb6">Configure Single Semi-Final & Grand Final</h4>
             <div class="admin-bracket-grid mt10">
               <div class="admin-bracket-row">
-                <strong class="teal small">SEMI-FINAL</strong>
+                <strong class="purple small">SEMI-FINAL</strong>
                 <div class="grid3 mt6">
                   <select id="admSfTeam1" aria-label="SF Team 1"></select>
                   <select id="admSfTeam2" aria-label="SF Team 2"></select>
@@ -575,14 +578,14 @@
 
           <!-- Team Tier Assignment -->
           <div class="inset mt12">
-            <h4 class="gold mb6">Team Tier Visual Styling</h4>
-            <p class="sub mb10">Set tiers to apply custom neon borders, glowing colors, or Full Red Barrier (Eliminated).</p>
+            <h4 class="purple mb6">Team Tier Visual Styling</h4>
             <div id="adminPositionsContainer" class="mt6"></div>
           </div>
         </div>
 
         <!-- MANAGE DATA TAB -->
         <div id="tabManual" class="tab-content">
+          <h3 class="purple mb10">🛠️ MANAGE DATA</h3>
           <div class="mb16">
             <h4>Teams</h4>
             <div class="row-gap mt6">
@@ -601,7 +604,7 @@
             <h4>Players (Roster & Stats Management)</h4>
             
             <!-- Clear Player Stats Utility -->
-            <div class="inset mb10" style="background: rgba(255, 85, 85, 0.05); border-color: rgba(255, 85, 85, 0.2);">
+            <div class="inset mb10" style="background: rgba(255, 23, 68, 0.05); border-color: rgba(255, 23, 68, 0.2);">
               <span class="kicker red">Master Stats Control</span>
               <p class="sub mt6 mb6">Reset accumulated runs, wickets, and matches for all players to zero without deleting their profiles.</p>
               <button class="btn danger mini" onclick="resetAllPlayerStats()">🔄 Reset All Player Career Stats</button>
@@ -617,7 +620,7 @@
               <button class="btn primary span2" onclick="addPlayer()">Save Player</button>
             </div>
             
-            <h4 class="gold mb6">Existing Roster (Remove Stats or Profiles):</h4>
+            <h4 class="purple mb6">Existing Roster (Remove Stats or Profiles):</h4>
             <div id="playersListContainer" style="display:flex; flex-direction:column; gap:8px;" class="mt6"></div>
           </div>
           <hr>
@@ -630,48 +633,46 @@
 
         <!-- SYSTEM ANALYTICS & SUGGESTIONS TAB -->
         <div id="tabAnalytics" class="tab-content">
-          <h3>💡 SYSTEM ANALYTICS & OFFLINE ARCHITECTURE SUGGESTIONS</h3>
-          <p class="sub mb10">Architectural & code recommendations to optimize your local tournament application.</p>
+          <h3 class="purple mb10">💡 SYSTEM ANALYTICS</h3>
           
           <div class="inset mb10">
-            <h4 class="gold mb6">1. Local Storage Backup & Data Export (JSON Download)</h4>
+            <h4 class="purple mb6">1. Local Storage Backup & Data Export (JSON Download)</h4>
             <p class="sub">Since all data is stored in browser `localStorage`, adding a one-click <code>Export JSON Backup</code> button under Server settings allows you to transfer all seasons and stats between different laptops or phones.</p>
           </div>
 
           <div class="inset mb10">
-            <h4 class="gold mb6">2. Tournament Data Indexing & Fast Search</h4>
+            <h4 class="purple mb6">2. Tournament Data Indexing & Fast Search</h4>
             <p class="sub">As you add 50+ matches per season, pre-calculating team totals once during state changes (instead of re-calculating points on every re-render) keeps page speed lightning fast on older mobile devices.</p>
           </div>
 
           <div class="inset mb10">
-            <h4 class="gold mb6">3. Normalized Player Performance Metrics</h4>
+            <h4 class="purple mb6">3. Normalized Player Performance Metrics</h4>
             <p class="sub">Currently, player comparisons show raw runs and wickets. Normalizing metrics by adding strike rates ($Runs / Balls \times 100$) and economy rates ($Runs / Overs$) provides a professional broadcast-style PvP comparison.</p>
           </div>
         </div>
 
         <!-- INBOX TAB -->
         <div id="tabNotifications" class="tab-content">
-          <h3>🔔 Feedback Inbox</h3>
+          <h3 class="purple mb10">🔔 INBOX</h3>
           <div id="adminNotificationsList"></div>
         </div>
 
         <!-- SERVER & AI API TAB -->
         <div id="tabServer" class="tab-content">
-          <h3>🌐 Cloud Database & AI API Settings</h3>
+          <h3 class="purple mb10">🌐 SERVER & AI API</h3>
           <div class="grid2 mb10 mt6">
             <div class="inset"><span class="sub">Cloud DB Connection</span><br><strong id="serverStatus">Local Storage Mode</strong></div>
-            <div class="inset"><span class="sub">Free AI API Status</span><br><strong id="aiApiStatus" class="teal">Ready (Local + Free AI Endpoint)</strong></div>
+            <div class="inset"><span class="sub">Free AI API Status</span><br><strong id="aiApiStatus" class="purple">Ready (Local + Free AI Endpoint)</strong></div>
           </div>
           
           <div class="form-panel mb12">
-            <h4 class="gold mb6">🤖 Free OpenRouter / Gemini API Key</h4>
-            <p class="sub mb10">Enter your free API key from OpenRouter (e.g. <code>openrouter/free</code>) or Google AI Studio to unlock direct cloud parsing.</p>
+            <h4 class="purple mb6">🤖 Free OpenRouter / Gemini API Key</h4>
             <input type="password" id="aiApiKeyInput" placeholder="sk-or-v1-..." class="mb6">
             <button class="btn primary full" onclick="saveAiApiKey()">Save AI Key</button>
           </div>
 
           <div class="form-panel">
-            <h4 class="gold mb6">⚡ Supabase Database Connection</h4>
+            <h4 class="purple mb6">⚡ Supabase Database Connection</h4>
             <input type="text" id="supabaseUrlInput" placeholder="Supabase Project URL" class="mb6">
             <input type="text" id="supabaseKeyInput" placeholder="Supabase Anon/Public Key" class="mb10">
             <button class="btn primary full" onclick="saveServerConfig()">Connect Cloud Database</button>
@@ -852,7 +853,7 @@
     return t;
   }
 
-  // Optimized Debounced Live Check on Input (150ms delay to eliminate micro-stuttering)
+  // Optimized Debounced Live Check on Input (150ms delay)
   function debouncedLiveCheck(val) {
     clearTimeout(liveCheckTimer);
     liveCheckTimer = setTimeout(() => liveCheckTyping(val), 150);
@@ -1073,11 +1074,9 @@
     const rawInput = $('aiMatchInput').value.trim();
     if (!rawInput) { toast("Please enter match commentary text", true); return; }
 
-    // Normalize Roman-Urdu / Tutti-Putti input automatically
     const text = normalizeTuttiPuttiInput(rawInput);
     let extractedData = null;
 
-    // Try Free AI API if Key exists
     if (FREE_AI_API_KEY) {
       try {
         toast("⚡ Connecting to Free Cloud AI Model...");
@@ -1123,7 +1122,6 @@ Extract into strictly valid JSON format ONLY:
       }
     }
 
-    // Local Regular Expression Fallback Engine
     if (!extractedData) {
       let foundTeams = [];
       state.teams.forEach(t => {
@@ -1159,7 +1157,6 @@ Extract into strictly valid JSON format ONLY:
       ...extractedData
     };
 
-    // Run Pre-Check Integrity Validator
     const validation = validateMatchData(candidateMatch, text);
 
     if (!validation.isValid) {
@@ -1185,7 +1182,6 @@ Extract into strictly valid JSON format ONLY:
       return;
     }
 
-    // Clear Path: Render Preview
     pendingAiMatch = candidateMatch;
     const rr1 = (candidateMatch.runs1 / (candidateMatch.overs1 || 20)).toFixed(2);
     const rr2 = (candidateMatch.runs2 / (candidateMatch.overs2 || 20)).toFixed(2);
@@ -1387,7 +1383,7 @@ Extract into strictly valid JSON format ONLY:
         <p class="sub mb10">${p.team}</p>
         <div class="grid3 inset">
           <div><span class="sub">Mat</span><br><strong>${p.calculatedMatches}</strong></div>
-          <div><span class="sub">Runs</span><br><strong class="gold">${p.calculatedRuns}</strong></div>
+          <div><span class="sub">Runs</span><br><strong class="purple">${p.calculatedRuns}</strong></div>
           <div><span class="sub">Wkts</span><br><strong class="teal">${p.calculatedWickets}</strong></div>
         </div>
       </div>
@@ -1427,7 +1423,7 @@ Extract into strictly valid JSON format ONLY:
         <div class="pvp-stat-row"><strong>${p1.name}</strong><span class="sub">Metric</span><strong>${p2.name}</strong></div>
         <div class="pvp-stat-row"><span>${p1.team}</span><span class="sub">Team</span><span>${p2.team}</span></div>
         <div class="pvp-stat-row"><span>${p1.role}</span><span class="sub">Role</span><span>${p2.role}</span></div>
-        <div class="pvp-stat-row"><strong class="gold">${p1.calculatedRuns}</strong><span class="sub">Runs</span><strong class="gold">${p2.calculatedRuns}</strong></div>
+        <div class="pvp-stat-row"><strong class="purple">${p1.calculatedRuns}</strong><span class="sub">Runs</span><strong class="purple">${p2.calculatedRuns}</strong></div>
         <div class="pvp-stat-row"><strong class="teal">${p1.calculatedWickets}</strong><span class="sub">Wickets</span><strong class="teal">${p2.calculatedWickets}</strong></div>
         <div class="pvp-stat-row"><span>${p1.calculatedMatches}</span><span class="sub">Matches</span><span>${p2.calculatedMatches}</span></div>
       `;
@@ -1484,8 +1480,8 @@ Extract into strictly valid JSON format ONLY:
       <div class="row-between mb6">
         <span>${t}</span>
         <select style="max-width:150px" onchange="setTeamTier('${t}', this.value)">
-          <option value="premier" ${state.teamTiers[t] === 'premier' ? 'selected' : ''}>Premier (Teal Dual Gradient)</option>
-          <option value="gold" ${state.teamTiers[t] === 'gold' ? 'selected' : ''}>Gold Tier (Dual Gradient)</option>
+          <option value="premier" ${state.teamTiers[t] === 'premier' ? 'selected' : ''}>Premier (Purple Dual LED)</option>
+          <option value="gold" ${state.teamTiers[t] === 'gold' ? 'selected' : ''}>Gold Tier (Dual LED)</option>
           <option value="silver" ${state.teamTiers[t] === 'silver' ? 'selected' : ''}>Silver Tier</option>
           <option value="normal" ${state.teamTiers[t] === 'normal' ? 'selected' : ''}>Normal Tier</option>
           <option value="red" ${state.teamTiers[t] === 'red' ? 'selected' : ''}>Red Barrier (Eliminated)</option>
