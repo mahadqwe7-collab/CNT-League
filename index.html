@@ -183,16 +183,16 @@
       border-bottom-right-radius: 10px;
     }
 
-    /* Table Tiers */
+    /* Table Tiers (Hardware Accelerated 50/50 Dual Gradients) */
     tr.row-premier td {
-      background: rgba(10, 32, 45, 0.85) !important;
+      background: linear-gradient(90deg, rgba(10, 32, 45, 0.95) 50%, rgba(12, 45, 40, 0.95) 50%) !important;
       border-color: rgba(39, 211, 176, 0.6) !important;
       color: var(--teal);
       box-shadow: inset 0 0 12px rgba(39, 211, 176, 0.15);
     }
 
     tr.row-gold td {
-      background: rgba(35, 28, 14, 0.85) !important;
+      background: linear-gradient(90deg, rgba(35, 28, 14, 0.95) 50%, rgba(45, 38, 12, 0.95) 50%) !important;
       border-color: rgba(245, 185, 66, 0.6) !important;
       color: var(--gold);
       box-shadow: inset 0 0 12px rgba(245, 185, 66, 0.15);
@@ -321,7 +321,7 @@
 <div class="ticker-wrap">
   <div class="wrap ticker-content">
     <span class="ticker-badge">⚡ LIVE TICKER</span>
-    <span id="tickerText">CNT-League Season Active — Unified AI Match Parser & Roman-Urdu Support Active.</span>
+    <span id="tickerText">CNT-League Season Active — Unified AI Match Parser & Debounced Validation Engine Active.</span>
   </div>
 </div>
 
@@ -524,7 +524,7 @@
           
           <div class="form-panel">
             <label class="gold">Match Summary / Raw Commentary (Any Language or Format)</label>
-            <textarea id="aiMatchInput" rows="5" placeholder="e.g. Thunderbolts ne 180 runs banaye 20 overs me vs Strikers 160/8. Ali Khan 75 runs banye or Rahul 3/28 le gaye. Thunderbolts 20 runs se jeet gaye." class="mt6" oninput="liveCheckTyping(this.value)"></textarea>
+            <textarea id="aiMatchInput" rows="5" placeholder="e.g. Thunderbolts ne 180 runs banaye 20 overs me vs Strikers 160/8. Ali Khan 75 runs banye or Rahul 3/28 le gaye. Thunderbolts 20 runs se jeet gaye." class="mt6" oninput="debouncedLiveCheck(this.value)"></textarea>
             
             <!-- Real-time Live Error Alert Box -->
             <div id="liveErrorAlert" class="live-feedback-box"></div>
@@ -741,6 +741,7 @@
   let pvpViewMode = 'table';
   let pendingAiMatch = null;
   let validationConflictMatchId = null;
+  let liveCheckTimer = null;
 
   function pushState() {
     undoStack.push(JSON.stringify(state));
@@ -851,7 +852,12 @@
     return t;
   }
 
-  // Real-time Live Check on Input (Typing feedback)
+  // Optimized Debounced Live Check on Input (150ms delay to eliminate micro-stuttering)
+  function debouncedLiveCheck(val) {
+    clearTimeout(liveCheckTimer);
+    liveCheckTimer = setTimeout(() => liveCheckTyping(val), 150);
+  }
+
   function liveCheckTyping(val) {
     const alertBox = $('liveErrorAlert');
     if (!val.trim()) {
@@ -914,7 +920,7 @@
 
   function logout() {
     sessionStorage.removeItem('cnt_admin');
-    closeModal('loginModal');
+    closeModal('adminModal');
     toast("Logged out");
   }
 
@@ -1478,8 +1484,8 @@ Extract into strictly valid JSON format ONLY:
       <div class="row-between mb6">
         <span>${t}</span>
         <select style="max-width:150px" onchange="setTeamTier('${t}', this.value)">
-          <option value="premier" ${state.teamTiers[t] === 'premier' ? 'selected' : ''}>Premier (Teal)</option>
-          <option value="gold" ${state.teamTiers[t] === 'gold' ? 'selected' : ''}>Gold Tier</option>
+          <option value="premier" ${state.teamTiers[t] === 'premier' ? 'selected' : ''}>Premier (Teal Dual Gradient)</option>
+          <option value="gold" ${state.teamTiers[t] === 'gold' ? 'selected' : ''}>Gold Tier (Dual Gradient)</option>
           <option value="silver" ${state.teamTiers[t] === 'silver' ? 'selected' : ''}>Silver Tier</option>
           <option value="normal" ${state.teamTiers[t] === 'normal' ? 'selected' : ''}>Normal Tier</option>
           <option value="red" ${state.teamTiers[t] === 'red' ? 'selected' : ''}>Red Barrier (Eliminated)</option>
