@@ -16,12 +16,12 @@
 
   <!-- Search Engine Title & Description -->
   <title>CNT-League | Premier Cricket Engine</title>
-  <meta name="description" content="Official CNT-League cricket tournament dashboard: live points table, free AI match summary parser, duplicate checking, NRR calculations, playoff brackets, scorecards, dynamic HTML injector, and player stats.">
+  <meta name="description" content="Official CNT-League cricket tournament dashboard: live points table, free unified AI match parser, NRR calculations, playoff brackets, scorecards, and player stats.">
 
   <!-- Open Graph / Social Media Preview Meta Tags -->
   <meta property="og:site_name" content="CNT-League">
   <meta property="og:title" content="CNT-League | Premier Cricket Engine">
-  <meta property="og:description" content="Live standings, free AI match summary parser, duplicate resolution, NRR calculations, playoff brackets, high-performance HTML injector, and player stats.">
+  <meta property="og:description" content="Live standings, unified AI match parser, duplicate resolution, NRR calculations, playoff brackets, and player stats.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://cntleague.vercel.app">
 
@@ -91,7 +91,7 @@
     .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
     .row-gap { display: flex; gap: 8px; }
     .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-    .chip { background: var(--inset2); border: 1px solid var(--panel-border); padding: 4px 10px; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+    .chip { background: var(--inset2); border: 1px solid var(--panel-border); padding: 6px 12px; border-radius: 20px; font-size: 12px; display: inline-flex; align-items: center; gap: 8px; }
     .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
     .inset { background: var(--inset); padding: 12px; border-radius: 10px; border: 1px solid var(--panel-border); }
@@ -321,7 +321,7 @@
 <div class="ticker-wrap">
   <div class="wrap ticker-content">
     <span class="ticker-badge">⚡ LIVE TICKER</span>
-    <span id="tickerText">CNT-League Season Active — Dynamic HTML Injector & External Bridge Ready.</span>
+    <span id="tickerText">CNT-League Season Active — Unified AI Match Parser & Roman-Urdu Support Active.</span>
   </div>
 </div>
 
@@ -334,9 +334,6 @@
       <a class="btn secondary" href="#fixtures">VIEW MATCH LOG</a>
     </div>
   </section>
-
-  <!-- DYNAMIC INJECTOR CONTAINER FOR EXTERNAL OR BATCHED MODULES -->
-  <div id="dynamicModulesContainer"></div>
 
   <section id="seasons">
     <div class="section-head"><div class="kicker">Timeline</div><h2>Explore Seasons</h2></div>
@@ -499,7 +496,7 @@
 <div id="adminModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
   <div class="modal admin-large-panel">
     <div class="admin-top-bar">
-      <div><h2 id="adminTitle">⚡ CNT-League Expanded Admin Studio</h2><span class="sub">AI Engine, Dynamic HTML Injector & External Bridge</span></div>
+      <div><h2 id="adminTitle">⚡ CNT-League Expanded Admin Studio</h2><span class="sub">Unified AI Match Parser, Multi-Language Converter & Player Control</span></div>
       <div class="admin-actions">
         <button id="btnUndo" class="btn secondary" onclick="undoAction()" disabled>↩️ Undo</button>
         <button id="btnRedo" class="btn secondary" onclick="redoAction()" disabled>↪️ Redo</button>
@@ -511,8 +508,7 @@
 
     <div class="admin-workspace">
       <aside class="admin-sidebar">
-        <button class="tab-btn active" onclick="switchTab(this,'tabAi')">🤖 AI MATCH ENGINE</button>
-        <button class="tab-btn" onclick="switchTab(this,'tabInjector')">💉 500+ LINE INJECTOR</button>
+        <button class="tab-btn active" onclick="switchTab(this,'tabAi')">🤖 UNIFIED AI ENGINE</button>
         <button class="tab-btn" onclick="switchTab(this,'tabBracket')">🏆 BRACKET & TIERS</button>
         <button class="tab-btn" onclick="switchTab(this,'tabManual')">🛠️ MANAGE DATA</button>
         <button class="tab-btn" onclick="switchTab(this,'tabAnalytics')">💡 SYSTEM ANALYTICS</button>
@@ -521,31 +517,23 @@
       </aside>
 
       <div class="admin-main-content">
-        <!-- AI MATCH ENGINE TAB -->
+        <!-- UNIFIED AI ENGINE TAB (PARSER + CONVERTER COMBINED) -->
         <div id="tabAi" class="tab-content active">
-          <h3>🤖 AI NATURAL MATCH ENGINE & CONVERTER</h3>
-          <p class="sub mb10">Type raw commentary or Roman-Urdu text. System auto-converts and validates typing live on input.</p>
+          <h3>🤖 UNIFIED AI ENGINE (Parsing + Tutti-Putti Language Converter)</h3>
+          <p class="sub mb10">Type standard English, broken English, Urdu, or Roman-Urdu commentary. AI automatically standardizes and extracts data in 1 click!</p>
           
-          <!-- Roman-Urdu / Simple English Converter -->
-          <div class="form-panel mb12" style="background: rgba(39, 211, 176, 0.04); border-color: rgba(39, 211, 176, 0.3);">
-            <h4 class="teal mb6">🌐 Simple English / Roman-Urdu Pre-Converter</h4>
-            <p class="sub mb10">Paste informal summary (e.g., <i>"Thunderbolts ne 180 runs banaye 20 overs me..."</i>) to format it into professional English summary.</p>
-            <input type="text" id="simpleUrduInput" placeholder="e.g. Thunderbolts ne 180 runs banaye 20 overs me vs Strikers 160. Ali Khan 75." class="mb6">
-            <button class="btn secondary full" onclick="convertSimpleToProfessional()">⚡ Convert to Professional Commentary</button>
-          </div>
-
           <div class="form-panel">
-            <label class="gold">Professional Match Summary (Live Check On Typing)</label>
-            <textarea id="aiMatchInput" rows="4" placeholder="e.g. Thunderbolts 180/5 (20 ov) vs Strikers 162/8 (20 ov). Ali Khan scored 75, Rahul Sharma took 3/28. Thunderbolts won by 18 runs." class="mt6" oninput="liveCheckTyping(this.value)"></textarea>
+            <label class="gold">Match Summary / Raw Commentary (Any Language or Format)</label>
+            <textarea id="aiMatchInput" rows="5" placeholder="e.g. Thunderbolts ne 180 runs banaye 20 overs me vs Strikers 160/8. Ali Khan 75 runs banye or Rahul 3/28 le gaye. Thunderbolts 20 runs se jeet gaye." class="mt6" oninput="liveCheckTyping(this.value)"></textarea>
             
             <!-- Real-time Live Error Alert Box -->
             <div id="liveErrorAlert" class="live-feedback-box"></div>
 
-            <button class="btn primary full mt10" onclick="processAiMatchInput()">⚡ Analyze & Store Match Data</button>
+            <button class="btn primary full mt10" onclick="processAiMatchInput()">⚡ Analyze, Convert & Store Match Data</button>
           </div>
 
           <div id="aiPreviewBox" class="inset mt12" style="display:none;">
-            <h4 class="gold">Match Data & NRR Extracted:</h4>
+            <h4 class="gold">Standardized Match Data Extracted:</h4>
             <div id="aiPreviewContent" class="detail-text mt6 mb10"></div>
             <div class="row-gap">
               <button class="btn primary grow" onclick="confirmSaveAiMatch()">✅ Approve & Store Match</button>
@@ -555,25 +543,6 @@
 
           <h4 class="mt16">Saved Matches</h4>
           <div id="matchesManageList" class="mt6"></div>
-        </div>
-
-        <!-- 500+ LINE HTML INJECTOR & BRIDGE TAB -->
-        <div id="tabInjector" class="tab-content">
-          <h3>💉 DYNAMIC HTML & MODULE INJECTOR</h3>
-          <p class="sub mb10">Inject 500+ lines of HTML or load dynamic content directly from another website endpoint.</p>
-
-          <div class="form-panel mb12">
-            <h4 class="gold mb6">1. Direct HTML Code Injector (Batch Fragment API)</h4>
-            <textarea id="rawHtmlInjectorInput" rows="6" placeholder="Paste 500+ lines of raw HTML code here..." class="mt6 mb6"></textarea>
-            <button class="btn primary full" onclick="injectRawHtmlSnippet()">⚡ Inject HTML to Main Dashboard</button>
-          </div>
-
-          <div class="form-panel">
-            <h4 class="teal mb6">2. Connect & Fetch HTML from External Website</h4>
-            <p class="sub mb10">Fetch external HTML templates or API data directly into your dashboard (Requires CORS enablement or server proxy).</p>
-            <input type="url" id="externalSiteUrlInput" placeholder="https://my-external-website.com/module.html" class="mb6">
-            <button class="btn secondary full" onclick="fetchAndInjectExternalSite()">🌐 Fetch & Bridge External Content</button>
-          </div>
         </div>
 
         <!-- BRACKET & TIER CONTROL TAB -->
@@ -633,12 +602,12 @@
             
             <!-- Clear Player Stats Utility -->
             <div class="inset mb10" style="background: rgba(255, 85, 85, 0.05); border-color: rgba(255, 85, 85, 0.2);">
-              <span class="kicker red">Player Career Records Control</span>
+              <span class="kicker red">Master Stats Control</span>
               <p class="sub mt6 mb6">Reset accumulated runs, wickets, and matches for all players to zero without deleting their profiles.</p>
               <button class="btn danger mini" onclick="resetAllPlayerStats()">🔄 Reset All Player Career Stats</button>
             </div>
 
-            <div class="grid2 mt6">
+            <div class="grid2 mt6 mb10">
               <input type="text" id="manualPlayerName" placeholder="Player name" maxlength="40">
               <select id="manualPlayerTeam" aria-label="Player Team"></select>
               <select id="manualPlayerRole" aria-label="Player Role"><option>Batter</option><option>Bowler</option><option>All-Rounder</option></select>
@@ -647,7 +616,9 @@
               <input type="number" min="0" id="manualPlayerWickets" placeholder="Base Wickets">
               <button class="btn primary span2" onclick="addPlayer()">Save Player</button>
             </div>
-            <div id="playersListContainer" class="chips mt10"></div>
+            
+            <h4 class="gold mb6">Existing Roster (Remove Stats or Profiles):</h4>
+            <div id="playersListContainer" style="display:flex; flex-direction:column; gap:8px;" class="mt6"></div>
           </div>
           <hr>
           <div>
@@ -659,22 +630,22 @@
 
         <!-- SYSTEM ANALYTICS & SUGGESTIONS TAB -->
         <div id="tabAnalytics" class="tab-content">
-          <h3>💡 SYSTEM ANALYTICS & CODE SUGGESTIONS</h3>
-          <p class="sub mb10">Comprehensive static recommendations for your tournament web application architecture (Offline focus).</p>
+          <h3>💡 SYSTEM ANALYTICS & OFFLINE ARCHITECTURE SUGGESTIONS</h3>
+          <p class="sub mb10">Architectural & code recommendations to optimize your local tournament application.</p>
           
           <div class="inset mb10">
-            <h4 class="gold mb6">1. Local Storage Backup & Data Export</h4>
-            <p class="sub">Currently all tournament data resides in browser `localStorage`. Consider adding a JSON Export/Import tool under Server settings so admins can backup season data across devices.</p>
+            <h4 class="gold mb6">1. Local Storage Backup & Data Export (JSON Download)</h4>
+            <p class="sub">Since all data is stored in browser `localStorage`, adding a one-click <code>Export JSON Backup</code> button under Server settings allows you to transfer all seasons and stats between different laptops or phones.</p>
           </div>
 
           <div class="inset mb10">
-            <h4 class="gold mb6">2. Match Sorting & Filtering</h4>
-            <p class="sub">As match logs grow larger, adding dynamic filters (Filter by Team, Sort by Highest Run Rate) will improve scorecard discoverability.</p>
+            <h4 class="gold mb6">2. Tournament Data Indexing & Fast Search</h4>
+            <p class="sub">As you add 50+ matches per season, pre-calculating team totals once during state changes (instead of re-calculating points on every re-render) keeps page speed lightning fast on older mobile devices.</p>
           </div>
 
           <div class="inset mb10">
-            <h4 class="gold mb6">3. Enhanced PvP Graphic Scaling</h4>
-            <p class="sub">The player comparison tool uses relative percentage bars. Normalizing bars against career strike-rates or economy rates provides deeper insights for all-rounders.</p>
+            <h4 class="gold mb6">3. Normalized Player Performance Metrics</h4>
+            <p class="sub">Currently, player comparisons show raw runs and wickets. Normalizing metrics by adding strike rates ($Runs / Balls \times 100$) and economy rates ($Runs / Overs$) provides a professional broadcast-style PvP comparison.</p>
           </div>
         </div>
 
@@ -827,6 +798,31 @@
     }
   }
 
+  // PLAYER STATS MANAGE UTILITIES
+  function removePlayerStats(playerId) {
+    const player = state.players.find(p => p.id == playerId);
+    if (!player) return;
+    if (confirm(`Reset career stats for ${player.name} to zero?`)) {
+      pushState();
+      player.runs = 0;
+      player.wickets = 0;
+      player.matches = 0;
+      renderAll();
+      toast(`Stats reset for ${player.name}`);
+    }
+  }
+
+  function deletePlayerProfile(playerId) {
+    const player = state.players.find(p => p.id == playerId);
+    if (!player) return;
+    if (confirm(`Delete ${player.name} completely from roster?`)) {
+      pushState();
+      state.players = state.players.filter(p => p.id != playerId);
+      renderAll();
+      toast(`Player ${player.name} removed`);
+    }
+  }
+
   function resetAllPlayerStats() {
     if (confirm("Are you sure you want to reset all player career runs, wickets, and matches to zero?")) {
       pushState();
@@ -840,69 +836,19 @@
     }
   }
 
-  // 500+ LINE HTML INJECTOR ENGINE (Off-DOM DocumentFragment Batching)
-  function injectRawHtmlSnippet() {
-    const htmlString = $('rawHtmlInjectorInput').value.trim();
-    if (!htmlString) { toast("Paste HTML snippet first", true); return; }
+  // TUTTI-PUTTI / ROMAN-URDU DIRECT CONVERTER PRE-PARSER
+  function normalizeTuttiPuttiInput(rawText) {
+    let t = rawText;
+    t = t.replace(/ne\s+/gi, " ");
+    t = t.replace(/banaye|banye|score\s+kiya/gi, "scored");
+    t = t.replace(/overs\s+me|ovs\s+me/gi, "overs)");
+    t = t.replace(/jeet\s+gaya|jeeta|won\s+the\s+match|se\s+jeet/gi, "won by");
 
-    try {
-      const container = $('dynamicModulesContainer');
-      const range = document.createRange();
-      range.selectNode(container);
-      const fragment = range.createContextualFragment(htmlString);
-      
-      container.appendChild(fragment);
-      $('rawHtmlInjectorInput').value = '';
-      toast("500+ line HTML snippet successfully injected!");
-    } catch (e) {
-      console.error(e);
-      toast("Failed to parse HTML snippet", true);
-    }
-  }
-
-  // EXTERNAL WEBSITE BRIDGE (FETCH API)
-  async function fetchAndInjectExternalSite() {
-    const url = $('externalSiteUrlInput').value.trim();
-    if (!url) { toast("Enter valid external URL", true); return; }
-
-    try {
-      toast("Fetching external website content...");
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-      const text = await res.text();
-
-      const container = $('dynamicModulesContainer');
-      const range = document.createRange();
-      range.selectNode(container);
-      const fragment = range.createContextualFragment(text);
-
-      container.appendChild(fragment);
-      toast("External content bridged successfully!");
-    } catch (err) {
-      console.error(err);
-      toast("Connection blocked by CORS or Invalid URL. See setup guide.", true);
-    }
-  }
-
-  // Simple Urdu / Roman-Urdu Converter
-  function convertSimpleToProfessional() {
-    let input = $('simpleUrduInput').value.trim();
-    if (!input) { toast("Enter text in simple English or Roman-Urdu first", true); return; }
-
-    input = input.replace(/ne\s+/gi, " ");
-    input = input.replace(/banaye|banye/gi, "scored");
-    input = input.replace(/overs\s+me|ovs\s+me/gi, "overs)");
-    input = input.replace(/jeet\s+gaya|jeeta|won\s+the\s+match/gi, "won by");
-
-    let formatted = input;
-    state.teams.forEach(t => {
-      const reg = new RegExp(t, 'gi');
-      formatted = formatted.replace(reg, t);
+    state.teams.forEach(team => {
+      const reg = new RegExp(team, 'gi');
+      t = t.replace(reg, team);
     });
-
-    $('aiMatchInput').value = formatted;
-    liveCheckTyping(formatted);
-    toast("Converted to commentary format!");
+    return t;
   }
 
   // Real-time Live Check on Input (Typing feedback)
@@ -921,7 +867,7 @@
     const scoreMatches = val.match(/(\d+)(?:\/(\d+))?/gi) || [];
 
     if (foundTeams.length < 2 || scoreMatches.length < 2) {
-      alertBox.innerText = `⚠️ Typing Check: Enter 2 valid team names and 2 scores (e.g. 180/5). Detected Teams: ${foundTeams.join(', ') || 'None'}`;
+      alertBox.innerText = `⚠️ Live Typing Check: Enter 2 valid team names and 2 scores (e.g. 180/5). Detected Teams: ${foundTeams.join(', ') || 'None'}`;
       alertBox.style.display = 'block';
     } else {
       alertBox.style.display = 'none';
@@ -968,7 +914,7 @@
 
   function logout() {
     sessionStorage.removeItem('cnt_admin');
-    closeModal('adminModal');
+    closeModal('loginModal');
     toast("Logged out");
   }
 
@@ -1116,11 +1062,13 @@
     };
   }
 
-  // Master AI Parser with Cloud Free AI API + Local Fallback
+  // Master Unified AI Parser with Cloud Free AI API + Local Fallback
   async function processAiMatchInput() {
-    const text = $('aiMatchInput').value.trim();
-    if (!text) { toast("Please enter match commentary text", true); return; }
+    const rawInput = $('aiMatchInput').value.trim();
+    if (!rawInput) { toast("Please enter match commentary text", true); return; }
 
+    // Normalize Roman-Urdu / Tutti-Putti input automatically
+    const text = normalizeTuttiPuttiInput(rawInput);
     let extractedData = null;
 
     // Try Free AI API if Key exists
@@ -1128,7 +1076,7 @@
       try {
         toast("⚡ Connecting to Free Cloud AI Model...");
         const prompt = `
-Analyze this cricket match commentary:
+Analyze & convert this cricket match commentary (could be in Roman-Urdu, broken English, or standard commentary):
 "${text}"
 
 Available teams: ${JSON.stringify(state.teams)}
@@ -1162,9 +1110,9 @@ Extract into strictly valid JSON format ONLY:
         const data = await res.json();
         const jsonStr = data.choices[0].message.content.replace(/```json|```/g, '').trim();
         extractedData = JSON.parse(jsonStr);
-        toast("Cloud AI Extraction successful!");
+        toast("Cloud AI Conversion & Extraction successful!");
       } catch (e) {
-        console.warn("Cloud AI request failed, dropping back to Local Heuristic Parser.", e);
+        console.warn("Cloud AI request failed, dropping back to Local Engine.", e);
         toast("Cloud AI failed, fallback to Local Engine", true);
       }
     }
@@ -1243,7 +1191,7 @@ Extract into strictly valid JSON format ONLY:
       `Summary: ${candidateMatch.summary}`;
 
     $('aiPreviewBox').style.display = 'block';
-    toast("Match auto-checked & validated!");
+    toast("Match converted & validated!");
   }
 
   function resolveMatchConflict(action) {
@@ -1540,6 +1488,16 @@ Extract into strictly valid JSON format ONLY:
     `).join('');
 
     $('teamsListContainer').innerHTML = state.teams.map(t => `<span class="chip">${t} <button onclick="deleteTeam('${t}')" style="background:none;border:none;color:var(--red);cursor:pointer">×</button></span>`).join('');
+
+    $('playersListContainer').innerHTML = state.players.map(p => `
+      <div class="inset row-between" style="padding:8px 12px;">
+        <span><strong>${p.name}</strong> (${p.team}) — ${p.runs || 0} Runs / ${p.wickets || 0} Wkts</span>
+        <div class="row-gap">
+          <button class="btn mini secondary" onclick="removePlayerStats(${p.id})">🧹 Clear Stats</button>
+          <button class="btn mini danger" onclick="deletePlayerProfile(${p.id})">❌ Delete</button>
+        </div>
+      </div>
+    `).join('');
 
     $('matchesManageList').innerHTML = state.matches.map(m => `
       <div class="inset mb6 row-between">
