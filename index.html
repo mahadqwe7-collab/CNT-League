@@ -101,14 +101,25 @@
     .badge-count { background: var(--red); color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 800; margin-left: 4px; }
 
     /* -------------------------------------------------------------
-       ANIMATED 50/50 DUAL LED/RGB BORDER & SHADOW KEYFRAMES
+       ANIMATED 50/50 RGB / LED KEYFRAMES & UTILITIES
        ------------------------------------------------------------- */
-    @keyframes ledRotate {
+    @keyframes ledGradientShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
+    /* 1. ANIMATED MAIN HEADING TEXT COLOR (50/50 Purple & Electric Cyan Split Animation) */
+    .animated-heading {
+      background: linear-gradient(90deg, #d500f9 0%, #d500f9 45%, #00e5ff 55%, #00e5ff 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: ledGradientShift 3s ease infinite;
+    }
+
+    /* 2. ANIMATED 50/50 LED BORDER CARD CONTAINER */
     .led-border {
       position: relative;
       border: 2px solid transparent !important;
@@ -118,7 +129,7 @@
       background-origin: border-box !important;
       background-clip: padding-box, border-box !important;
       background-size: 200% 200% !important;
-      animation: ledRotate 4s ease infinite !important;
+      animation: ledGradientShift 4s ease infinite !important;
       box-shadow: 0 0 15px rgba(213, 0, 249, 0.25), 0 0 15px rgba(0, 225, 255, 0.2) !important;
     }
 
@@ -142,7 +153,6 @@
     .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
     .eyebrow { display: inline-block; border: 1px solid rgba(179, 136, 255, .3); background: rgba(179, 136, 255, .08); color: var(--purple); padding: 5px 14px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
     h1 { font-size: clamp(32px, 6.5vw, 64px); line-height: 1.05; letter-spacing: -1.5px; margin: 16px 0; font-weight: 900; }
-    .gradient { background: linear-gradient(90deg, var(--purple), var(--electric-cyan)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
     /* Buttons */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; border-radius: var(--radius-md); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; border: none; min-height: 42px; transition: transform .15s, background .2s; }
@@ -167,7 +177,7 @@
     .season-card { cursor: pointer; transition: border-color 0.2s, transform 0.2s; }
     .season-card:hover { border-color: var(--purple); transform: translateY(-2px); }
     .season-card.active { border-color: var(--violet-neon); background: rgba(213, 0, 249, 0.08); }
-    .transparent-panel { background: rgba(12, 4, 20, 0.6) !important; border: 1px solid rgba(179, 136, 255, 0.08); overflow-x: auto; }
+    .transparent-panel { background: rgba(12, 4, 20, 0.6) !important; overflow-x: auto; }
 
     /* Tables */
     table { width: 100%; border-collapse: collapse; }
@@ -344,29 +354,33 @@
 <div class="ticker-wrap">
   <div class="wrap ticker-content">
     <span class="ticker-badge">⚡ LIVE TICKER</span>
-    <span id="tickerText">CNT-League Season Active — High-Contrast Dark Theme & Animated 50/50 Dual LED Glow Active.</span>
+    <span id="tickerText">CNT-League Season Active — Animated Heading & Section LED Panels Active.</span>
   </div>
 </div>
 
 <main id="home" class="wrap">
+  <!-- HERO SECTION WITH ANIMATED 50/50 MAIN HEADING COLOR -->
   <section class="hero">
     <span class="eyebrow" id="siteEyebrow">TOURNAMENT DASHBOARD</span>
-    <h1>THE GAME.<br><span class="gradient">THE GLORY.</span></h1>
+    <h1>THE GAME.<br><span class="animated-heading">THE GLORY.</span></h1>
     <div class="hero-actions">
       <a class="btn primary" href="#standings">VIEW STANDINGS</a>
       <a class="btn secondary" href="#fixtures">VIEW MATCH LOG</a>
     </div>
   </section>
 
+  <!-- SECTION 1: SEASONS (LED ANIMATED BORDER) -->
   <section id="seasons">
     <div class="section-head"><div class="kicker">Timeline</div><h2>Explore Seasons</h2></div>
-    <div class="season-grid" id="seasonsGrid"></div>
+    <div class="panel led-border">
+      <div class="season-grid" id="seasonsGrid"></div>
+    </div>
   </section>
 
-  <!-- Points Table -->
+  <!-- SECTION 2: STANDINGS POINTS TABLE (LED ANIMATED BORDER) -->
   <section id="standings">
     <div class="section-head"><div class="kicker">Live Overview</div><h2 id="standingsTitle">Points Table</h2></div>
-    <div class="panel transparent-panel">
+    <div class="panel transparent-panel led-border">
       <table class="card-table">
         <caption class="sr-only">Points table</caption>
         <thead>
@@ -381,16 +395,19 @@
     </div>
   </section>
 
-  <!-- Playoff Bracket -->
+  <!-- SECTION 3: PLAYOFF BRACKET (LED ANIMATED BORDER) -->
   <section id="bracket">
     <div class="section-head"><div class="kicker">Knockouts</div><h2>Playoff Bracket</h2></div>
     <div id="championBanner"></div>
-    <div class="bracket-tree-container" id="bracketGrid"></div>
+    <div class="panel led-border">
+      <div class="bracket-tree-container" id="bracketGrid"></div>
+    </div>
   </section>
 
+  <!-- SECTION 4: FIXTURES MATCH CENTRE (LED ANIMATED BORDER) -->
   <section id="fixtures">
     <div class="section-head"><div class="kicker">Match Centre</div><h2>Fixtures & Scorecards</h2></div>
-    <div class="panel transparent-panel">
+    <div class="panel transparent-panel led-border">
       <table>
         <caption class="sr-only">Match log</caption>
         <thead>
@@ -407,6 +424,7 @@
     </div>
   </section>
 
+  <!-- SECTION 5: PLAYER PVP COMPARISON (LED ANIMATED BORDER) -->
   <section id="pvp">
     <div class="section-head row-between">
       <div><div class="kicker">Head to Head</div><h2>Player Comparison</h2></div>
@@ -425,6 +443,7 @@
     </div>
   </section>
 
+  <!-- SECTION 6: PLAYER ROSTER (LED ANIMATED BORDER) -->
   <section id="players">
     <div class="section-head row-between">
       <div><div class="kicker">Full Roster</div><h2>Player Stats & Records</h2></div>
@@ -434,22 +453,25 @@
         </select>
       </div>
     </div>
-    <div class="toolbar">
-      <input id="playerSearch" type="search" placeholder="Search player or team..." aria-label="Search players" oninput="renderPlayers()" style="max-width:240px">
-      <select id="teamFilter" aria-label="Filter by team" onchange="renderPlayers()" style="max-width:180px"><option value="All">All Teams</option></select>
-      <select id="roleFilter" aria-label="Filter by role" onchange="renderPlayers()" style="max-width:150px">
-        <option value="All">All Roles</option>
-        <option>Batter</option>
-        <option>Bowler</option>
-        <option>All-Rounder</option>
-      </select>
+    <div class="panel led-border">
+      <div class="toolbar">
+        <input id="playerSearch" type="search" placeholder="Search player or team..." aria-label="Search players" oninput="renderPlayers()" style="max-width:240px">
+        <select id="teamFilter" aria-label="Filter by team" onchange="renderPlayers()" style="max-width:180px"><option value="All">All Teams</option></select>
+        <select id="roleFilter" aria-label="Filter by role" onchange="renderPlayers()" style="max-width:150px">
+          <option value="All">All Roles</option>
+          <option>Batter</option>
+          <option>Bowler</option>
+          <option>All-Rounder</option>
+        </select>
+      </div>
+      <div class="player-grid" id="playerGrid"></div>
     </div>
-    <div class="player-grid" id="playerGrid"></div>
   </section>
 
+  <!-- SECTION 7: FEEDBACK (LED ANIMATED BORDER) -->
   <section id="feedback">
     <div class="section-head"><div class="kicker">Support & Feedback</div><h2>Submit Message</h2></div>
-    <div class="panel pad" style="max-width:650px;margin:auto">
+    <div class="panel pad led-border" style="max-width:650px;margin:auto">
       <form onsubmit="submitFeedback(event)">
         <label class="sr-only" for="feedbackName">Your name</label>
         <input type="text" id="feedbackName" placeholder="Your Name" maxlength="60" required class="mb10">
@@ -515,7 +537,7 @@
   </div>
 </div>
 
-<!-- EXPANDED ADMIN WORKSPACE MODAL -->
+<!-- EXPANDED ADMIN WORKSPACE MODAL (LED ANIMATED BORDER) -->
 <div id="adminModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
   <div class="modal admin-large-panel led-border">
     <div class="admin-top-bar">
