@@ -101,25 +101,106 @@
     .badge-count { background: var(--red); color: white; border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 800; margin-left: 4px; }
 
     /* -------------------------------------------------------------
-       ANIMATED 50/50 RGB / LED KEYFRAMES & UTILITIES
+       SUPER ULTRA SMOOTH ANIMATED LED & GRADIENT KEYFRAMES
        ------------------------------------------------------------- */
-    @keyframes ledGradientShift {
+    @keyframes smoothLedShift {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
 
-    /* 1. ANIMATED MAIN HEADING TEXT COLOR (50/50 Purple & Electric Cyan Split Animation) */
-    .animated-heading {
-      background: linear-gradient(90deg, #d500f9 0%, #d500f9 45%, #00e5ff 55%, #00e5ff 100%);
+    /* 1. CNT-LEAGUE BRAND WORD & BOUNDARY ANIMATION */
+    .brand {
+      font-size: clamp(18px, 4vw, 22px);
+      font-weight: 900;
+      letter-spacing: 1px;
+      padding: 6px 14px;
+      border-radius: var(--radius-md);
+      position: relative;
+      border: 2px solid transparent;
+      background: 
+        linear-gradient(rgba(14, 8, 24, 0.95), rgba(14, 8, 24, 0.95)), 
+        linear-gradient(90deg, #d500f9 0%, #00e5ff 50%, #d500f9 100%);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      background-size: 200% 200%;
+      animation: smoothLedShift 4s linear infinite;
+      box-shadow: 0 0 12px rgba(213, 0, 249, 0.2);
+    }
+    .brand-text-animated {
+      background: linear-gradient(90deg, #ffffff 0%, #d500f9 50%, #00e5ff 100%);
       background-size: 200% 200%;
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      animation: ledGradientShift 3s ease infinite;
+      animation: smoothLedShift 3s linear infinite;
     }
 
-    /* 2. ANIMATED 50/50 LED BORDER CARD CONTAINER */
+    /* 2. OFFICIAL TAGLINE WORD & BOUNDARY ANIMATION */
+    .animated-eyebrow-container {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 30px;
+      position: relative;
+      border: 2px solid transparent;
+      background: 
+        linear-gradient(rgba(14, 8, 24, 0.95), rgba(14, 8, 24, 0.95)), 
+        linear-gradient(90deg, #00e5ff 0%, #d500f9 50%, #00e5ff 100%);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      background-size: 200% 200%;
+      animation: smoothLedShift 3.5s linear infinite;
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+    }
+    .animated-eyebrow-text {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      background: linear-gradient(90deg, #00e5ff 0%, #b388ff 50%, #d500f9 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: smoothLedShift 3.5s linear infinite;
+    }
+
+    /* 3. THE GAME. THE GLORY. (BOTH LINES ANIMATED WORD & GRADIENT) */
+    .animated-main-heading {
+      background: linear-gradient(90deg, #ffffff 0%, #d500f9 35%, #00e5ff 70%, #ffffff 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: smoothLedShift 4s linear infinite;
+    }
+
+    /* 4. ADMIN LOG-IN BUTTON ANIMATED BOUNDARY & TEXT */
+    .admin-nav-btn {
+      position: relative;
+      border: 2px solid transparent;
+      background: 
+        linear-gradient(rgba(26, 12, 42, 0.95), rgba(26, 12, 42, 0.95)), 
+        linear-gradient(90deg, #d500f9 0%, #00e5ff 50%, #d500f9 100%);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      background-size: 200% 200%;
+      animation: smoothLedShift 3s linear infinite;
+      color: #fff;
+      font: inherit;
+      font-size: 12px;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(213, 0, 249, 0.4);
+      transition: transform 0.2s ease;
+    }
+    .admin-nav-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.6);
+    }
+
+    /* 5. SECTIONS 50/50 ANIMATED LED BOUNDARY CONTAINER */
     .led-border {
       position: relative;
       border: 2px solid transparent !important;
@@ -129,29 +210,21 @@
       background-origin: border-box !important;
       background-clip: padding-box, border-box !important;
       background-size: 200% 200% !important;
-      animation: ledGradientShift 4s ease infinite !important;
+      animation: smoothLedShift 4s linear infinite !important;
       box-shadow: 0 0 15px rgba(213, 0, 249, 0.25), 0 0 15px rgba(0, 225, 255, 0.2) !important;
     }
 
-    /* Header & Ticker */
-    .ticker-wrap { background: rgba(12, 4, 20, 0.95); border-bottom: 1px solid var(--panel-border); font-size: 12px; padding: 6px 0; }
-    .ticker-content { display: flex; align-items: center; gap: 12px; }
-    .ticker-badge { background: linear-gradient(90deg, var(--violet-neon) 50%, var(--electric-cyan) 50%); color: #060209; font-weight: 900; font-size: 10px; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; flex-shrink: 0; }
-
+    /* Header Nav */
     header { position: sticky; top: 0; z-index: 100; background: rgba(6, 2, 9, 0.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--panel-border); }
     nav { min-height: 68px; display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-    .brand { font-size: clamp(18px, 4vw, 22px); font-weight: 900; letter-spacing: 1px; }
-    .brand span { color: var(--purple); }
     .mobile-menu-btn { display: none; background: transparent; border: 1px solid var(--panel-border); color: var(--purple); font-size: 22px; padding: 4px 12px; border-radius: var(--radius-sm); cursor: pointer; }
     .links { display: flex; gap: clamp(8px, 1.8vw, 18px); align-items: center; }
     .links a { font-size: clamp(11px, 1.4vw, 13px); color: #d6c6f0; font-weight: 700; transition: color .2s; }
     .links a:hover { color: var(--purple); }
-    .admin-nav-btn { background: linear-gradient(90deg, var(--purple-glow), var(--violet-neon)); color: #fff; border: 0; font: inherit; font-size: 12px; padding: 8px 18px; border-radius: 30px; font-weight: 800; cursor: pointer; box-shadow: 0 0 15px rgba(124, 77, 255, 0.5); }
 
-    /* Hero */
+    /* Hero Layout */
     .hero { padding: clamp(30px, 8vw, 60px) 0 clamp(20px, 5vw, 35px); }
     .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    .eyebrow { display: inline-block; border: 1px solid rgba(179, 136, 255, .3); background: rgba(179, 136, 255, .08); color: var(--purple); padding: 5px 14px; border-radius: 30px; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; }
     h1 { font-size: clamp(32px, 6.5vw, 64px); line-height: 1.05; letter-spacing: -1.5px; margin: 16px 0; font-weight: 900; }
 
     /* Buttons */
@@ -164,7 +237,7 @@
     .danger { background: var(--red); color: #fff; }
     .mini { min-height: 32px; padding: 3px 12px; font-size: 11px; }
 
-    /* Sections */
+    /* Sections Layout */
     section { padding: clamp(20px, 4vw, 35px) 0; }
     .section-head { margin-bottom: 16px; }
     .kicker { color: var(--purple); font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; }
@@ -336,7 +409,10 @@
 
 <header>
   <nav class="wrap" aria-label="Main Navigation">
-    <a class="brand" href="#home">CNT-<span>LEAGUE</span></a>
+    <!-- 1. CNT-LEAGUE BRAND WITH ANIMATED WORD & BOUNDARY -->
+    <a class="brand" href="#home">
+      <span class="brand-text-animated">CNT-LEAGUE</span>
+    </a>
     <button class="mobile-menu-btn" id="mobileMenuToggle" onclick="toggleMobileMenu()" aria-label="Toggle navigation" aria-expanded="false" aria-controls="navLinks">☰</button>
     <div class="links" id="navLinks">
       <a href="#seasons" onclick="closeMobileMenu()">SEASONS</a>
@@ -346,23 +422,26 @@
       <a href="#pvp" onclick="closeMobileMenu()">PVP COMPARE</a>
       <a href="#players" onclick="closeMobileMenu()">CAREERS</a>
       <a href="#feedback" onclick="closeMobileMenu()">FEEDBACK</a>
+      
+      <!-- 5. ADMIN LOG-IN BUTTON WITH ANIMATED BOUNDARY & GLOW -->
       <button class="admin-nav-btn" id="adminNavBtn" onclick="adminNavClick(); closeMobileMenu();">ADMIN LOG-IN</button>
     </div>
   </nav>
 </header>
 
-<div class="ticker-wrap">
-  <div class="wrap ticker-content">
-    <span class="ticker-badge">⚡ LIVE TICKER</span>
-    <span id="tickerText">CNT-League Season Active — Animated Heading & Section LED Panels Active.</span>
-  </div>
-</div>
+<!-- Note: Live Ticker Removed as requested -->
 
 <main id="home" class="wrap">
-  <!-- HERO SECTION WITH ANIMATED 50/50 MAIN HEADING COLOR -->
+  <!-- HERO SECTION -->
   <section class="hero">
-    <span class="eyebrow" id="siteEyebrow">TOURNAMENT DASHBOARD</span>
-    <h1>THE GAME.<br><span class="animated-heading">THE GLORY.</span></h1>
+    <!-- 3. OFFICIAL TAGLINE WORD & BOUNDARY ANIMATED BADGE -->
+    <div class="animated-eyebrow-container">
+      <span class="animated-eyebrow-text" id="siteEyebrow">OFFICIAL CNT TOURNAMENT DASHBOARD</span>
+    </div>
+
+    <!-- 4. "THE GAME. THE GLORY." FULL LINE ANIMATED WORD & GRADIENT -->
+    <h1 class="animated-main-heading">THE GAME.<br>THE GLORY.</h1>
+
     <div class="hero-actions">
       <a class="btn primary" href="#standings">VIEW STANDINGS</a>
       <a class="btn secondary" href="#fixtures">VIEW MATCH LOG</a>
@@ -1272,7 +1351,6 @@ Extract into strictly valid JSON format ONLY:
   }
 
   function renderAll() {
-    $('siteEyebrow').innerText = state.eyebrow || "OFFICIAL TOURNAMENT DASHBOARD";
     renderSeasons();
     renderStandings();
     renderBracket();
